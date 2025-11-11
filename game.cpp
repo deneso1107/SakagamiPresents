@@ -36,18 +36,41 @@ void gameupdate(uint64_t deltatime)
 
 void gamedraw(uint64_t deltatime) 
 {
-	// レンダリング前処理
+	// ========== 第1パス: シャドウマップ生成 ==========
+	if (Renderer::IsShadowMapEnabled())
+	{
+		Renderer::BeginShadowPass();
+
+		// シャドウマップ生成用の描画
+		float scaledDelta = GameManager::Instance().GetScaledDelta();
+		SceneManager::Draw(scaledDelta);  // 各オブジェクトが自動的にシャドウマップ用シェーダーを使用
+
+		Renderer::EndShadowPass();
+	}
+
+	// ========== 第2パス: 通常描画 ==========
 	Renderer::Begin();
 
-	// シーンマネージャの更新
+	// 通常描画
 	float scaledDelta = GameManager::Instance().GetScaledDelta();
 	SceneManager::Draw(scaledDelta);
 
 	// デバッグUIの描画
 	DebugUI::Render();
 
-	// レンダリング後処理
 	Renderer::End();
+	//// レンダリング前処理
+	//Renderer::Begin();
+
+	//// シーンマネージャの更新
+	//float scaledDelta = GameManager::Instance().GetScaledDelta();
+	//SceneManager::Draw(scaledDelta);
+
+	//// デバッグUIの描画
+	//DebugUI::Render();
+
+	//// レンダリング後処理
+	//Renderer::End();
 }
 
 void gamedispose() 

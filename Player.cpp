@@ -59,6 +59,16 @@ void Player::Init()
 		"shader/vertexLightingVS.hlsl",				// 頂点シェーダー
 		"shader/vertexLightingPS.hlsl");			// ピクセルシェーダー
 
+	// 通常描画用シェーダー（影あり）- 新規
+	m_shadowShader.Create(
+		"shader/vertexLightingShadowVS.hlsl",
+		"shader/vertexLightingShadowPS.hlsl");
+
+	// シャドウマップ生成用シェーダー - 新規
+	m_shadowMapShader.Create(
+		"shader/ShadowMapVS.hlsl",
+		"shader/ShadowMapPS.hlsl");
+
 	DebugUI::RedistDebugFunction(DebugPlayerMoveParameter);
 
 	//m_physics.SetPosition(m_Position);
@@ -517,7 +527,25 @@ void Player::Draw()
 
 	Renderer::SetWorldMatrix(&worldmtx);		// GPUにセット
 
-	m_shader.SetGPU();
+	if (Renderer::GetRenderMode() == Renderer::RenderMode::SHADOW_MAP)
+	{
+		// 第1パス：シャドウマップ生成
+		m_shadowMapShader.SetGPU();
+	}
+	else
+	{
+		// 第2パス：通常描画
+		if (Renderer::IsShadowMapEnabled())
+		{
+			// 影付き描画
+			m_shadowShader.SetGPU();
+		}
+		else
+		{
+			// 影なし描画（既存の動作）
+			m_shader.SetGPU();
+		}
+	}
 
 	m_meshrenderer.Draw();
 

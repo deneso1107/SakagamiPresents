@@ -12,24 +12,74 @@
 // 平行光源の方向セット
 void CarDriveScene::debugDirectionalLight()
 {
-	static Vector4 direction = Vector4(0.0f, 0.0f,  1.0f, 0.0f); // Z軸+方向に光を当てる	
+	static Vector4 direction = Vector4(0.0f, -1.0f, 1.0f, 0.0f);
+	static bool enableShadow = true;
+	static bool showShadowMap = false;  // 追加
+
 	ImGui::Begin("debug Directional Light");
+	ImGui::SliderFloat3("direction", &direction.x, -1, 1);
+	ImGui::Checkbox("Enable Shadow", &enableShadow);
+	ImGui::Checkbox("Show Shadow Map", &showShadowMap);  // 追加
 
-	ImGui::SliderFloat3("direction ",&direction.x, -1, 1);
-	direction.Normalize();										// 正規化
+	Renderer::EnableShadowMap(enableShadow);
 
+	direction.Normalize();
+
+	// ライト情報のセット
 	LIGHT light{};
 	light.Enable = true;
 	light.Direction = direction;
-
 	light.Direction.Normalize();
 	light.Ambient = Color(0.2f, 0.2f, 0.2f, 1.0f);
 	light.Diffuse = Color(1.0f, 1.0f, 1.0f, 1.0f);
-
-	Vector4 Direction = Vector4(direction.x, direction.y,direction.z, 0.0f);
 	Renderer::SetLight(light);
 
+	// ライトビュー・プロジェクション行列の計算
+	DirectX::XMVECTOR lightPos = DirectX::XMVectorSet(
+		-direction.x * 50.0f,
+		-direction.y * 50.0f,
+		-direction.z * 50.0f,
+		1.0f
+	);
+
+	DirectX::XMVECTOR targetPos = DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);
+	DirectX::XMVECTOR upVec = DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+
+	DirectX::XMMATRIX lightView = DirectX::XMMatrixLookAtLH(lightPos, targetPos, upVec);
+	DirectX::XMMATRIX lightProjection = DirectX::XMMatrixOrthographicLH(100.0f, 100.0f, 1.0f, 100.0f);
+
+	Renderer::SetLightMatrix(lightView, lightProjection);
+
+	// シャドウマップの可視化
+	if (showShadowMap && enableShadow)
+	{
+		ID3D11ShaderResourceView* shadowSRV = Renderer::GetShadowMapSRV();
+		if (shadowSRV)
+		{
+			ImGui::Text("Shadow Map:");
+			ImGui::Image((void*)shadowSRV, ImVec2(256, 256));
+		}
+	}
+
 	ImGui::End();
+	//static Vector4 direction = Vector4(0.0f, 0.0f,  1.0f, 0.0f); // Z軸+方向に光を当てる	
+	//ImGui::Begin("debug Directional Light");
+
+	//ImGui::SliderFloat3("direction ",&direction.x, -1, 1);
+	//direction.Normalize();										// 正規化
+
+	//LIGHT light{};
+	//light.Enable = true;
+	//light.Direction = direction;
+
+	//light.Direction.Normalize();
+	//light.Ambient = Color(0.2f, 0.2f, 0.2f, 1.0f);
+	//light.Diffuse = Color(1.0f, 1.0f, 1.0f, 1.0f);
+
+	//Vector4 Direction = Vector4(direction.x, direction.y,direction.z, 0.0f);
+	//Renderer::SetLight(light);
+
+	//ImGui::End();
 }
 
 // デバッグフリーカメラ
@@ -105,8 +155,14 @@ CarDriveScene::CarDriveScene()
 
 void CarDriveScene::init()
 {
-	// カメラ(3D)の初期化
-
+	if (Renderer::GetDevice() == nullptr)
+	{
+		MessageBox(nullptr, "Renderer not initialized!", "Error", MB_OK);
+		return;
+	}
+	// シャドウマップの初期化
+	Renderer::InitShadowMap(2048);
+	Renderer::EnableShadowMap(true);
 	// スクリーン固定ビルボードの初期化
 	m_screenBillboard = new ScreenFixedBillboard(Vector2(0.1f, 0.1f), 0.15f, 0.15f, L"assets/texture/haikei.jpg");
 	EffectManager::Instance().Initialize();
@@ -251,7 +307,7 @@ void CarDriveScene::update(float deltatime)//uint64_tとfloatの衝突　圧倒的衝突
 
 	//次は加速しましょう
 	m_time += deltatime;
-	if (CDirectInput::GetInstance().CheckKeyBuffer(DIK_Q))
+	if (CDirectInput::GetInstance().CheckKeyBuffer(DIK_P))
 	{
 		m_usePostProcess =true;
 		m_aberrationStrength = 0.02f;
@@ -445,7 +501,6 @@ void CarDriveScene::draw(uint64_t deltatime)
 		((m_enableMotionBlur && m_blurStrength > 0.01f) ||
 			(m_enableChromaticAberration && m_aberrationStrength > 0.0f) ||
 			(m_enableShockwave && m_shockwaveIntensity > 0.01f));
-
 
 	// 【追加】まずデフォルトのレンダーターゲットと深度バッファを設定
 	if (!needsPostProcess) {

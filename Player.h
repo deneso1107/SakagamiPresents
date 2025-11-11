@@ -26,6 +26,8 @@ class Player:public ObjectBase
 
 	// 描画の為の情報（見た目に関わる部分）
 	CShader	m_shader;	// シェーダ
+	CShader m_shadowShader;        // 通常描画用（影あり）
+	CShader m_shadowMapShader;     // シャドウマップ生成用
 
 	CarPhysics m_physics;
 
