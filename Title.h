@@ -1,0 +1,23 @@
+#pragma once
+#include "system/IScene.h"
+#include "scenemanager.h"
+#include <string>
+#include"ScreenFixedBillboard.h"
+class Title : public IScene
+{
+public:
+	void update(float deltatime) override;
+	void draw(uint64_t deltatime) override;
+	void init() override;
+	void dispose() override;
+	bool changepic=false;//カスコード
+	//void ChangeScene(const std::string& sceneName,bool)
+	//{
+	//	SceneManager::ChangeScene(sceneName);
+	//}
+private:
+	ScreenFixedBillboard* m_screenBillboard;//ゲッターあるよ
+	ScreenFixedBillboard* m_turtrialBillboard;//ゲッターあるよ
+
+};
+
