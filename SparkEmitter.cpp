@@ -133,9 +133,9 @@ void SparkEmitter::UpdateTrail(Particle& p, float deltaTime)
 //    //for (auto& p : m_particles)
 //    //{
 //    //    p.life += deltaTimeInMicroseconds;
-//    //    p.pos.x += p.velocity.x * deltaTimeInMicroseconds;
-//    //    p.pos.y += p.velocity.y * deltaTimeInMicroseconds;
-//    //    p.pos.z += p.velocity.z * deltaTimeInMicroseconds;
+//    //    p.m_ParticlePos.x += p.velocity.x * deltaTimeInMicroseconds;
+//    //    p.m_ParticlePos.y += p.velocity.y * deltaTimeInMicroseconds;
+//    //    p.m_ParticlePos.z += p.velocity.z * deltaTimeInMicroseconds;
 //
 //    //    // ★ フェードアウト処理だけを行う（色は変えない）
 //    //    float t = 1.0f - (p.life / p.lifespan);
@@ -156,9 +156,9 @@ void SparkEmitter::UpdateTrail(Particle& p, float deltaTime)
 //    for (auto& p : m_particles)
 //    {
 //        p.life += deltaTimeInMicroseconds;
-//        p.pos.x += p.velocity.x * deltaTimeInMicroseconds;
-//        p.pos.y += p.velocity.y * deltaTimeInMicroseconds;
-//        p.pos.z += p.velocity.z * deltaTimeInMicroseconds;
+//        p.m_ParticlePos.x += p.velocity.x * deltaTimeInMicroseconds;
+//        p.m_ParticlePos.y += p.velocity.y * deltaTimeInMicroseconds;
+//        p.m_ParticlePos.z += p.velocity.z * deltaTimeInMicroseconds;
 //
 //        float t = 1.0f - (p.life / p.lifespan);  // ★ 正規化：0.0 ~ 1.0
 //        t = std::max(0.0f, std::min(1.0f, t));   // ★ クランプ
@@ -505,7 +505,7 @@ void SparkEmitter::EmitTrail(const DirectX::XMFLOAT3& pos, const DirectX::XMFLOA
     m_particles.push_back(p);
 }
 
-//void SparkEmitter::Emit(const DirectX::XMFLOAT3& pos, const DirectX::XMFLOAT3& dir)//ここのpositionはパーティクルを出したい位置を指定
+//void SparkEmitter::Emit(const DirectX::XMFLOAT3& m_ParticlePos, const DirectX::XMFLOAT3& dir)//ここのpositionはパーティクルを出したい位置を指定
 //{
 //    // ★ 上限チェック：超過している場合は何もしない
 //    if (m_particles.size() >= m_maxParticles)
@@ -519,10 +519,10 @@ void SparkEmitter::EmitTrail(const DirectX::XMFLOAT3& pos, const DirectX::XMFLOA
 //        Particle p;
 //
 //        // 位置のランダム化
-//        p.pos = {
-//            pos.x + (rand() % 100 - 50) * 0.001f,
-//            pos.y + (rand() % 100 - 50) * 0.001f,
-//            pos.z + (rand() % 100 - 50) * 0.001f
+//        p.m_ParticlePos = {
+//            m_ParticlePos.x + (rand() % 100 - 50) * 0.001f,
+//            m_ParticlePos.y + (rand() % 100 - 50) * 0.001f,
+//            m_ParticlePos.z + (rand() % 100 - 50) * 0.001f
 //        };
 //
 //        // 拡散角度に応じた速度を計算

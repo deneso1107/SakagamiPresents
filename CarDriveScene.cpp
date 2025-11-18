@@ -12,24 +12,91 @@
 // 平行光源の方向セット
 void CarDriveScene::debugDirectionalLight()
 {
-	static Vector4 direction = Vector4(0.0f, 0.0f,  1.0f, 0.0f); // Z軸+方向に光を当てる	
+	static Vector4 direction = Vector4(0.0f, -1.0f, 1.0f, 0.0f);
+	static bool enableShadow = true;
+	static bool showShadowMap = false;
+	static float lightDistance = 50.0f;  // 追加
+	static float orthoSize = 100.0f;     // 追加
+	static float TestSize_ = 1.0f;     // 追加
+
 	ImGui::Begin("debug Directional Light");
+	ImGui::SliderFloat3("direction", &direction.x, -1, 1);
+	ImGui::Checkbox("Enable Shadow", &enableShadow);
+	ImGui::Checkbox("Show Shadow Map", &showShadowMap);
+	ImGui::SliderFloat("Light Distance", &lightDistance, 10.0f, 200.0f);  // 追加
+	ImGui::SliderFloat("Ortho Size", &orthoSize, 10.0f, 500.0f);          // 追加
+	ImGui::SliderFloat("Ortho Size", &TestSize_, 1.0f, 500.0f);          // 追加
 
-	ImGui::SliderFloat3("direction ",&direction.x, -1, 1);
-	direction.Normalize();										// 正規化
+	Renderer::EnableShadowMap(enableShadow);
 
+	direction.Normalize();
+
+	// ライト情報のセット
 	LIGHT light{};
 	light.Enable = true;
 	light.Direction = direction;
-
 	light.Direction.Normalize();
 	light.Ambient = Color(0.2f, 0.2f, 0.2f, 1.0f);
 	light.Diffuse = Color(1.0f, 1.0f, 1.0f, 1.0f);
-
-	Vector4 Direction = Vector4(direction.x, direction.y,direction.z, 0.0f);
 	Renderer::SetLight(light);
 
+	// プレイヤーの位置を取得（もしあれば）
+	 Vector3 playerPos = m_player->GetPosition();
+
+	// ライトをプレイヤーの上に配置
+	DirectX::XMVECTOR lightPos = DirectX::XMVectorSet(
+		playerPos.x,  // playerPos.x
+		lightDistance,  // 上から照らす
+		playerPos.z,  // playerPos.z
+		1.0f
+	);
+
+	DirectX::XMVECTOR targetPos = DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);
+	DirectX::XMVECTOR upVec = DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+
+	DirectX::XMMATRIX lightView = DirectX::XMMatrixLookAtLH(lightPos, targetPos, upVec);
+	DirectX::XMMATRIX lightProjection = DirectX::XMMatrixPerspectiveFovLH//透視投影??
+	(
+		orthoSize, orthoSize,TestSize_ , lightDistance * 2.5f);
+
+	Renderer::SetLightMatrix(lightView, lightProjection);
+
+	// デバッグ情報を表示
+	ImGui::Text("Light Position: (%.1f, %.1f, %.1f)",
+		-direction.x * lightDistance,
+		-direction.y * lightDistance,
+		-direction.z * lightDistance);
+
+	// シャドウマップの可視化
+	if (showShadowMap && enableShadow)
+	{
+		ID3D11ShaderResourceView* shadowSRV = Renderer::GetShadowMapSRV();
+		if (shadowSRV)
+		{
+			ImGui::Text("Shadow Map:");
+			ImGui::Image((void*)shadowSRV, ImVec2(256, 256));
+		}
+	}
+
 	ImGui::End();
+	//static Vector4 direction = Vector4(0.0f, 0.0f,  1.0f, 0.0f); // Z軸+方向に光を当てる	
+	//ImGui::Begin("debug Directional Light");
+
+	//ImGui::SliderFloat3("direction ",&direction.x, -1, 1);
+	//direction.Normalize();										// 正規化
+
+	//LIGHT light{};
+	//light.Enable = true;
+	//light.Direction = direction;
+
+	//light.Direction.Normalize();
+	//light.Ambient = Color(0.2f, 0.2f, 0.2f, 1.0f);
+	//light.Diffuse = Color(1.0f, 1.0f, 1.0f, 1.0f);
+
+	//Vector4 Direction = Vector4(direction.x, direction.y,direction.z, 0.0f);
+	//Renderer::SetLight(light);
+
+	//ImGui::End();
 }
 
 // デバッグフリーカメラ
@@ -91,12 +158,12 @@ void CarDriveScene::debugParticlePos()
 {
 	ImGui::Begin("Particle Position");
 
-	ImGui::SliderFloat("Radius", &pos.x, 0, 15);
-	ImGui::SliderFloat("Elevation", &pos.y, 0, 15);
-	ImGui::SliderFloat("Azimuth", &pos.z, 0, 15);
-	ImGui::Text("Particle Position X: %.2f", pos.x);
-	ImGui::Text("Particle Position Y: %.2f", pos.y);
-	ImGui::Text("Particle Position Z: %.2f", pos.z);
+	ImGui::SliderFloat("Radius", &m_ParticlePos.x, -15, 15);
+	ImGui::SliderFloat("Elevation", &m_ParticlePos.y, -15, 15);
+	ImGui::SliderFloat("Azimuth", &m_ParticlePos.z, -15, 15);
+	ImGui::Text("Particle Position X: %.2f", m_ParticlePos.x);
+	ImGui::Text("Particle Position Y: %.2f", m_ParticlePos.y);
+	ImGui::Text("Particle Position Z: %.2f", m_ParticlePos.z);
 	ImGui::End();
 }
 CarDriveScene::CarDriveScene()
@@ -105,8 +172,14 @@ CarDriveScene::CarDriveScene()
 
 void CarDriveScene::init()
 {
-	// カメラ(3D)の初期化
-
+	if (Renderer::GetDevice() == nullptr)
+	{
+		MessageBox(nullptr, "Renderer not initialized!", "Error", MB_OK);
+		return;
+	}
+	// シャドウマップの初期化
+	Renderer::InitShadowMap(2048);
+	Renderer::EnableShadowMap(true);
 	// スクリーン固定ビルボードの初期化
 	m_screenBillboard = new ScreenFixedBillboard(Vector2(0.1f, 0.1f), 0.15f, 0.15f, L"assets/texture/haikei.jpg");
 	EffectManager::Instance().Initialize();
@@ -194,15 +267,19 @@ void CarDriveScene::init()
 	roadManager.SetRoad(0, 0, RoadType::START_LINE, Direction::SOUTH);
 	roadManager.SetRoad(0, 1, RoadType::STRAIGHT, Direction::SOUTH);
 	roadManager.SetRoad(1, 1, RoadType::STRAIGHT, Direction::WEST);
-	roadManager.SetRoad(0, 2, RoadType::SLOPE_UP, Direction::NORTH);//隙間を無くす、坂の上の状態でまっすぐの道を作る場合ちゃんとつながるようにする
+	roadManager.SetRoad(0, 2, RoadType::SLOPE_UP, Direction::NORTH);//次はGoalを作りましょう　とりあえずゲームループの完成
 	roadManager.SetRoad(0, 3, RoadType::SLOPE_UP, Direction::NORTH);
-	roadManager.SetRoad(0, 4, RoadType::STRAIGHT, Direction::SOUTH);
-	roadManager.SetRoad(0, 5, RoadType::SLOPE_DOWN, Direction::NORTH);
-	roadManager.SetRoad(0, 6, RoadType::STRAIGHT, Direction::SOUTH);
-	roadManager.SetRoad(0, 7, RoadType::TURN_LEFT, Direction::NORTH);
-	roadManager.SetRoad(1, 7, RoadType::STRAIGHT, Direction::WEST);
-	roadManager.SetRoad(2, 7, RoadType::TURN_LEFT, Direction::EAST);
-	roadManager.SetRoad(3, 7, RoadType::TURN_LEFT, Direction::WEST);
+	roadManager.SetRoad(0, 4, RoadType::SLOPE_UP, Direction::NORTH);
+	roadManager.SetRoad(0, 5, RoadType::SLOPE_UP, Direction::NORTH);
+	roadManager.SetRoad(0, 6, RoadType::SLOPE_UP, Direction::NORTH);
+	roadManager.SetRoad(0, 7, RoadType::SLOPE_UP, Direction::NORTH);
+	//roadManager.SetRoad(0, 4, RoadType::STRAIGHT, Direction::SOUTH);
+	//roadManager.SetRoad(0, 5, RoadType::SLOPE_DOWN, Direction::NORTH);
+	//roadManager.SetRoad(0, 6, RoadType::STRAIGHT, Direction::SOUTH);
+	//roadManager.SetRoad(1, 7, RoadType::TURN_LEFT, Direction::SOUTH);
+	//roadManager.SetRoad(0, 7, RoadType::STRAIGHT, Direction::WEST);
+	//roadManager.SetRoad(2, 7, RoadType::TURN_LEFT, Direction::EAST);
+	//roadManager.SetRoad(3, 7, RoadType::TURN_LEFT, Direction::WEST);
 	///roadManager.SetRoad(0, 1, RoadType::STRAIGHT, Direction::NORTH);
 	//roadManager.SetRoad(1, 1, RoadType::SLOPE_UP, Direction::EAST);
 
@@ -210,6 +287,10 @@ void CarDriveScene::init()
 	{
 		m_player->SetPosition(*startPos);
 	}
+	m_player->SetPostProcessSetter([this](bool use, float strength) {
+		m_usePostProcess = use;
+		m_aberrationStrength = strength;
+		});
 
 
 
@@ -251,12 +332,10 @@ void CarDriveScene::update(float deltatime)//uint64_tとfloatの衝突　圧倒的衝突
 
 	//次は加速しましょう
 	m_time += deltatime;
-	if (CDirectInput::GetInstance().CheckKeyBuffer(DIK_Q))
+	if (CDirectInput::GetInstance().CheckKeyBuffer(DIK_P))
 	{
 		m_usePostProcess =true;
 		m_aberrationStrength = 0.02f;
-		//printf("PostProcess: %s\n", m_usePostProcess ? "ON" : "OFF");
-		//EffectManager::Instance().SpawnEffect("SparkleParticle", Vector3(0.0f, 0.5f, 0.0f), Vector3(0, 1, 0));
 	}
 
 	if (CDirectInput::GetInstance().CheckKeyBuffer(DIK_1))
@@ -265,7 +344,7 @@ void CarDriveScene::update(float deltatime)//uint64_tとfloatの衝突　圧倒的衝突
 		DirectX::XMFLOAT3 pos_ = m_player.get()->GetPosition();
 		pos_.x += 1.0f;
 		pos_.y += 2.0f;
-		EffectManager::Instance().SpawnEffect("SparkleParticle", pos_/*pos*/);//一旦諦めます！
+		EffectManager::Instance().SpawnEffect("SparkleParticle", pos_/*m_ParticlePos*/);//一旦諦めます！
 	}
 
 	if (CDirectInput::GetInstance().CheckKeyBuffer(DIK_2))
@@ -423,17 +502,15 @@ void CarDriveScene::update(float deltatime)//uint64_tとfloatの衝突　圧倒的衝突
 	UpdateEnemies(deltatime);
 	// 道路の更新
 
-		if (CDirectInput::GetInstance().CheckKeyBuffer(DIK_Y))
-		{
-			DirectX::XMFLOAT3 pos = m_player.get()->GetPosition();
-			pos.x += 1.0f;
-			pos.y += 2.0f;
-			DirectX::XMFLOAT3 dir = DirectX::XMFLOAT3(0.0f, 1.0f, 0.0f);
-			printf( "直接Emit: pos=(%f, %f, %f)\n", pos.x, pos.y, pos.z);
-			m_sparkEmitter.Emit(pos, dir);
-		}
-		m_sparkEmitter.Update(deltatime);
-		EffectManager::Instance().Update(deltatime);
+
+    DirectX::XMFLOAT3 pos = m_player.get()->GetPosition();
+    //pos.x += m_ParticlePos.x;x	
+    pos.y -= 5.0f;
+    //pos.z += m_ParticlePos.z;
+    DirectX::XMFLOAT3 dir = DirectX::XMFLOAT3(0.0f, 1.0f, 0.0f);
+    m_sparkEmitter.Emit(pos, dir);
+	m_sparkEmitter.Update(deltatime);
+	EffectManager::Instance().Update(deltatime);
 }
 
 void CarDriveScene::draw(uint64_t deltatime)
@@ -445,7 +522,6 @@ void CarDriveScene::draw(uint64_t deltatime)
 		((m_enableMotionBlur && m_blurStrength > 0.01f) ||
 			(m_enableChromaticAberration && m_aberrationStrength > 0.0f) ||
 			(m_enableShockwave && m_shockwaveIntensity > 0.01f));
-
 
 	// 【追加】まずデフォルトのレンダーターゲットと深度バッファを設定
 	if (!needsPostProcess) {
@@ -511,7 +587,7 @@ void CarDriveScene::draw(uint64_t deltatime)
 	//}
 
 	m_skydome->Draw();
-	m_road->Draw();
+	//m_road->Draw();
 	m_player->Draw();
 	m_goal->Draw();
 	m_item->Draw();
@@ -853,135 +929,6 @@ void CarDriveScene::ApplyChromaticAberration(ID3D11DeviceContext* context,
 
 	if (constantBuffer) constantBuffer->Release();
 }
-
-//void CarDriveScene::ApplyChromaticAberration()
-//{
-//	//ID3D11DeviceContext* context = Renderer::GetDeviceContext();
-//
-//	//// 現在のステートを保存
-//	//ID3D11DepthStencilState* originalDepthState = nullptr;
-//	//UINT originalStencilRef = 0;
-//	//context->OMGetDepthStencilState(&originalDepthState, &originalStencilRef);
-//
-//	//ID3D11RasterizerState* originalRasterState = nullptr;
-//	//context->RSGetState(&originalRasterState);
-//
-//	//// バックバッファに切り替え
-//	//context->OMSetRenderTargets(1, &m_originalBackBuffer, nullptr);
-//
-//	//float clearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
-//	//context->ClearRenderTargetView(m_originalBackBuffer, clearColor);
-//
-//	//D3D11_VIEWPORT viewport = {};
-//	//viewport.Width = (FLOAT)Application::GetWidth();
-//	//viewport.Height = (FLOAT)Application::GetHeight();
-//	//viewport.MinDepth = 0.0f;
-//	//viewport.MaxDepth = 1.0f;
-//	//context->RSSetViewports(1, &viewport);
-//
-//	//// 【変更】定数バッファを拡張（放射状ブラー対応）
-//	//struct PostProcessBuffer {
-//	//	float blurStrength;        // 追加
-//	//	float aberrationStrength;
-//	//	float centerX;             // 追加
-//	//	float centerY;             // 追加
-//	//	float time; //追加
-//	//	float speedLineSpeed; //追加（スクロール速度）
-//	//	float shockwaveIntensity;
-//	//	float shockwaveProgress;
-//	//};
-//	//PostProcessBuffer cb;
-//	//cb.blurStrength = m_blurStrength;              // 追加
-//	//cb.aberrationStrength = m_aberrationStrength;
-//	//cb.centerX = 0.5f;                             // 追加：画面中心
-//	//cb.centerY = 0.5f;                             // 追加
-//	//cb.time = m_LineTime;//追加
-//	//cb.speedLineSpeed = m_LineSpeed;//追加
-//	//cb.shockwaveIntensity = m_shockwaveIntensity; // 高速時ほど強く
-//	//cb.shockwaveProgress = m_shockwaveProgress; // 高速時ほど強く
-//
-//
-//	//D3D11_BUFFER_DESC bufferDesc = {};
-//	//bufferDesc.ByteWidth = sizeof(PostProcessBuffer);
-//	//bufferDesc.Usage = D3D11_USAGE_DEFAULT;
-//	//bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-//
-//	//D3D11_SUBRESOURCE_DATA initData = {};
-//	//initData.pSysMem = &cb;
-//
-//	//ID3D11Buffer* constantBuffer = nullptr;
-//	//HRESULT hr = Renderer::GetDevice()->CreateBuffer(&bufferDesc, &initData, &constantBuffer);
-//	//if (FAILED(hr)) {
-//	//	printf("ERROR: Failed to create constant buffer\n");
-//	//	return;
-//	//}
-//
-//	//context->PSSetConstantBuffers(0, 1, &constantBuffer);
-//
-//	//// 【変更】放射状ブラーシェーダーを使用
-//	//m_chromaticAberrationShader.SetGPU();
-//	//context->PSSetShaderResources(0, 1, &m_sceneSRV);
-//	//context->PSSetSamplers(0, 1, &m_sampler);
-//
-//	//// 深度テスト無効化
-//	//ID3D11DepthStencilState* depthState = nullptr;
-//	//D3D11_DEPTH_STENCIL_DESC depthStencilDesc = {};
-//	//depthStencilDesc.DepthEnable = FALSE;
-//	//depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
-//	//Renderer::GetDevice()->CreateDepthStencilState(&depthStencilDesc, &depthState);
-//	//context->OMSetDepthStencilState(depthState, 0);
-//
-//	//// ラスタライザ設定
-//	//ID3D11RasterizerState* rasterState = nullptr;
-//	//D3D11_RASTERIZER_DESC rasterDesc = {};
-//	//rasterDesc.FillMode = D3D11_FILL_SOLID;
-//	//rasterDesc.CullMode = D3D11_CULL_NONE;
-//	//rasterDesc.FrontCounterClockwise = FALSE;
-//	//rasterDesc.DepthClipEnable = TRUE;
-//	//Renderer::GetDevice()->CreateRasterizerState(&rasterDesc, &rasterState);
-//	//context->RSSetState(rasterState);
-//
-//	//// 描画
-//	//context->IASetVertexBuffers(0, 0, nullptr, nullptr, nullptr);
-//	//context->IASetIndexBuffer(nullptr, DXGI_FORMAT_UNKNOWN, 0);
-//	//context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-//	//context->IASetInputLayout(nullptr);
-//
-//	//context->Draw(4, 0);
-//
-//	//// クリーンアップ
-//	//ID3D11ShaderResourceView* nullSRV = nullptr;
-//	//context->PSSetShaderResources(0, 1, &nullSRV);
-//
-//	//ID3D11Buffer* nullCB = nullptr;
-//	//context->PSSetConstantBuffers(0, 1, &nullCB);
-//
-//	//if (constantBuffer) constantBuffer->Release();
-//	//if (depthState) depthState->Release();
-//	//if (rasterState) rasterState->Release();
-//
-//	//// ステートを復元
-//	//if (originalDepthState) {
-//	//	context->OMSetDepthStencilState(originalDepthState, originalStencilRef);
-//	//	originalDepthState->Release();
-//	//}
-//	//else {
-//	//	ID3D11DepthStencilState* defaultDepthState = nullptr;
-//	//	D3D11_DEPTH_STENCIL_DESC defaultDesc = {};
-//	//	defaultDesc.DepthEnable = TRUE;
-//	//	defaultDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
-//	//	defaultDesc.DepthFunc = D3D11_COMPARISON_LESS;
-//	//	defaultDesc.StencilEnable = FALSE;
-//	//	Renderer::GetDevice()->CreateDepthStencilState(&defaultDesc, &defaultDepthState);
-//	//	context->OMSetDepthStencilState(defaultDepthState, 0);
-//	//	defaultDepthState->Release();
-//	//}
-//
-//	//if (originalRasterState) {
-//	//	context->RSSetState(originalRasterState);
-//	//	originalRasterState->Release();
-//	//}
-//}
 
 void CarDriveScene::dispose()
 {

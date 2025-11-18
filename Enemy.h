@@ -117,7 +117,7 @@ public:
 //	void ApplyKnockback(Vector3, float, uint64_t);
 //	void KnockBack(float);
 //
-//	void SetPosition(Vector3 pos) { m_Position = pos; }
+//	void SetPosition(Vector3 m_ParticlePos) { m_Position = m_ParticlePos; }
 //	void SetRotation(Vector3 rot) { m_Rotation = rot; }
 //	void SetScale(Vector3 scale) { m_Scale = scale; }
 //

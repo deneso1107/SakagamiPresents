@@ -2,9 +2,10 @@
 #include <d3d11.h>
 #include "system/commontypes.h"
 #include "system/CMaterial.h"
+#include"VideoPlayer.h"
 //9月14日　角度とUV座標追加
 
-class ScreenFixedBillboard////////////////////デストラクタが必要
+class ScreenFixedBillboard//デストラクタが必要
 {
 private:
     Vector2 m_screenPosition;    // スクリーン座標での位置（0.0f-1.0f）
@@ -26,6 +27,10 @@ private:
     Vector2 m_uvOffset;      // UV座標のオフセット（左上）
     Vector2 m_uvSize;        // UV座標のサイズ（幅、高さ）
 
+    // 動画プレイヤー（オプショナル）
+    VideoPlayer* m_videoPlayer;
+    bool m_isOwningVideoPlayer;  // VideoPlayerの所有権 
+
 
 public:
     // コピー/ムーブを禁止
@@ -33,7 +38,13 @@ public:
     ScreenFixedBillboard& operator=(const ScreenFixedBillboard&) = delete;
     ScreenFixedBillboard(ScreenFixedBillboard&&) = delete;
     ScreenFixedBillboard& operator=(ScreenFixedBillboard&&) = delete;
+
     ScreenFixedBillboard(const Vector2& screenPos, float width, float height, const wchar_t* texturePath);
+    // 動画用コンストラクタ（VideoPlayerを渡す）
+    ScreenFixedBillboard(const Vector2& screenPos, float width, float height, VideoPlayer* videoPlayer, bool takeOwnership = false);
+    // 動画用コンストラクタ（動画パスを渡す - 内部でVideoPlayer作成）
+    static ScreenFixedBillboard* CreateFromVideo(const Vector2& screenPos, float width, float height, const wchar_t* videoPath);
+
     // 既存コンストラクタに加えて、UV指定版を追加
    /* ScreenFixedBillboard(const Vector2& screenPos, float width, float height,
         const wchar_t* texturePath,
@@ -54,9 +65,21 @@ public:
     void SetUVSize(const Vector2& size) { m_uvSize = size; }
     Vector2 RotatePoint(const Vector2& point, const Vector2& center, float angle); 
 
+    // 動画制御メソッド（動画の場合のみ有効）
+    bool IsVideo() const { return m_videoPlayer != nullptr; }
+    void PlayVideo();
+    void PauseVideo();
+    void StopVideo();
+    void SetLooping(bool loop);
+    bool IsPlaying() const;
+    float GetCurrentTime() const;
+    float GetDuration() const;
+    VideoPlayer* GetVideoPlayer() { return m_videoPlayer; }
+
 private:
     void CreateBuffers();
     void UpdateVertexBuffer();
     void CreateDefaultTexture();
+    void InitializeCommon();
     // UV座標を動的に変更するメソッド
 };

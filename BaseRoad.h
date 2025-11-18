@@ -77,6 +77,7 @@ protected:
     CStaticMesh m_mesh;
     CTerrainMesh m_terrainMesh;
     CShader m_shader;
+    CShader m_shadowShader;        // ’Êí•`‰æ—pi‰e‚ ‚èj- V‹K’Ç‰Á
     bool m_spatialGridInitialized = false;
     bool m_isInitialized = false;  // ‰Šú‰»ó‘Ô‚ğ’ÇÕ
 

@@ -1,0 +1,589 @@
+#include "VideoPlayer.h"
+#include <algorithm>
+
+HRESULT VideoPlayer::Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
+{
+    device = pDevice;
+    context = pContext;
+
+    HRESULT hr = MFStartup(MF_VERSION);
+    return hr;
+}
+
+
+HRESULT VideoPlayer::LoadVideo(const wchar_t* filename)
+{
+    HRESULT hr;
+
+    hr = MFCreateSourceReaderFromURL(filename, nullptr, &sourceReader);
+    if (FAILED(hr)) return hr;
+
+    // ---- ストリーム設定 ---------------------------------
+    sourceReader->SetStreamSelection((DWORD)MF_SOURCE_READER_ALL_STREAMS, FALSE);
+    sourceReader->SetStreamSelection((DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM, TRUE);
+
+    // ---- RGB32 を試す ------------------------------------
+    ComPtr<IMFMediaType> mediaType;
+    MFCreateMediaType(&mediaType);
+
+    mediaType->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Video);
+    mediaType->SetGUID(MF_MT_SUBTYPE, MFVideoFormat_RGB32);
+
+    hr = sourceReader->SetCurrentMediaType(
+        MF_SOURCE_READER_FIRST_VIDEO_STREAM, nullptr, mediaType.Get());
+
+    if (SUCCEEDED(hr)) {
+        OutputDebugStringA("RGB32 で読み込み成功！\n");
+        isNV12 = false;
+    }
+    else {
+        OutputDebugStringA("RGB32 がサポートされない → NV12 へ\n");
+
+        mediaType->SetGUID(MF_MT_SUBTYPE, MFVideoFormat_NV12);
+        hr = sourceReader->SetCurrentMediaType(
+            MF_SOURCE_READER_FIRST_VIDEO_STREAM, nullptr, mediaType.Get());
+
+        if (FAILED(hr)) return hr;
+        OutputDebugStringA("NV12 で読み込み成功！\n");
+        isNV12 = true;
+    }
+
+    // ---- 実際のフォーマットを取得 ------------------------
+    ComPtr<IMFMediaType> outType;
+    hr = sourceReader->GetCurrentMediaType(
+        MF_SOURCE_READER_FIRST_VIDEO_STREAM, &outType);
+
+    MFGetAttributeSize(outType.Get(), MF_MT_FRAME_SIZE, &videoWidth, &videoHeight);
+
+    // ---- 長さ取得 ---------------------------------------
+    PROPVARIANT var;
+    PropVariantInit(&var);
+    if (SUCCEEDED(sourceReader->GetPresentationAttribute(
+        MF_SOURCE_READER_MEDIASOURCE, MF_PD_DURATION, &var)))
+    {
+        videoDuration = var.uhVal.QuadPart;
+        PropVariantClear(&var);
+    }
+
+    // ---- GPU テクスチャ作成 -----------------------------
+    CreateVideoTexture();
+
+    rgbBuffer.resize(videoWidth * videoHeight * 4);
+
+    currentTime = 0;
+
+    return S_OK;
+}
+
+
+
+HRESULT VideoPlayer::CreateVideoTexture()
+{
+    D3D11_TEXTURE2D_DESC desc = {};
+    desc.Width = videoWidth;
+    desc.Height = videoHeight;
+    desc.MipLevels = 1;
+    desc.ArraySize = 1;
+    desc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+    desc.SampleDesc.Count = 1;
+    desc.Usage = D3D11_USAGE_DYNAMIC;
+    desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+    desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+
+    HRESULT hr = device->CreateTexture2D(&desc, nullptr, &videoTexture);
+    if (FAILED(hr)) return hr;
+
+    D3D11_SHADER_RESOURCE_VIEW_DESC srvd = {};
+    srvd.Format = desc.Format;
+    srvd.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+    srvd.Texture2D.MostDetailedMip = 0;
+    srvd.Texture2D.MipLevels = 1;
+
+    hr = device->CreateShaderResourceView(videoTexture.Get(), &srvd, &textureSRV);
+    return hr;
+}
+
+
+
+HRESULT VideoPlayer::Update(float deltaTime)
+{
+    if (!isPlaying || !sourceReader) return S_OK;
+
+    ComPtr<IMFSample> sample;
+    DWORD flags = 0;
+    LONGLONG timestamp = 0;
+
+    HRESULT hr = sourceReader->ReadSample(
+        MF_SOURCE_READER_FIRST_VIDEO_STREAM,
+        0, nullptr, &flags, &timestamp, &sample);
+
+    if (FAILED(hr)) return hr;
+
+    if (flags & MF_SOURCE_READERF_ENDOFSTREAM) {
+        if (isLooping) Seek(0);
+        else isPlaying = false;
+        return S_OK;
+    }
+
+    if (sample) {
+        UpdateTexture(sample.Get());
+        currentTime = timestamp;
+    }
+
+    return S_OK;
+}
+
+
+
+HRESULT VideoPlayer::UpdateTexture(IMFSample* sample)
+{
+    if (!sample || !videoTexture || !context) return E_FAIL;
+
+    ComPtr<IMFMediaBuffer> buffer;
+    HRESULT hr = sample->ConvertToContiguousBuffer(&buffer);
+    if (FAILED(hr)) return hr;
+
+    // Try to get IMF2DBuffer to obtain pitch reliably
+    ComPtr<IMF2DBuffer> buffer2D;
+    BYTE* yPtr = nullptr;
+    LONG yPitch = 0;
+    BYTE* uvPtr = nullptr;
+    LONG uvPitch = 0;
+    BOOL used2D = FALSE;
+
+    if (SUCCEEDED(buffer.As(&buffer2D))) {
+        // Lock2D gives pointer to the start of the whole NV12 planes (Y then UV)
+        hr = buffer2D->Lock2D(&yPtr, &yPitch);
+        if (SUCCEEDED(hr)) {
+            used2D = TRUE;
+            // For NV12, UV plane starts at yPtr + yPitch * height
+            uvPtr = yPtr + (yPitch * (LONG)videoHeight);
+            // Usually uvPitch == yPitch, but we'll try to get stride for UV explicitly:
+            // Some implementations use the same stride; if not available, we fallback to yPitch.
+            uvPitch = yPitch; // safe default
+        }
+    }
+
+    BYTE* rawData = nullptr;
+    DWORD maxLen = 0, curLen = 0;
+    if (!used2D) {
+        // fallback to legacy IMFMediaBuffer::Lock
+        hr = buffer->Lock(&rawData, &maxLen, &curLen);
+        if (FAILED(hr)) {
+            return hr;
+        }
+        // assume contiguous: Y at rawData, UV at rawData + width*height (may be padded)
+        yPtr = rawData;
+        yPitch = (LONG)videoWidth; // best-effort fallback
+        uvPtr = rawData + (videoWidth * videoHeight);
+        uvPitch = (LONG)videoWidth;
+    }
+
+    if (!isNV12) {
+        // RGB32 copy as before (we assume sample contains full RGBA rows)
+        D3D11_MAPPED_SUBRESOURCE map;
+        hr = context->Map(videoTexture.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
+        if (SUCCEEDED(hr)) {
+            // If we used rawData path, ensure curLen large enough (not checked here)
+            for (UINT y = 0; y < videoHeight; ++y) {
+                memcpy((BYTE*)map.pData + map.RowPitch * y,
+                    yPtr + (size_t)yPitch * y,
+                    videoWidth * 4);
+            }
+            context->Unmap(videoTexture.Get(), 0);
+        }
+
+        if (used2D) buffer2D->Unlock2D();
+        else buffer->Unlock();
+        return hr;
+    }
+
+    // NV12 path: convert to RGBA using correct strides
+    rgbBuffer.resize(videoWidth * videoHeight * 4);
+
+    NV12ToRGB32(yPtr, uvPtr, videoWidth, videoHeight, (int)yPitch, (int)uvPitch, rgbBuffer.data());
+
+    // Write to GPU texture (B8G8R8A8)
+    D3D11_MAPPED_SUBRESOURCE map;
+    hr = context->Map(videoTexture.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
+    if (SUCCEEDED(hr)) {
+        for (UINT row = 0; row < videoHeight; ++row) {
+            memcpy((BYTE*)map.pData + map.RowPitch * row,
+                rgbBuffer.data() + (size_t)videoWidth * 4 * row,
+                videoWidth * 4);
+        }
+        context->Unmap(videoTexture.Get(), 0);
+    }
+
+    if (used2D) buffer2D->Unlock2D();
+    else buffer->Unlock();
+
+    return hr;
+}
+
+
+
+
+void VideoPlayer::NV12ToRGB32(
+    const uint8_t* yPlane,
+    const uint8_t* uvPlane,
+    int width, int height,
+    int yStride, int uvStride,
+    uint8_t* outRGBA)
+{
+    for (int j = 0; j < height; ++j)
+    {
+        const uint8_t* yRow = yPlane + j * yStride;
+        const uint8_t* uvRow = uvPlane + (j / 2) * uvStride;
+
+        for (int i = 0; i < width; ++i)
+        {
+            int Y = (int)yRow[i];
+
+            // NV12: UV are interleaved as U0 V0 U1 V1 ...
+            int uvIndex = (i / 2) * 2;
+            int U = (int)uvRow[uvIndex + 0];
+            int V = (int)uvRow[uvIndex + 1];
+
+            // If colors look wrong (green/blue), try swapping U and V:
+            // int tmp = U; U = V; V = tmp;
+
+            // convert to signed
+            int C = Y - 16;
+            int D = U - 128;
+            int E = V - 128;
+
+            int R = (298 * C + 409 * E + 128) >> 8;
+            int G = (298 * C - 100 * D - 208 * E + 128) >> 8;
+            int B = (298 * C + 516 * D + 128) >> 8;
+
+            R = std::clamp(R, 0, 255);
+            G = std::clamp(G, 0, 255);
+            B = std::clamp(B, 0, 255);
+
+            int idx = (j * width + i) * 4;
+            outRGBA[idx + 0] = (uint8_t)B;
+            outRGBA[idx + 1] = (uint8_t)G;
+            outRGBA[idx + 2] = (uint8_t)R;
+            outRGBA[idx + 3] = 255;
+        }
+    }
+}
+
+
+
+HRESULT VideoPlayer::Seek(LONGLONG time)
+{
+    if (!sourceReader) return E_FAIL;
+
+    PROPVARIANT var;
+    PropVariantInit(&var);
+    var.vt = VT_I8;
+    var.hVal.QuadPart = time;
+
+    HRESULT hr = sourceReader->SetCurrentPosition(GUID_NULL, var);
+    PropVariantClear(&var);
+
+    currentTime = time;
+    return hr;
+}
+
+
+//#include "VideoPlayer.h"
+//#include <algorithm>
+//HRESULT VideoPlayer::Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext) {
+//    device = pDevice;
+//    context = pContext;
+//
+//    // Media Foundationの初期化
+//    HRESULT hr = MFStartup(MF_VERSION);
+//    if (FAILED(hr)) return hr;
+//
+//    return S_OK;
+//}
+//HRESULT VideoPlayer::LoadVideo(const wchar_t* filename) {
+//    HRESULT hr;
+//
+//    // SourceReaderの作成
+//    hr = MFCreateSourceReaderFromURL(filename, nullptr, &sourceReader);
+//    if (FAILED(hr)) return hr;
+//
+//    // 最初のビデオストリームを選択
+//    hr = sourceReader->SetStreamSelection(
+//        (DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM, TRUE);
+//    if (FAILED(hr)) return hr;
+//
+//    // 他のストリームを無効化 → もう一度ビデオだけ有効化（この順番はOK）
+//    hr = sourceReader->SetStreamSelection(
+//        (DWORD)MF_SOURCE_READER_ALL_STREAMS, FALSE);
+//    if (FAILED(hr)) return hr;
+//
+//    hr = sourceReader->SetStreamSelection(
+//        (DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM, TRUE);
+//    if (FAILED(hr)) return hr;
+//
+//    // ---------------------------------------------------
+//    // ★ まず RGB32 を試す
+//    // ---------------------------------------------------
+//    ComPtr<IMFMediaType> mediaType;
+//    hr = MFCreateMediaType(&mediaType);
+//    if (FAILED(hr)) return hr;
+//
+//    mediaType->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Video);
+//    mediaType->SetGUID(MF_MT_SUBTYPE, MFVideoFormat_RGB32);
+//
+//    hr = sourceReader->SetCurrentMediaType(
+//        MF_SOURCE_READER_FIRST_VIDEO_STREAM, nullptr, mediaType.Get());
+//
+//    if (SUCCEEDED(hr)) {
+//        OutputDebugStringA("RGB32 で読み込み成功！\n");
+//        isNV12 = false;
+//    }
+//    else {
+//        OutputDebugStringA("RGB32 がサポートされていません → NV12 を試します\n");
+//
+//        mediaType->SetGUID(MF_MT_SUBTYPE, MFVideoFormat_NV12);
+//        hr = sourceReader->SetCurrentMediaType(
+//            MF_SOURCE_READER_FIRST_VIDEO_STREAM, nullptr, mediaType.Get());
+//
+//        if (FAILED(hr)) {
+//            OutputDebugStringA("NV12 もサポートされていません…\n");
+//        }
+//        else {
+//            OutputDebugStringA("NV12 で読み込み成功！\n");
+//            isNV12 = true;  // ★追加
+//        }
+//    }
+//    // ---------------------------------------------------
+//    // 実際のメディアタイプを取得（NV12 or RGB32 のどちらか）
+//    // ---------------------------------------------------
+//    ComPtr<IMFMediaType> outputMediaType;
+//    hr = sourceReader->GetCurrentMediaType(
+//        (DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM, &outputMediaType);
+//    if (FAILED(hr)) return hr;
+//
+//    // 動画のサイズを取得
+//    hr = MFGetAttributeSize(outputMediaType.Get(), MF_MT_FRAME_SIZE,
+//        &videoWidth, &videoHeight);
+//    if (FAILED(hr)) return hr;
+//
+//    // 動画の長さを取得
+//    PROPVARIANT var;
+//    PropVariantInit(&var);
+//    hr = sourceReader->GetPresentationAttribute(
+//        (DWORD)MF_SOURCE_READER_MEDIASOURCE,
+//        MF_PD_DURATION, &var);
+//    if (SUCCEEDED(hr)) {
+//        videoDuration = var.uhVal.QuadPart;
+//        PropVariantClear(&var);
+//    }
+//
+//    // テクスチャの作成
+//    hr = CreateVideoTexture();
+//    if (FAILED(hr)) return hr;
+//
+//    currentTime = 0;
+//    return S_OK;
+//}
+//HRESULT VideoPlayer::CreateVideoTexture() {
+//    if (videoWidth == 0 || videoHeight == 0) {
+//        return E_FAIL;
+//    }
+//
+//    D3D11_TEXTURE2D_DESC texDesc = {};
+//    texDesc.Width = videoWidth;
+//    texDesc.Height = videoHeight;
+//    texDesc.MipLevels = 1;
+//    texDesc.ArraySize = 1;
+//    texDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+//    texDesc.SampleDesc.Count = 1;
+//    texDesc.SampleDesc.Quality = 0;
+//    texDesc.Usage = D3D11_USAGE_DYNAMIC;
+//    texDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+//    texDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+//    texDesc.MiscFlags = 0;
+//
+//    HRESULT hr = device->CreateTexture2D(&texDesc, nullptr, &videoTexture);
+//    if (FAILED(hr)) {
+//        OutputDebugStringA("テクスチャ作成失敗\n");
+//        return hr;
+//    }
+//
+//    // ShaderResourceViewの作成
+//    D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+//    srvDesc.Format = texDesc.Format;
+//    srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+//    srvDesc.Texture2D.MostDetailedMip = 0;
+//    srvDesc.Texture2D.MipLevels = 1;
+//
+//    hr = device->CreateShaderResourceView(videoTexture.Get(), &srvDesc, &textureSRV);
+//    if (FAILED(hr)) {
+//        OutputDebugStringA("SRV作成失敗\n");
+//        return hr;
+//    }
+//
+//    OutputDebugStringA("テクスチャ作成成功\n");
+//    return hr;
+//}
+//
+//HRESULT VideoPlayer::Update(float deltaTime) {
+//    if (!isPlaying || !sourceReader || !videoTexture) return S_OK;
+//
+//    HRESULT hr;
+//    ComPtr<IMFSample> sample;
+//    DWORD streamFlags = 0;
+//    LONGLONG timestamp = 0;
+//
+//    // 次のサンプルを読み込み
+//    hr = sourceReader->ReadSample(
+//        (DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM,
+//        0, nullptr, &streamFlags, &timestamp, &sample);
+//
+//    if (FAILED(hr)) return hr;
+//
+//    // ストリームの終わりに達した場合
+//    if (streamFlags & MF_SOURCE_READERF_ENDOFSTREAM) {
+//        if (isLooping) {
+//            // ループする場合は先頭に戻る
+//            Seek(0);
+//        }
+//        else {
+//            isPlaying = false;
+//        }
+//        return S_OK;
+//    }
+//
+//    // サンプルが取得できた場合、テクスチャを更新
+//    if (sample) {
+//        hr = UpdateTexture(sample.Get());
+//        if (SUCCEEDED(hr)) {
+//            currentTime = timestamp;
+//        }
+//    }
+//
+//    return hr;
+//}
+//HRESULT VideoPlayer::UpdateTexture(IMFSample* sample) {
+//    if (!sample || !videoTexture || !context) return E_FAIL;
+//
+//    HRESULT hr;
+//    ComPtr<IMFMediaBuffer> buffer;
+//
+//    // バッファを1つにまとめる
+//    hr = sample->ConvertToContiguousBuffer(&buffer);
+//    if (FAILED(hr)) return hr;
+//
+//    BYTE* data = nullptr;
+//    DWORD maxLen = 0, curLen = 0;
+//
+//    hr = buffer->Lock(&data, &maxLen, &curLen);
+//    if (FAILED(hr)) return hr;
+//
+//    // RGB32 ならそのまま
+//    if (!isNV12) {
+//        DWORD expected = videoWidth * videoHeight * 4;
+//        if (curLen < expected) {
+//            buffer->Unlock();
+//            return E_FAIL;
+//        }
+//
+//        D3D11_MAPPED_SUBRESOURCE mapped = {};
+//        hr = context->Map(videoTexture.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
+//        if (SUCCEEDED(hr)) {
+//            for (UINT y = 0; y < videoHeight; y++) {
+//                memcpy((BYTE*)mapped.pData + mapped.RowPitch * y,
+//                    data + videoWidth * 4 * y,
+//                    videoWidth * 4);
+//            }
+//            context->Unmap(videoTexture.Get(), 0);
+//        }
+//
+//        buffer->Unlock();
+//        return hr;
+//    }
+//
+//    // ★ NV12 の場合：変換が必要
+//    BYTE* yPlane = data;
+//    BYTE* uvPlane = data + videoWidth * videoHeight;
+//    int yStride = videoWidth;
+//    int uvStride = videoWidth;
+//
+//    std::vector<uint8_t> rgba(videoWidth * videoHeight * 4);
+//
+//    NV12ToRGB32(
+//        yPlane, uvPlane,
+//        videoWidth, videoHeight,
+//        yStride, uvStride,
+//        rgba.data()
+//    );
+//
+//    // テクスチャ書き込み
+//    D3D11_MAPPED_SUBRESOURCE mapped = {};
+//    hr = context->Map(videoTexture.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
+//    if (SUCCEEDED(hr)) {
+//        for (UINT y = 0; y < videoHeight; y++) {
+//            memcpy((BYTE*)mapped.pData + mapped.RowPitch * y,
+//                rgba.data() + videoWidth * 4 * y,
+//                videoWidth * 4);
+//        }
+//        context->Unmap(videoTexture.Get(), 0);
+//    }
+//
+//    buffer->Unlock();
+//    return hr;
+//}
+//
+//HRESULT VideoPlayer::Seek(LONGLONG timeInHundredNanos) {
+//    if (!sourceReader) return E_FAIL;
+//
+//    PROPVARIANT var;
+//    PropVariantInit(&var);
+//    var.vt = VT_I8;
+//    var.hVal.QuadPart = timeInHundredNanos;
+//
+//    HRESULT hr = sourceReader->SetCurrentPosition(GUID_NULL, var);
+//    PropVariantClear(&var);
+//
+//    currentTime = timeInHundredNanos;
+//    return hr;
+//}
+//
+//void  VideoPlayer::NV12ToRGB32(
+//    const uint8_t* yPlane,
+//    const uint8_t* uvPlane,
+//    int width,
+//    int height,
+//    int yStride,
+//    int uvStride,
+//    uint8_t* outRGBA)
+//{
+//    int uvIndex = 0;
+//
+//    for (int j = 0; j < height; j++)
+//    {
+//        for (int i = 0; i < width; i++)
+//        {
+//            int Y = yPlane[j * yStride + i];
+//            int U = uvPlane[(j / 2) * uvStride + (i / 2) * 2 + 0] - 128;
+//            int V = uvPlane[(j / 2) * uvStride + (i / 2) * 2 + 1] - 128;
+//
+//            int C = Y - 16;
+//            int D = U;
+//            int E = V;
+//
+//            int R = (298 * C + 409 * E + 128) >> 8;
+//            int G = (298 * C - 100 * D - 208 * E + 128) >> 8;
+//            int B = (298 * C + 516 * D + 128) >> 8;
+//
+//            R = std::min(std::max(R, 0), 255);
+//            G = std::min(std::max(G, 0), 255);
+//            B = std::min(std::max(B, 0), 255);
+//
+//            int idx = (j * width + i) * 4;
+//            outRGBA[idx + 0] = (uint8_t)B;
+//            outRGBA[idx + 1] = (uint8_t)G;
+//            outRGBA[idx + 2] = (uint8_t)R;
+//            outRGBA[idx + 3] = 255;
+//        }
+//    }
+//}

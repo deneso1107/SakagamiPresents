@@ -104,6 +104,7 @@ struct SUBSET {
     unsigned int MaterialIdx = 0;///< マテリアルインデックス
 };
 
+
 /**
  * @enum EBlendState
  * @brief ブレンドステートの種類
@@ -115,6 +116,7 @@ enum EBlendState {
     BS_SUBTRACTION,   ///< 減算合成
     MAX_BLENDSTATE    ///< ブレンドステートの最大値
 };
+
 
 /**
  * @struct CBBoneCombMatrix
@@ -135,6 +137,17 @@ struct CBBoneCombMatrix {
  */
 class Renderer : NonCopyable
 {
+public:
+    /**
+    * @enum RenderMode
+    * @brief レンダリングモードの種類
+    */
+    enum class RenderMode
+    {
+        NORMAL,      // 通常描画
+        SHADOW_MAP   // シャドウマップ生成
+    };
+
 private:
     static D3D_FEATURE_LEVEL m_FeatureLevel;
 
@@ -160,11 +173,40 @@ private:
     static Matrix4x4 m_CurrentView;
     static Matrix4x4 m_CurrentProjection;
 
+	//以下追加分
+    // シャドウマップ関連
+    static inline Microsoft::WRL::ComPtr<ID3D11Texture2D> m_ShadowMapTexture;
+    static inline Microsoft::WRL::ComPtr<ID3D11DepthStencilView> m_ShadowMapDSV;
+    static inline Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_ShadowMapSRV;
+    static inline Microsoft::WRL::ComPtr<ID3D11SamplerState> m_ShadowSampler;
+
+    // ライト空間の行列用定数バッファ
+    static inline Microsoft::WRL::ComPtr<ID3D11Buffer> m_LightMatrixBuffer;
+
+    static inline DirectX::XMMATRIX m_LightViewMatrix;
+    static inline DirectX::XMMATRIX m_LightProjectionMatrix;
+
+    // 現在の描画モード
+    static inline RenderMode m_CurrentRenderMode = RenderMode::NORMAL;
+
+    // シャドウマップの有効/無効
+    static inline bool m_ShadowMapEnabled = false;
+
+    // 通常のレンダーターゲットとビューポートを保存
+    static inline Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_SavedRenderTarget;
+    static inline Microsoft::WRL::ComPtr<ID3D11DepthStencilView> m_SavedDepthStencil;
+    static inline D3D11_VIEWPORT m_SavedViewport;
+
 public:
+
     static void Init();
+    static void InitShadowMap(int);
     static void Uninit();
+    static void UninitShadowMap();
     static void Begin();
+    static void BeginShadowPass();  // 第1パス開始
     static void End();
+    static void EndShadowPass();    // 第1パス終了
     static void SetDepthEnable(bool Enable);
     static void SetDepthAllwaysWrite();
     static void SetATCEnable(bool Enable);
@@ -188,4 +230,19 @@ public:
 	static ID3D11DepthStencilView* GetDepthStencilView() { return m_DepthStencilView.Get(); }
     static void DisableCulling(bool cullflag = false);
     static void SetFillMode(D3D11_FILL_MODE FillMode);
+
+	// シャドウマップ関連の関数
+   
+    // シャドウマップの有効/無効
+    static void EnableShadowMap(bool enable) { m_ShadowMapEnabled = enable; }
+    static bool IsShadowMapEnabled() { return m_ShadowMapEnabled; }
+
+    // 描画モードの取得
+    static RenderMode GetRenderMode() { return m_CurrentRenderMode; }
+
+    static void SetLightMatrix(const DirectX::XMMATRIX& view, const DirectX::XMMATRIX& projection);
+    static void UpdateLightMatrix(); // 定数バッファに送信
+    static ID3D11ShaderResourceView* GetShadowMapSRV() { return m_ShadowMapSRV.Get(); }
+    static DirectX::XMMATRIX GetLightViewMatrix() { return m_LightViewMatrix; }
+    static DirectX::XMMATRIX GetLightProjectionMatrix() { return m_LightProjectionMatrix; }
 };

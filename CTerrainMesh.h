@@ -330,16 +330,6 @@ public:
         Vector3 localPosition = MatrixHelper::TransformCoord(worldPosition, m_invWorldMatrix);
         int gridX = (int)((localPosition.x - m_minBounds.x) / m_cellSize);
         int gridZ = (int)((localPosition.z - m_minBounds.z) / m_cellSize);
-
-        // シンプルなログだけ
-        static int callCount = 0;
-        if (callCount % 100 == 0) {  // 100回に1回だけ出力
-            printf("Call %d: World(%.1f,%.1f,%.1f) -> Local(%.1f,%.1f,%.1f) -> Grid(%d,%d)\n",
-                callCount, worldPosition.x, worldPosition.y, worldPosition.z,
-                localPosition.x, localPosition.y, localPosition.z, gridX, gridZ);
-        }
-        callCount++;
-
         std::vector<int> candidateTriangles;
 
         // 3x3範囲で候補収集

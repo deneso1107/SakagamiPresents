@@ -48,16 +48,38 @@ void Player::Init()
 {
 	// モデルの初期化
 	m_mesh.Load(
-		"assets/model/car000.x",				// モデル名
+		"assets/model/Cow_Rocket_Adventure_1112064202_texture.fbx",// モデル名
 		"assets/model/");						// テクスチャのパス
 
 	//レンダラ初期化
 	m_meshrenderer.Init(m_mesh);
 
+	// ★自動計算: BottomYが負の場合は補正が必要★
+	float bottomY = m_mesh.GetBottomY();
+
+	if (bottomY < 0.0f) {
+		// 負の値の場合、その分だけ持ち上げる
+		m_groundOffset = -bottomY; // 例: -(-0.716) = 0.716
+	}
+	else {
+		m_groundOffset = 0.0f;
+	}
+
 	// シェーダーの初期化
 	m_shader.Create(
 		"shader/vertexLightingVS.hlsl",				// 頂点シェーダー
 		"shader/vertexLightingPS.hlsl");			// ピクセルシェーダー
+
+	// 通常描画用シェーダー（影あり）- 新規
+	m_shadowShader.Create(
+		"shader/vertexLightingShadowVS.hlsl",
+		"shader/vertexLightingShadowPS.hlsl");
+
+	// シャドウマップ生成用シェーダー - 新規
+	m_shadowMapShader.Create(
+		"shader/ShadowMapVS.hlsl",
+		"shader/ShadowMapPS.hlsl");
+
 
 	DebugUI::RedistDebugFunction(DebugPlayerMoveParameter);
 
@@ -79,7 +101,7 @@ void Player::Init()
 	{
 		OutputDebugStringA("サンプラーステート作成失敗\n");
 	}
-
+	m_Scale = Vector3(10.0f, 10.0f, 10.0f);
 }
 //まだちょいがたつく
 void Player::Update(float deltatime)
@@ -185,11 +207,19 @@ void Player::Update(float deltatime)
 	// ★修正：高速移動時の安全な位置更新★
 	UpdatePositionWithCollisionCheck(timeScale);
 
-	Vector3 m_Position2 = m_Position;
-	m_Position2 = Vector3(m_Position.x, m_Position.y + 5.0f, m_Position.z);
-	m_BoundingSphere = {
-		m_Position,
-		2.5f,// カスコード
+
+	float modelHeight = m_mesh.GetHeight();  // Max.y - Min.y
+	float bottomOffsetY = m_mesh.GetBottomY();
+
+	// オプション1: 底面からの高さで計算
+	m_BoundingSphere =
+	{
+		Vector3(
+			m_Position.x,
+			m_Position.y + (bottomOffsetY * m_Scale.y) + (m_BoundingSphere.radius * 0.5f),
+			m_Position.z
+		),
+		0.5f,
 	};
 
 	// 滑らかな地形追従処理
@@ -215,13 +245,15 @@ void Player::Update(float deltatime)
 		}
 	}
 
+	m_sparkEmitter.Update(scaledDeltaTime);
 }
 // ブーストシステムの更新処理
 void Player::UpdateBoostSystem(bool boostInput, float deltaSeconds)
 {
-	if (boostInput && m_BoostGauge > 0.0f) //ブースト変じゃね??
+	if (boostInput && m_BoostGauge > 0.0f)
 
 	{
+		m_PostProcessSetter(true, 0.02f);
 		// ブースト使用中
 		m_IsBoosting = true;
 		m_BoostGauge -= m_BoostConsumption * deltaSeconds;
@@ -234,24 +266,27 @@ void Player::UpdateBoostSystem(bool boostInput, float deltaSeconds)
 	else {
 		// ブースト未使用
 		m_IsBoosting = false;
+		m_PostProcessSetter(false, 0.0f);
 	}
 }
 void Player::UpdateSmoothTerrainFollowing(uint64_t deltatime)
 {
 	bool onRoad = false;
 
-	// 変更: m_road から m_roadManager に変更
 	if (m_roadManager) {
 		float terrainHeight;
 		Vector3 terrainNormal;
 
-		// 変更: RoadManager経由で地形高度を取得
 		bool terrainFound = m_roadManager->GetTerrainHeight(m_Position, terrainHeight, terrainNormal);
 
 		if (terrainFound) {
-			float carBottom = m_Position.y - m_BoundingSphere.radius;
-			float heightDifference = carBottom - terrainHeight;
+			float bottomOffsetY = m_mesh.GetBottomY(); // -0.716 (牛の場合)
 
+			// ★補正: bottomOffsetYが負の場合、その分持ち上げる★
+			float carBottomY = m_Position.y + (bottomOffsetY * m_Scale.y);
+			// 牛の場合: m_Position.y + (-0.716 * 10) = m_Position.y - 7.16
+
+			float heightDifference = carBottomY - terrainHeight;
 			// 高速移動時は接触判定を厳しくする
 			float horizontalSpeed = sqrt(m_Velocity.x * m_Velocity.x + m_Velocity.z * m_Velocity.z);
 			bool isHighSpeed = m_IsBoosting && horizontalSpeed > 2.0f;
@@ -261,7 +296,9 @@ void Player::UpdateSmoothTerrainFollowing(uint64_t deltatime)
 			if (heightDifference <= contactThreshold) {
 				onRoad = true;
 				m_isGrounded = true;
-				m_targetHeight = terrainHeight + m_BoundingSphere.radius;
+
+				// ★目標高度の計算: 地形高度から底面オフセットを引く★
+				m_targetHeight = terrainHeight - (bottomOffsetY * m_Scale.y);
 
 				float currentHeight = m_Position.y;
 				float heightDiff = abs(m_targetHeight - currentHeight);
@@ -431,12 +468,11 @@ void Player::UpdateNormalMovement(float throttle, float steering, Vector3 forwar
 	Vector3 dustPos = m_Position;
 	dustPos.x += 1.0f;
 	dustPos.y += 2.0f;
-	dustPos.z -= testparticle_z;
 
-	//printf("MangerEmit: pos=(%f, %f, %f)\n", dustPos.x, dustPos.y, dustPos.z);
+	//printf("MangerEmit: m_ParticlePos=(%f, %f, %f)\n", dustPos.x, dustPos.y, dustPos.z);
 
 	// プリセットから砂煙を生成
-	EffectManager::Instance().SpawnEffect("DustCloud", dustPos, backmovement);//生でやるのと、manager経由でやるのではなんか場所が違う
+	m_sparkEmitter.Emit(dustPos, Vector3(0.0f, 1.0f, 0.0f));
 }
 
 // ドリフト移動処理にもブーストを適用
@@ -503,34 +539,63 @@ void Player::Draw()
 {
 	// SRT情報作成
 	SRT srt;
-	srt.pos = m_Position;			// 位置
-	srt.rot = m_Rotation;			// 姿勢	srt.pos = m_Position;
-	srt.scale = m_Scale;			// 拡縮
-
+	srt.pos = m_Position;
+	srt.rot = m_Rotation;
+	srt.scale = m_Scale;
 	Matrix4x4 worldmtx;
-
 	worldmtx = srt.GetMatrix();
+	Matrix rotationMatrix = Matrix::CreateRotationY(DirectX::XMConvertToRadians(90.0f)); // または -90.0f
+	worldmtx = rotationMatrix * worldmtx;
+	Renderer::SetWorldMatrix(&worldmtx);
 
-	Matrix4x4 viewmtx;
+	Matrix4x4 worldMatrix = DirectX::XMMatrixIdentity();
 
-	viewmtx = srt.CreateViewMatrix();
+	//m_sparkEmitter.Render(Renderer::GetDeviceContext(), worldMatrix);
+	auto mode = Renderer::GetRenderMode();
 
-	Renderer::SetWorldMatrix(&worldmtx);		// GPUにセット
+	if (mode == Renderer::RenderMode::SHADOW_MAP)
+	{
+		OutputDebugStringA("\n=== Player::Draw SHADOW_MAP mode ===\n");
 
-	m_shader.SetGPU();
+		// シャドウマップ生成用シェーダー
+		m_shadowMapShader.SetGPU();
 
-	m_meshrenderer.Draw();
+		// シャドウマップパスではメッシュレンダラーを使わず、直接描画する必要があるかも
+		// まずは通常通り呼んでみる
+		m_meshrenderer.Draw();
+	}
+	else
+	{
+		OutputDebugStringA("\n=== Player::Draw NORMAL mode ===\n");
 
-	// デバッグ用のグローバル変数に値をセット
+		// 通常描画
+		if (Renderer::IsShadowMapEnabled())
+		{
+			m_shadowShader.SetGPU();
+		}
+		else
+		{
+			m_shader.SetGPU();
+		}
+
+		m_meshrenderer.Draw();
+	}
+
+	// デバッグ用
 	g_position = m_Position;
 	g_rotation = m_Rotation;
 	g_scale = m_Scale;
 
-
 	Color bscolor(1, 1, 1, 0.5f);
-
-	SphereDrawerDraw(m_BoundingSphere.radius, bscolor, m_Position.x, m_Position.y, m_Position.z);//球体を描画
-
+	SphereDrawerDraw(m_BoundingSphere.radius, bscolor, m_BoundingSphere.center.x, m_BoundingSphere.center.y, m_BoundingSphere.center.z);
+	if (m_roadManager) {
+		float terrainHeight;
+		Vector3 terrainNormal;
+		if (m_roadManager->GetTerrainHeight(m_Position, terrainHeight, terrainNormal)) {
+			Color terrainColor(1, 0, 0, 0.8f); // 赤色
+			SphereDrawerDraw(0.3f, terrainColor, m_Position.x, terrainHeight, m_Position.z);
+		}
+	}
 	//m_sparkEmitter.Render(Renderer::GetDeviceContext(), viewmtx);//ここのViewMatrixが違う説を提唱します
 }
 

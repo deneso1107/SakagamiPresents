@@ -42,7 +42,7 @@ public:
 	void debugChangeCamera();
 	void debugChangeScene();
 	void debugParticlePos();
-	Vector3 pos;//パーティクル位置保存用
+	Vector3 m_ParticlePos;//パーティクル位置保存用
 
 
 	void InitPostProcess();// ポストプロセス初期化
@@ -53,6 +53,10 @@ public:
 	void ChangeScene(const std::string& sceneName)
 	{
 		SceneManager::ChangeScene(sceneName);
+	}
+	void ChangePostProcessMode(bool)
+	{
+
 	}
 
 	bool m_enableMotionBlur = true;

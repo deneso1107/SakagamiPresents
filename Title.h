@@ -3,6 +3,7 @@
 #include "scenemanager.h"
 #include <string>
 #include"ScreenFixedBillboard.h"
+#include"VideoPlayer.h"
 class Title : public IScene
 {
 public:
@@ -18,6 +19,8 @@ public:
 private:
 	ScreenFixedBillboard* m_screenBillboard;//ゲッターあるよ
 	ScreenFixedBillboard* m_turtrialBillboard;//ゲッターあるよ
+	VideoPlayer m_videoPlayer;
+	ScreenFixedBillboard* m_VideoBB;
 
 };
 

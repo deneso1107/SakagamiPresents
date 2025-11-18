@@ -232,6 +232,91 @@ void Renderer::Init()
 
 }
 
+/// @brief シャドウマップ用のリソースを初期化します。
+
+void Renderer::InitShadowMap(int shadowSize)
+{
+	HRESULT hr;
+    // シャドウマップテクスチャの作成
+	D3D11_TEXTURE2D_DESC texDesc={};
+	texDesc.Width = shadowSize;
+	texDesc.Height = shadowSize;
+	texDesc.MipLevels = 1;
+	texDesc.ArraySize = 1;
+	texDesc.Format = DXGI_FORMAT_R32_TYPELESS;
+	texDesc.SampleDesc.Count = 1;
+	texDesc.Usage = D3D11_USAGE_DEFAULT;
+	texDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
+	hr = m_Device->CreateTexture2D(&texDesc, nullptr, m_ShadowMapTexture.GetAddressOf());
+    if (FAILED(hr))
+    {
+        MessageBox(nullptr, "Failed to create shadow map texture", "Error", MB_OK);
+        return;
+    }
+
+
+    // Depth Stencil Viewの作成
+    D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
+	dsvDesc.Format = DXGI_FORMAT_D32_FLOAT;
+	dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+	dsvDesc.Texture2D.MipSlice = 0;
+    hr = m_Device->CreateDepthStencilView(m_ShadowMapTexture.Get(), &dsvDesc, m_ShadowMapDSV.GetAddressOf());
+    if (FAILED(hr))
+    {
+        MessageBox(nullptr, "Failed to create shadow map DSV", "Error", MB_OK);
+        return;
+	}
+    // Shader Resource Viewの作成
+	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+	srvDesc.Format = DXGI_FORMAT_R32_FLOAT/*DXGI_FORMAT_R24_UNORM_X8_TYPELESS*/;//何が違う?
+	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	srvDesc.Texture2D.MostDetailedMip = 0;
+    srvDesc.Texture2D.MipLevels = 1;
+    hr = m_Device->CreateShaderResourceView(m_ShadowMapTexture.Get(), &srvDesc, m_ShadowMapSRV.GetAddressOf());
+    if (FAILED(hr))
+    {
+        MessageBox(nullptr, "Failed to create shadow map SRV", "Error", MB_OK);
+        return;
+	}
+
+    //比較サンプラーの作成
+	D3D11_SAMPLER_DESC samplerDesc = {};
+	samplerDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR;
+    samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
+	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
+	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
+	samplerDesc.BorderColor[0] = 1.0f;
+	samplerDesc.BorderColor[1] = 1.0f;
+	samplerDesc.BorderColor[2] = 1.0f;
+	samplerDesc.BorderColor[3] = 1.0f;
+	samplerDesc.ComparisonFunc = D3D11_COMPARISON_LESS_EQUAL;
+	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+	samplerDesc.MinLOD = 0;
+    hr = m_Device->CreateSamplerState(&samplerDesc, m_ShadowSampler.GetAddressOf());
+    if (FAILED(hr))
+    {
+        MessageBox(nullptr, "Failed to create shadow map sampler", "Error", MB_OK);
+        return;
+	}
+
+	//ライト行列用の定数バッファ作成
+	D3D11_BUFFER_DESC bufferDesc = {};
+	bufferDesc.ByteWidth = sizeof(DirectX::XMMATRIX)*2;//View*projectionほんまに？
+	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	bufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	//bufferDesc.CPUAccessFlags = 0;
+	//bufferDesc.MiscFlags = 0;
+ //   bufferDesc.StructureByteStride = sizeof(float);
+    hr = m_Device->CreateBuffer(&bufferDesc, nullptr, m_LightMatrixBuffer.GetAddressOf());
+    if (FAILED(hr))
+    {
+        MessageBox(nullptr, "Failed to create light matrix buffer", "Error", MB_OK);
+        return;
+	}
+
+    m_ShadowMapEnabled = true;
+}
+
 /**
  * @brief 使用していたリソースを全て解放します。
  *
@@ -256,6 +341,16 @@ void Renderer::Uninit()
     m_SwapChain.Reset();
     m_DeviceContext.Reset();
     m_Device.Reset();
+}
+
+void Renderer::UninitShadowMap()
+{
+    m_ShadowMapTexture.Reset();
+    m_ShadowMapDSV.Reset();
+    m_ShadowMapSRV.Reset();
+    m_ShadowSampler.Reset();
+    m_LightMatrixBuffer.Reset();
+	m_ShadowMapEnabled = false;
 }
 
 /**
@@ -285,7 +380,111 @@ void Renderer::Begin()
     //    1.0f, 0
     //);
 }
+/**
+ * @brief シャドウマップの描画を開始します。（第1パス）
+ *
+ * @details
+ * - レンダーターゲットをシャドウマップ用に切り替え
+ * - 深度バッファをクリア
+ * - ビューポートをシャドウマップサイズに設定
+ */
+void Renderer::BeginShadowPass()
+{
+    if (!m_ShadowMapEnabled)
+    {
+        OutputDebugStringA("BeginShadowPass: Shadow map is DISABLED\n");
+        return;
+    }
 
+    OutputDebugStringA("\n===== BeginShadowPass =====\n");
+
+    // DSVがnullでないか確認
+    if (!m_ShadowMapDSV)
+    {
+        OutputDebugStringA("ERROR: m_ShadowMapDSV is NULL!\n");
+        return;
+    }
+
+    OutputDebugStringA("m_ShadowMapDSV is valid\n");
+
+    m_CurrentRenderMode = RenderMode::SHADOW_MAP;
+
+    // 現在のレンダーターゲットとビューポートを保存
+    UINT numViewports = 1;
+    m_DeviceContext->OMGetRenderTargets(1, m_SavedRenderTarget.GetAddressOf(),
+        m_SavedDepthStencil.GetAddressOf());
+    m_DeviceContext->RSGetViewports(&numViewports, &m_SavedViewport);
+
+    char msg[256];
+    sprintf_s(msg, "Saved viewport: %.0fx%.0f\n", m_SavedViewport.Width, m_SavedViewport.Height);
+    OutputDebugStringA(msg);
+
+    // レンダーターゲットをクリア（重要！）
+    ID3D11RenderTargetView* nullRTV[8] = { nullptr };
+    m_DeviceContext->OMSetRenderTargets(8, nullRTV, nullptr);
+    OutputDebugStringA("Cleared all render targets\n");
+
+    // シャドウマップDSVをセット
+    m_DeviceContext->OMSetRenderTargets(0, nullptr, m_ShadowMapDSV.Get());
+    OutputDebugStringA("Set shadow map DSV\n");
+
+    // 深度バッファをクリア
+    m_DeviceContext->ClearDepthStencilView(m_ShadowMapDSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
+    OutputDebugStringA("Cleared depth to 1.0\n");
+
+    // 深度ステートを強制的に有効
+    if (m_DepthStateEnable)
+    {
+        m_DeviceContext->OMSetDepthStencilState(m_DepthStateEnable.Get(), 0);
+        OutputDebugStringA("Depth state enabled\n");
+    }
+    else
+    {
+        OutputDebugStringA("WARNING: m_DepthStateEnable is NULL!\n");
+    }
+
+    // ラスタライザステート（カリングオフ）
+   /* if (m_RasterStateCullOff)
+    {
+        m_DeviceContext->RSSetState(m_RasterStateCullOff.Get());
+        OutputDebugStringA("Rasterizer state set (cull off)\n");
+    }*/
+
+    // ビューポート設定
+    D3D11_VIEWPORT viewport = {};
+    viewport.TopLeftX = 0;
+    viewport.TopLeftY = 0;
+    viewport.Width = 2048.0f;
+    viewport.Height = 2048.0f;
+    viewport.MinDepth = 0.0f;
+    viewport.MaxDepth = 1.0f;
+    m_DeviceContext->RSSetViewports(1, &viewport);
+
+    sprintf_s(msg, "Set viewport: %.0fx%.0f\n", viewport.Width, viewport.Height);
+    OutputDebugStringA(msg);
+
+    // ライト行列を更新
+    UpdateLightMatrix();
+
+    // 最終確認：DSVが本当にセットされているか
+    ID3D11DepthStencilView* currentDSV = nullptr;
+    ID3D11RenderTargetView* currentRTV = nullptr;
+    m_DeviceContext->OMGetRenderTargets(1, &currentRTV, &currentDSV);
+
+    if (currentDSV == m_ShadowMapDSV.Get())
+    {
+        OutputDebugStringA("SUCCESS: Shadow map DSV is correctly bound\n");
+    }
+    else
+    {
+        OutputDebugStringA("ERROR: Shadow map DSV is NOT bound!\n");
+    }
+
+    if (currentDSV) currentDSV->Release();
+    if (currentRTV) currentRTV->Release();
+
+    OutputDebugStringA("===== BeginShadowPass Complete =====\n\n");
+}
 /**
  * @brief 描画を終了して、画面に表示します。
  *
@@ -295,6 +494,50 @@ void Renderer::Begin()
 void Renderer::End()
 {
     m_SwapChain->Present(1, 0);
+}
+
+void Renderer::EndShadowPass()
+{
+    if (!m_ShadowMapEnabled) return;
+
+
+    // 通常のレンダーターゲットに戻す
+    m_DeviceContext->OMSetRenderTargets(1, m_SavedRenderTarget.GetAddressOf(), m_SavedDepthStencil.Get());
+    m_DeviceContext->RSSetViewports(1, &m_SavedViewport);
+
+    // シャドウマップをピクセルシェーダーにバインド
+    m_DeviceContext->PSSetShaderResources(1, 1, m_ShadowMapSRV.GetAddressOf());
+    m_DeviceContext->PSSetSamplers(1, 1, m_ShadowSampler.GetAddressOf());
+
+    m_CurrentRenderMode = RenderMode::NORMAL;
+
+    // 保存した参照をクリア
+    m_SavedRenderTarget.Reset();
+    m_SavedDepthStencil.Reset();
+}
+
+
+void Renderer::SetLightMatrix(const DirectX::XMMATRIX& view, const DirectX::XMMATRIX& projection)
+{
+    m_LightViewMatrix = view;
+    m_LightProjectionMatrix = projection;
+}
+
+void Renderer::UpdateLightMatrix()
+{
+    if (!m_ShadowMapEnabled) return;
+    struct LightMatrixBuffer
+    {
+        DirectX::XMMATRIX view;
+        DirectX::XMMATRIX projection;
+    };
+
+    LightMatrixBuffer buffer;
+    buffer.view = DirectX::XMMatrixTranspose(m_LightViewMatrix);
+    buffer.projection = DirectX::XMMatrixTranspose(m_LightProjectionMatrix);
+
+    m_DeviceContext->UpdateSubresource(m_LightMatrixBuffer.Get(), 0, nullptr, &buffer, 0, 0);
+    m_DeviceContext->VSSetConstantBuffers(6, 1, m_LightMatrixBuffer.GetAddressOf());
 }
 
 /**

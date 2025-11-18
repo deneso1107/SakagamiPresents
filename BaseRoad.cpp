@@ -1,4 +1,4 @@
-#include "BaseRoad.h"
+    #include "BaseRoad.h"
 // BaseRoad.cpp - 基底クラスの実装
 void BaseRoad::Init() {
     // 既に初期化済みの場合は何もしない
@@ -19,7 +19,10 @@ void BaseRoad::Init() {
         m_meshrenderer.Init(m_mesh);
 
         // シェーダーの初期化
-        m_shader.Create("shader/vertexLightingVS.hlsl", "shader/vertexLightingPS.hlsl");
+        m_shader.Create("shader/unlitTextureVS.hlsl", "shader/unlitTexturePS.hlsl");
+        m_shadowShader.Create(
+            "shader/vertexLightingShadowVS.hlsl",
+            "shader/vertexLightingShadowPS.hlsl");
 
         // 初期化完了フラグをセット
         m_isInitialized = true;
@@ -58,7 +61,17 @@ void BaseRoad::Draw() {
     Matrix4x4 viewmtx = srt.CreateViewMatrix();
 
     Renderer::SetWorldMatrix(&worldmtx);
-    m_shader.SetGPU();
+    // 通常パス：影を受け取る
+    //if (Renderer::IsShadowMapEnabled())
+    //{
+    //    // 影付きシェーダーを使用
+    //    m_shadowShader.SetGPU();
+    //}
+    //else
+    //{
+        // 影なしシェーダーを使用
+        m_shader.SetGPU();
+    //}
     m_meshrenderer.Draw();
 
     // デバッグ描画
