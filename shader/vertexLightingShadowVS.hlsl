@@ -1,6 +1,6 @@
 #include "common.hlsl"
 
-cbuffer LightMatrixBuffer : register(b5)
+cbuffer LightMatrixBuffer : register(b6)
 {
     matrix LightView;
     matrix LightProjection;

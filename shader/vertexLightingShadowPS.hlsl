@@ -25,9 +25,7 @@ float4 main(in PS_IN_SHADOW In) : SV_Target
     }
     else
     {
-        outDiffuse.xyz = In.Diffuse.xyz;
         outDiffuse = In.Diffuse;
-        outDiffuse.a = In.Diffuse.a;
     }
     
     // シャドウマップから影を計算

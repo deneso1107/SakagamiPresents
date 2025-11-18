@@ -13,7 +13,8 @@ cbuffer ProjectionBuffer : register(b2)
     matrix Projection;
 }
 
-cbuffer LightMatrixBuffer : register(b5)
+// register(b6)に変更（b5はBoneMatrixBufferと競合）
+cbuffer LightMatrixBuffer : register(b6)
 {
     matrix LightView;
     matrix LightProjection;
@@ -21,15 +22,17 @@ cbuffer LightMatrixBuffer : register(b5)
 
 struct VS_IN
 {
-    float4 Position : POSITION;
-    float3 Normal : NORMAL;
-    float4 Diffuse : COLOR;
+    float4 Position : POSITION0;
+    float3 Normal : NORMAL0;
+    float4 Diffuse : COLOR0;
     float2 TexCoord : TEXCOORD0;
+    int4 BoneIndex : BONEINDEX0;
+    float4 BoneWeight : BONEWEIGHT0;
 };
 
 struct VS_OUT
 {
-    float4 Position : SV_POSITION; // float4を明示的に使用
+    float4 Position : SV_POSITION;
     float Depth : TEXCOORD0;
 };
 
@@ -40,17 +43,12 @@ VS_OUT main(VS_IN In)
     // ワールド座標に変換
     float4 worldPos = mul(In.Position, World);
     
-    // ライト空間のビュー変換
+    // ライト空間に変換
     float4 lightViewPos = mul(worldPos, LightView);
+    float4 lightProjPos = mul(lightViewPos, LightProjection);
     
-    // ライト空間のプロジェクション変換
-    Out.Position = mul(lightViewPos, LightProjection);
-    
-    // 明示的に4成分すべてを保証
-    Out.Position.w = max(Out.Position.w, 0.0001); // wが0にならないようにする
-    
-    // 深度値を保存（デバッグ用）
-    Out.Depth = Out.Position.z / Out.Position.w;
+    Out.Position = lightProjPos;
+    Out.Depth = lightProjPos.z / lightProjPos.w;
     
     return Out;
 }

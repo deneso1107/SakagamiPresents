@@ -192,9 +192,6 @@ void RoadManager::SetRoad(int x, int y, RoadType type, Direction direction) {
 
             startHeight +=  heightChange; // 次の道路の始点高さを更新
 
-            printf("Road(%d,%d): Start=%.2f, Change=%.2f, End=%.2f, Center=%.2f\n",
-                x, y, startHeight, heightChange,
-                m_roadLayout[y][x].endHeight, centerHeight);
         }
     }
 }

@@ -105,6 +105,8 @@
     <ClInclude Include="system\transform.h" />
     <ClInclude Include="TextureCache.h" />
     <ClInclude Include="Title.h" />
+    <ClInclude Include="VideoBllBoard.h" />
+    <ClInclude Include="VideoPlayer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Application.cpp" />
@@ -175,6 +177,8 @@
     <ClCompile Include="system\SphereDrawer.cpp" />
     <ClCompile Include="system\stb.cpp" />
     <ClCompile Include="Title.cpp" />
+    <ClCompile Include="VideoBllBoard.cpp" />
+    <ClCompile Include="VideoPlayer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="shader\chromatic_aberrationPS.hlsl">
@@ -205,8 +209,8 @@
     <FxCompile Include="shader\ShadowMapPS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4.0_level_9_3</ShaderModel>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0_level_9_3</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
     </FxCompile>
     <FxCompile Include="shader\ShadowMapVS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
@@ -231,6 +235,10 @@
     <FxCompile Include="shader\vertexLightingVS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+    </FxCompile>
+    <FxCompile Include="shader\video_PS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
     <FxCompile Include="shader\VS_Particle.hlsl">
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
@@ -300,8 +308,8 @@
     <LibraryPath>.\directxtk\lib\x64\Debug;.\assimp\assimp\5.2.5\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>.\assimp\5.2.5\include;$(IncludePath)</IncludePath>
-    <LibraryPath>.\assmp\5.2.5\lib;.\directxtk\lib\x64\Release;$(LibraryPath)</LibraryPath>
+    <IncludePath>.\assimp\assimp\5.2.5\include;$(IncludePath)</IncludePath>
+    <LibraryPath>.\assimp\assimp\5.2.5\lib;.\directxtk\lib\x64\Release;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

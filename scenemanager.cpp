@@ -24,8 +24,8 @@ void SceneManager::Init()
 {
     // 初期シーンの登録（一番最後に登録したSceneが最初に出てくる）
     //RegisterScene<Ending>("Ending");
-    //RegisterScene<Title>("Title");
     RegisterScene<CarDriveScene>("CarDriveScene");
+    //RegisterScene<Title>("Title");
 
     // フェードリソースの初期化
     InitFadeResources();

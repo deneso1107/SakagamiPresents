@@ -393,14 +393,14 @@ bool    ImGui_ImplDX11_CreateDeviceObjects()
             };\
             struct VS_INPUT\
             {\
-              float2 pos : POSITION;\
+              float2 m_ParticlePos : POSITION;\
               float4 col : COLOR0;\
               float2 uv  : TEXCOORD0;\
             };\
             \
             struct PS_INPUT\
             {\
-              float4 pos : SV_POSITION;\
+              float4 m_ParticlePos : SV_POSITION;\
               float4 col : COLOR0;\
               float2 uv  : TEXCOORD0;\
             };\
@@ -408,7 +408,7 @@ bool    ImGui_ImplDX11_CreateDeviceObjects()
             PS_INPUT main(VS_INPUT input)\
             {\
               PS_INPUT output;\
-              output.pos = mul( ProjectionMatrix, float4(input.pos.xy, 0.f, 1.f));\
+              output.m_ParticlePos = mul( ProjectionMatrix, float4(input.m_ParticlePos.xy, 0.f, 1.f));\
               output.col = input.col;\
               output.uv  = input.uv;\
               return output;\
@@ -454,7 +454,7 @@ bool    ImGui_ImplDX11_CreateDeviceObjects()
         static const char* pixelShader =
             "struct PS_INPUT\
             {\
-            float4 pos : SV_POSITION;\
+            float4 m_ParticlePos : SV_POSITION;\
             float4 col : COLOR0;\
             float2 uv  : TEXCOORD0;\
             };\

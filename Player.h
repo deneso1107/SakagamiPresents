@@ -52,7 +52,7 @@ class Player:public ObjectBase
 	// 加速ゲージ関連
 	float m_BoostGauge = 0.0f;           // 加速ゲージ（0-100）
 	bool m_IsBoosting = false;           // ブースト中かどうか
-	float m_BoostConsumption = 150.0f;    // ブーストの消費量（per second）
+	float m_BoostConsumption = 15.0f;    // ブーストの消費量（per second）
 	float m_BoostPower = 1.5f;           // ブーストの力
 	float m_MaxBoostGauge = 100.0f;      // ゲージの最大値
 
@@ -99,6 +99,11 @@ class Player:public ObjectBase
 	float testparticle_y = 0.0f;
 	float testparticle_x = 0.0f;
 	float testparticle_z = 0.0f;
+
+	//牛用の変数
+	float m_groundOffset = 0.0f; // 地面補正値
+
+	std::function<void(bool, float)>m_PostProcessSetter;
 public:
 	void Init() override;
 	void Update(float) override;
@@ -174,17 +179,12 @@ public:
 	}
 	float GetSpeed() { return speed; }
 	float GetMaxSpeed() { return m_MaxSpeed * m_BoostRatio; }
-	// Player.h のprivateセクションに以下のデバッグ用メソッドも追加
-	void DebugTerrainRotation_() {
-		if (ImGui::TreeNode("Terrain Rotation")) {
-			ImGui::SliderFloat("Tilt Lerp Speed", &m_terrainTiltLerpSpeed, 0.01f, 1.0f);
-			ImGui::Text("Terrain Normal: (%.3f, %.3f, %.3f)",
-				m_terrainNormal.x, m_terrainNormal.y, m_terrainNormal.z);
-			ImGui::Text("Car Rotation: (%.3f, %.3f, %.3f)",
-				m_Rotation.x, m_Rotation.y, m_Rotation.z);
-			ImGui::TreePop();
-		}
+	
+	void SetPostProcessSetter(std::function<void(bool, float)> setter) 
+	{
+		m_PostProcessSetter = setter;
 	}
+
 	void DebugGravitySystem_()
 	{
 		if (ImGui::TreeNode("Gravity System")) {
@@ -205,18 +205,6 @@ public:
 					m_isGrounded = false;
 				}
 			}
-
-			ImGui::TreePop();
-		}
-	}
-	void DebugTerrainFollowing_() {
-		if (ImGui::TreeNode("Terrain Following")) {
-
-			ImGui::Text("Current Height: %.3f", m_Position.y);
-			ImGui::Text("Target Height: %.3f", m_targetHeight);
-			ImGui::Text("Height Diff: %.3f", abs(m_Position.y - m_targetHeight));
-			ImGui::Text("Horizontal Speed: %.3f", Vector3(m_Velocity.x, 0, m_Velocity.z).Length());
-			ImGui::Text("Is Grounded: %s", m_isGrounded ? "Yes" : "No");
 
 			ImGui::TreePop();
 		}

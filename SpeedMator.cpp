@@ -3,7 +3,7 @@ SpeedMator::SpeedMator() : m_SetSpeed(false), m_SpeedParam(0.0f)
 {
     std::vector<const wchar_t*> textures = {
         L"assets/texture/SpeedMatorOut.png",    // 0: ÉÅÅ[É^Å[îwåi
-        L"assets/texture/SoeedMatorNeedle2.png"  // 1: êj
+        L"assets/texture/NeedleCow.png"  // 1: êj
     };
 
 

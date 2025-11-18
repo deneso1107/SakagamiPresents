@@ -39,38 +39,38 @@ void gamedraw(uint64_t deltatime)
 	// ========== 第1パス: シャドウマップ生成 ==========
 	if (Renderer::IsShadowMapEnabled())
 	{
+		//printf("\n========== SHADOW MAP PASS START ==========\n");
+
 		Renderer::BeginShadowPass();
 
-		// シャドウマップ生成用の描画
+		// ここが重要！SceneManager::Draw()が呼ばれているか確認
+		//printf("Calling SceneManager::Draw for shadow map...\n");
 		float scaledDelta = GameManager::Instance().GetScaledDelta();
-		SceneManager::Draw(scaledDelta);  // 各オブジェクトが自動的にシャドウマップ用シェーダーを使用
+		SceneManager::Draw(scaledDelta);
+		//printf("SceneManager::Draw completed\n");
 
 		Renderer::EndShadowPass();
+
+		//printf("========== SHADOW MAP PASS END ==========\n\n");
+	}
+	else
+	{
+		//printf("Shadow map is DISABLED\n");
 	}
 
 	// ========== 第2パス: 通常描画 ==========
+	//printf("========== NORMAL PASS START ==========\n");
+
 	Renderer::Begin();
 
-	// 通常描画
 	float scaledDelta = GameManager::Instance().GetScaledDelta();
 	SceneManager::Draw(scaledDelta);
 
-	// デバッグUIの描画
 	DebugUI::Render();
 
 	Renderer::End();
-	//// レンダリング前処理
-	//Renderer::Begin();
 
-	//// シーンマネージャの更新
-	//float scaledDelta = GameManager::Instance().GetScaledDelta();
-	//SceneManager::Draw(scaledDelta);
-
-	//// デバッグUIの描画
-	//DebugUI::Render();
-
-	//// レンダリング後処理
-	//Renderer::End();
+	//printf("========== NORMAL PASS END ==========\n\n");
 }
 
 void gamedispose() 

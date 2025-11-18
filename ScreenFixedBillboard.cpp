@@ -45,6 +45,48 @@ ScreenFixedBillboard::ScreenFixedBillboard(const Vector2& screenPos, float width
     m_Material.Create(materialData);
     CreateBuffers();
 }
+
+// 動画用コンストラクタ（VideoPlayerを渡す）
+ScreenFixedBillboard::ScreenFixedBillboard(const Vector2& screenPos, float width, float height, VideoPlayer* videoPlayer, bool takeOwnership)
+    : m_screenPosition(screenPos)
+    , m_width(width)
+    , m_height(height)
+    , m_angle(0.0f)
+    , m_uvOffset(0.0f, 0.0f)
+    , m_uvSize(1.0f, 1.0f)
+    , m_texture(nullptr)
+    , m_vertexBuffer(nullptr)
+    , m_indexBuffer(nullptr)
+    , m_videoPlayer(videoPlayer)
+    , m_isOwningVideoPlayer(takeOwnership)
+{
+    // VideoPlayerからSRVを取得
+    if (m_videoPlayer) {
+        m_texture = m_videoPlayer->GetTextureSRV();
+        if (m_texture) {
+            m_texture->AddRef();
+        }
+    }
+
+    // シェーダーの初期化
+    g_Shader.Create2D(
+        "shader/Simple2DTextureVS.hlsl",
+        "shader/Simple2DTexturePS.hlsl");
+
+
+    // マテリアル設定
+    MATERIAL materialData = {};
+    materialData.Diffuse = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+    materialData.Ambient = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+    materialData.Specular = Vector4(0.0f, 0.0f, 0.0f, 0.0f);
+    materialData.Emission = Vector4(0.0f, 0.0f, 0.0f, 0.0f);
+    materialData.Shiness = 0.0f;
+    materialData.TextureEnable = 1.0f;
+
+    m_Material.Create(materialData);
+    CreateBuffers();
+}
+
 void ScreenFixedBillboard::Init(const Vector2& screenPos, float width, float height, const wchar_t* texturePath)
 {
 }
@@ -166,12 +208,26 @@ Vector2 ScreenFixedBillboard::RotatePoint(const Vector2& point, const Vector2& c
 
 void ScreenFixedBillboard::Update()
 {
+    // 動画の場合、フレームを更新
+    if (m_videoPlayer) {
+        m_videoPlayer->Update(0.016f);  // 約60FPS
+    }
     // 位置やサイズが変更された場合のみ更新
     UpdateVertexBuffer();
 }
 
 void ScreenFixedBillboard::Draw()
 {
+    ID3D11ShaderResourceView* currentSRV = nullptr;
+    Renderer::GetDeviceContext()->PSGetShaderResources(0, 1, &currentSRV);
+
+    if (currentSRV) {
+        OutputDebugStringA("SRVはバインドされています\n");
+        currentSRV->Release();
+    }
+    else {
+        OutputDebugStringA("SRVがバインドされていません\n");
+    }
     // ワールド行列とビュー行列を単位行列に設定
     // スクリーン座標系で直接描画するため
     Matrix4x4 identity = DirectX::XMMatrixIdentity();
@@ -216,4 +272,65 @@ void ScreenFixedBillboard::Draw()
 
     // 描画
     Renderer::GetDeviceContext()->DrawIndexed(6, 0, 0);
+}
+
+//動画用
+// 動画用ファクトリメソッド
+ScreenFixedBillboard* ScreenFixedBillboard::CreateFromVideo(const Vector2& screenPos, float width, float height, const wchar_t* videoPath)
+{
+    // VideoPlayerを作成
+    VideoPlayer* player = new VideoPlayer();
+    player->Initialize(Renderer::GetDevice(), Renderer::GetDeviceContext());
+
+    HRESULT hr = player->LoadVideo(videoPath);
+    if (FAILED(hr)) {
+        delete player;
+        return nullptr;
+    }
+
+    // Billboardを作成（所有権を渡す）
+    return new ScreenFixedBillboard(screenPos, width, height, player, true);
+}
+
+void ScreenFixedBillboard::PlayVideo()
+{
+    if (m_videoPlayer) {
+        m_videoPlayer->Play();
+    }
+}
+
+void ScreenFixedBillboard::PauseVideo()
+{
+    if (m_videoPlayer) {
+        m_videoPlayer->Pause();
+    }
+}
+
+void ScreenFixedBillboard::StopVideo()
+{
+    if (m_videoPlayer) {
+        m_videoPlayer->Stop();
+    }
+}
+
+void ScreenFixedBillboard::SetLooping(bool loop)
+{
+    if (m_videoPlayer) {
+        m_videoPlayer->SetLooping(loop);
+    }
+}
+
+//bool ScreenFixedBillboard::IsPlaying() const
+//{
+//    return m_videoPlayer ? m_videoPlayer->IsPlaying() : false;
+//}
+
+float ScreenFixedBillboard::GetCurrentTime() const
+{
+    return m_videoPlayer ? m_videoPlayer->GetCurrentTimeSeconds() : 0.0f;
+}
+
+float ScreenFixedBillboard::GetDuration() const
+{
+    return m_videoPlayer ? m_videoPlayer->GetDurationSeconds() : 0.0f;
 }

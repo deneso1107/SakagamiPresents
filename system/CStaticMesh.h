@@ -32,9 +32,26 @@ public:
 	std::vector<std::unique_ptr<CTexture>> GetDiffuseTextures() {
 		return std::move(m_diffusetextures);
 	}
+	// 追加
+	Vector3 GetBoundingBoxCenter() const 
+	{
+		return (m_boundingBoxMin + m_boundingBoxMax) * 0.5f;
+	}
 
+	// 底面の位置（ローカル座標）
+	Vector3 GetBottomPosition() const
+	{
+		return Vector3(
+			(m_boundingBoxMin.x + m_boundingBoxMax.x) * 0.5f,
+			m_boundingBoxMin.y,  // 底面のY座標
+			(m_boundingBoxMin.z + m_boundingBoxMax.z) * 0.5f
+		);
+	}
+	// 底面のY座標を取得
+	float GetBottomY() const { return m_boundingBoxMin.y; }
 
-	const Vector3 GetModelBaseSize() { return m_basesize; }
+	// 高さを取得
+	float GetHeight() const { return m_boundingBoxMax.y - m_boundingBoxMin.y; }
 
 
 

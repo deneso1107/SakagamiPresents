@@ -118,13 +118,13 @@ void ParticleEffect::Update(float deltaTime)
 //    // ★ 最初の m_EmitDuration 秒だけパーティクルを放出
 //    if (m_HasSetup && m_Emitter && m_LifeTime < m_EmitDuration)
 //    {
-//        DirectX::XMFLOAT3 pos = { m_Position.x, m_Position.y, m_Position.z };
+//        DirectX::XMFLOAT3 m_ParticlePos = { m_Position.x, m_Position.y, m_Position.z };
 //        DirectX::XMFLOAT3 dir = { m_Direction.x, m_Direction.y, m_Direction.z };
 //
 //        // 放出
 //        for (int i = 0; i < m_ParticleCountToEmit; ++i)
 //        {
-//            m_Emitter->Emit(pos, dir);
+//            m_Emitter->Emit(m_ParticlePos, dir);
 //        }
 //    }
 //
