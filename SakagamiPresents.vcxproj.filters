@@ -43,6 +43,18 @@
     <Filter Include="ヘッダー ファイル\Manager">
       <UniqueIdentifier>{2a0ddcbb-e3b6-4d5d-8364-fd861a127ddb}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ソース ファイル\Object\Enemy">
+      <UniqueIdentifier>{3cad1f62-3e23-494f-aaf7-9d07a3f6f511}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ヘッダー ファイル\Object\Enemy">
+      <UniqueIdentifier>{54d92161-bcb8-4fd8-a8c4-f07cba68ad3d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\Object\Tree">
+      <UniqueIdentifier>{bdf5a8a8-09e5-4491-a307-a52f1d9cc7f2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ヘッダー ファイル\Object\Tree">
+      <UniqueIdentifier>{a036ec75-60b2-4224-abc5-820caea53c11}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Application.h">
@@ -210,14 +222,8 @@
     <ClInclude Include="BlastEnemy.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="Enemies.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="ObjectBase.h">
       <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="Enemy.h">
-      <Filter>ヘッダー ファイル\Object</Filter>
     </ClInclude>
     <ClInclude Include="Player.h">
       <Filter>ヘッダー ファイル\Object</Filter>
@@ -230,12 +236,6 @@
     </ClInclude>
     <ClInclude Include="CTerrainMesh.h">
       <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="Start.h">
-      <Filter>ヘッダー ファイル\Object</Filter>
-    </ClInclude>
-    <ClInclude Include="Goal.h">
-      <Filter>ヘッダー ファイル\Object</Filter>
     </ClInclude>
     <ClInclude Include="CarDriveScene.h">
       <Filter>ヘッダー ファイル\Scene</Filter>
@@ -308,6 +308,24 @@
     </ClInclude>
     <ClInclude Include="VideoBllBoard.h">
       <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Start.h">
+      <Filter>ヘッダー ファイル\Object\Road</Filter>
+    </ClInclude>
+    <ClInclude Include="Goal.h">
+      <Filter>ヘッダー ファイル\Object\Road</Filter>
+    </ClInclude>
+    <ClInclude Include="Enemy.h">
+      <Filter>ヘッダー ファイル\Object\Enemy</Filter>
+    </ClInclude>
+    <ClInclude Include="Enemies.h">
+      <Filter>ヘッダー ファイル\Object\Enemy</Filter>
+    </ClInclude>
+    <ClInclude Include="Tree.h">
+      <Filter>ヘッダー ファイル\Object\Tree</Filter>
+    </ClInclude>
+    <ClInclude Include="TreeManager.h">
+      <Filter>ヘッダー ファイル\Object\Tree</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -428,12 +446,6 @@
     <ClCompile Include="BlastEnemy.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="Enemies.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="Enemy.cpp">
-      <Filter>ソース ファイル\Object</Filter>
-    </ClCompile>
     <ClCompile Include="Player.cpp">
       <Filter>ソース ファイル\Object</Filter>
     </ClCompile>
@@ -520,6 +532,18 @@
     </ClCompile>
     <ClCompile Include="VideoBllBoard.cpp">
       <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="Enemy.cpp">
+      <Filter>ソース ファイル\Object\Enemy</Filter>
+    </ClCompile>
+    <ClCompile Include="Enemies.cpp">
+      <Filter>ソース ファイル\Object\Enemy</Filter>
+    </ClCompile>
+    <ClCompile Include="Tree.cpp">
+      <Filter>ソース ファイル\Object\Tree</Filter>
+    </ClCompile>
+    <ClCompile Include="TreeManager.cpp">
+      <Filter>ソース ファイル\Object\Tree</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

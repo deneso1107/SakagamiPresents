@@ -12,6 +12,7 @@ enum class RoadType {
 	SLOPE_DOWN, // 下り坂
     // 将来的な拡張用
     START_LINE,  // スタートライン
+    GOAL_LINE,  // スタートライン
     CHECKPOINT,  // チェックポイント
     BRIDGE,      // 橋
     TUNNEL       // トンネル
@@ -23,6 +24,15 @@ enum class Direction {
     EAST = 90,   // 東 (90度)
     SOUTH = 180, // 南 (180度)
     WEST = 270   // 西 (270度)
+};
+
+enum class EdgeType {
+    NONE,           // 中央
+    LEFT,           // 左端
+    RIGHT,          // 右端
+    FRONT,          // 前端
+    BACK,           // 後端
+    CORNER          // 角
 };
 
 // 度数法から弧度法への変換ヘルパー関数
@@ -63,7 +73,7 @@ struct RoadSegment {
     float spacingZ = 0.0f;  // この道路の実際の占有距離
 
     RoadSegment(RoadType t = RoadType::NONE, Direction d = Direction::NORTH)
-        : type(t), direction(d), position(0, 0, 0), rotation(0, 0, 0), scale(18, 1, 18), endHeight(0.0f) {
+        : type(t), direction(d), position(0, 0, 0), rotation(0, 0, 0), scale(28, 1, 28), endHeight(0.0f) {
     }
 
     // 道路が存在するかチェック
@@ -144,4 +154,7 @@ public:
     Vector3 GetActualModelSize() const {
         return m_mesh.GetModelSize();
     }
+
+    bool IsPlayerOnEdge(const Vector3& playerPos, float edgeThreshold = 1.0f) const;
+    EdgeType GetPlayerEdgeType(const Vector3& playerPos, float edgeThreshold = 1.0f) const;
 };

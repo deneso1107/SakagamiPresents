@@ -643,7 +643,11 @@ void Player::OnCollisionWithEnemy(Enemy& enemy)
 	{
 		knockbackForce *=(1 / timeScale);//スローモーションでも同じ力で吹っ飛ぶように
 	}
-	ApplyHitStop(0.08f, 0.1f);
+
+	//敵を飛ばしたときに起きる効果
+	ApplyHitStop(0.008f, 0.1f);
+	CheeseCamera::Instance().Shake(0.5f, 0.1f);
+
 	enemy.ApplyKnockback(knockbackDirection, knockbackForce,timeScale);
 }
 
