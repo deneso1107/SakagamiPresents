@@ -52,7 +52,7 @@ public:
 	void CreateIntermediateTexture();
 	void ChangeScene(const std::string& sceneName)
 	{
-		SceneManager::ChangeScene(sceneName);
+		SceneManager::ChangeScene(sceneName,false);
 	}
 	void ChangePostProcessMode(bool)
 	{

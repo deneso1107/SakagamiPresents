@@ -215,36 +215,6 @@ void Enemy::KnockBack(float deltaTime)
 
 void Enemy::SpawnDisappearEffect()
 {
-    // キラキラパーティクル
-    //EffectManager::Instance().SpawnEffect("Star", m_Position, Vector3(0, 1, 0));//出てくる 大きさは調整
-
-    //// キラキラパーティクル（複数）
-    //for (int i = 0; i < 5; ++i)
-    //{
-    //    Vector3 starPos = m_Position + Vector3(
-    //        (rand() % 100 - 50) * 0.05f,
-    //        (rand() % 100 - 50) * 0.05f,
-    //        (rand() % 100 - 50) * 0.05f
-    //    );
-    //    Vector3 direction = Vector3(
-    //        (rand() % 200 - 100) / 100.0f,
-    //        (rand() % 200 - 100) / 100.0f,
-    //        (rand() % 200 - 100) / 100.0f
-    //    );
-    //    direction.Normalize();
-
-    //    EffectManager::Instance().SpawnEffect("Explosion", starPos, direction);
-    //}
-    //
-    // // キラキラパーティクル（中心）
-    //EffectManager::Instance().SpawnEffect("Star", m_Position, Vector3(0, 1, 0));
-
-    //// キラキラパーティクル（一度に100個放出）
-    //EffectManager::Instance().SpawnEffect("SparkleParticle", Vector3(0, 1, 0), Vector3(0, 1, 0));
-    //OutputDebugStringA("SpawnDisappearEffect 完了\n");
-  
-
-
     // テスト1: 同じ位置で両方生成
     EffectManager::Instance().SpawnEffect("Star", m_Position, Vector3(150.0f, 150.0f, 0));
     printf("Star生成完了\n");

@@ -1,4 +1,5 @@
 #include "RoadManager.h"
+using namespace DirectX::SimpleMath;
 std::unique_ptr<BaseRoad> RoadManager::CreateRoad(RoadType type, Direction direction) {
     switch (type) {
     case RoadType::STRAIGHT:
@@ -9,6 +10,8 @@ std::unique_ptr<BaseRoad> RoadManager::CreateRoad(RoadType type, Direction direc
         return std::make_unique<RightTurnRoad>(direction);
 	case RoadType::START_LINE:
 		return std::make_unique<Start>(direction);
+    case RoadType::GOAL_LINE:
+        return std::make_unique<Goal>(direction);
     case RoadType::SLOPE_UP:
         return std::make_unique<StraightRoad>(direction);
     case RoadType::SLOPE_DOWN:
@@ -222,6 +225,8 @@ float RoadManager::CalculateAccumulatedPosition(int x, int y, Direction directio
     return accumulated - (centerOffset * std::max(actualWidth, actualDepth));
 }
 
+
+
 // ëOÇÃìπòHÇÃèIí[çÇÇ≥ÇéÊìæ
 float RoadManager::GetPreviousRoadEndHeight(int x, int y, Direction direction) {
     int prevX = x, prevY = y;
@@ -335,6 +340,39 @@ std::optional<Vector3> RoadManager::GetStartPos()
     }
     return std::nullopt; // å©Ç¬Ç©ÇÁÇ»Ç©Ç¡ÇΩ
 }
+
+std::optional<Vector3> RoadManager::GetGoalPos()
+{
+    for (auto& row : m_roadGrid) {
+        for (auto& road : row)
+        {
+            if (road)
+            {
+                if (road->GetRoadType() == RoadType::GOAL_LINE) {
+                    return road->GetPosition();
+                }
+            }
+        }
+    }
+    return std::nullopt; // å©Ç¬Ç©ÇÁÇ»Ç©Ç¡ÇΩ
+}
+
+BaseRoad* RoadManager::GetGoalRoad()
+{
+    for (auto& row : m_roadGrid) {
+        for (auto& road : row)
+        {
+            if (road)
+            {
+                if (road->GetRoadType() == RoadType::GOAL_LINE) {
+                    return road.get();
+                }
+            }
+        }
+    }
+    return nullptr; // å©Ç¬Ç©ÇÁÇ»Ç©Ç¡ÇΩ
+}
+
 
 void RoadManager::UpdatePlayerCollision(BoundingSphere& player, Vector3& velocity) {
     for (auto& row : m_roadGrid) {

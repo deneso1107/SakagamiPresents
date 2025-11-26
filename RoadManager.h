@@ -7,8 +7,10 @@
 #include"LeftTurnRoad.h"
 #include <optional> 
 #include"Start.h"
-class RoadManager {
-private:
+#include"Goal.h"
+class RoadManager 
+{
+private:    
     std::vector<std::vector<std::unique_ptr<BaseRoad>>> m_roadGrid;
     std::vector<std::vector<RoadSegment>> m_roadLayout;
 
@@ -38,7 +40,7 @@ private:
     float CalculateAccumulatedPosition(int x, int y, Direction direction, float thisSpacing, float, float);
 
 public:
-    RoadManager(float roadSize = 18.0f) : m_roadSize(roadSize), m_gridWidth(0), m_gridHeight(0) {
+    RoadManager(float roadSize = 28.0f) : m_roadSize(roadSize), m_gridWidth(0), m_gridHeight(0) {
         // デフォルト設定を初期化（Z軸回転をデフォルトに）
        //m_modelConfig.SetAnglesForCurrentModel();
     }
@@ -108,6 +110,7 @@ public:
     }
 
     std::optional<Vector3> GetStartPos();
+    std::optional<Vector3> GetGoalPos();
 
     // デバッグ用: 回転軸を指定して角度を設定
     enum class RotationAxis { X_PITCH, Y_YAW, Z_ROLL };
@@ -130,8 +133,9 @@ public:
         }
     }
 
+    BaseRoad* GetGoalRoad();
     // デバッグ用 - サーキットの妥当性をチェック
-    bool ValidateCircuit() const;
+    void CheckPlayerPosition(const Vector3& playerPos);
 
     // プリセットレイアウト生成メソッド
     static std::vector<std::vector<RoadSegment>> CreateSimpleOval(int width, int height);
