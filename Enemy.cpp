@@ -164,7 +164,6 @@ void Enemy::ApplyKnockback(Vector3 direction, float force, float timeScale)
     m_IsKnockedBack = true;
     m_KnockbackTimer = 0.5f;  // 3秒間飛行
     onField = false; // ノックバックで地面から離れる
-    CheeseCamera::Instance().Shake(0.5f, 0.1f);
 }
 
 void Enemy::KnockBack(float deltaTime)
@@ -216,11 +215,11 @@ void Enemy::KnockBack(float deltaTime)
 void Enemy::SpawnDisappearEffect()
 {
     // テスト1: 同じ位置で両方生成
-    EffectManager::Instance().SpawnEffect("Star", m_Position, Vector3(150.0f, 150.0f, 0));
+    EffectManager::Instance().SpawnEffect("Star", m_Position, Vector3(450.0f, 450.0f, 0));
     printf("Star生成完了\n");
 
-    EffectManager::Instance().SpawnEffect("SparkleParticle", m_Position, Vector3(0, 1, 0));
-    printf("SparkleParticle生成完了\n");
+    //EffectManager::Instance().SpawnEffect("SparkleParticle", m_Position, Vector3(0, 1, 0));
+    //printf("SparkleParticle生成完了\n");
 }
 
 GM31::GE::Collision::BoundingSphere Enemy::GetEnemyBoundingSphere()//Enemyの当たり判定を取得する関数

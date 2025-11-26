@@ -105,6 +105,8 @@
     <ClInclude Include="system\transform.h" />
     <ClInclude Include="TextureCache.h" />
     <ClInclude Include="Title.h" />
+    <ClInclude Include="Tree.h" />
+    <ClInclude Include="TreeManager.h" />
     <ClInclude Include="VideoBllBoard.h" />
     <ClInclude Include="VideoPlayer.h" />
   </ItemGroup>
@@ -177,6 +179,8 @@
     <ClCompile Include="system\SphereDrawer.cpp" />
     <ClCompile Include="system\stb.cpp" />
     <ClCompile Include="Title.cpp" />
+    <ClCompile Include="Tree.cpp" />
+    <ClCompile Include="TreeManager.cpp" />
     <ClCompile Include="VideoBllBoard.cpp" />
     <ClCompile Include="VideoPlayer.cpp" />
   </ItemGroup>

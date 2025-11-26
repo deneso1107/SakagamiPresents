@@ -58,28 +58,58 @@ void CheeseCamera::Update(float deltaTime)
     m_currentLookAt = Lerp3(m_currentLookAt, targetLookAt, m_lookAtSpeed);
     m_lookat = m_currentLookAt;
 
-    //揺らす処理
     if (m_isShaking && m_shakeDuration > 0.0f)
     {
-        // ランダムなオフセットを追加
-        float randomX = ((rand() % 200 - 100) / 100.0f) * m_shakeIntensity;
-        float randomY = ((rand() % 200 - 100) / 100.0f) * m_shakeIntensity;
-        float randomZ = ((rand() % 200 - 100) / 100.0f) * m_shakeIntensity;
+        // プレイヤーの移動方向を取得
+        Vector3 playerVel = m_targetPlayer->GetVelocity();
+        float speed = sqrt(playerVel.x * playerVel.x +
+            playerVel.y * playerVel.y +
+            playerVel.z * playerVel.z);
 
-        m_position = m_originalPosition + Vector3(randomX, randomY, randomZ);
+        // 移動方向の判定（どの軸が主な移動軸か）
+        Vector3 shakeOffset(0.0f, 0.0f, 0.0f);
+
+        if (speed > 0.1f) // 移動している場合
+        {
+            // 正規化された移動方向
+            Vector3 moveDir = playerVel * (1.0f / speed);
+
+            // 各軸の寄与度（絶対値）
+            float absX = fabsf(moveDir.x);
+            float absY = fabsf(moveDir.y);
+            float absZ = fabsf(moveDir.z);
+
+            // 主要な移動軸を除外して揺らす
+            // 閾値以下の軸のみ揺らす（例: 0.5以下）
+            const float threshold = 0.5f;
+
+            if (absX < threshold) {
+                shakeOffset.x = ((rand() % 200 - 100) / 100.0f) * m_shakeIntensity;
+            }
+            if (absY < threshold) {
+                shakeOffset.y = ((rand() % 200 - 100) / 100.0f) * m_shakeIntensity;
+            }
+            if (absZ < threshold) {
+                shakeOffset.z = ((rand() % 200 - 100) / 100.0f) * m_shakeIntensity;
+            }
+        }
+        else // 停止または低速時は全軸揺らす
+        {
+            shakeOffset.x = ((rand() % 200 - 100) / 100.0f) * m_shakeIntensity;
+            shakeOffset.y = ((rand() % 200 - 100) / 100.0f) * m_shakeIntensity;
+            shakeOffset.z = ((rand() % 200 - 100) / 100.0f) * m_shakeIntensity;
+        }
+
+        // 現在の追従位置に揺れオフセットを追加
+        m_position += shakeOffset;
 
         m_shakeDuration -= deltaTime;
 
         // シェイク終了
         if (m_shakeDuration <= 0.0f)
         {
-            m_position = m_originalPosition;
             m_isShaking = false;
         }
-    }
-    else if (!m_isShaking)
-    {
-        m_originalPosition = m_position;  // 常に更新
     }
 }
 

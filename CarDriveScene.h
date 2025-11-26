@@ -26,6 +26,7 @@
 #include"RoadManager.h"
 #include"EffeectManager.h"
 #include"PostProcessManager.h"
+#include"TreeManager.h"
 class CarDriveScene : public IScene
 {
 public:
@@ -121,12 +122,13 @@ private:
 	std::unique_ptr<Skydome> m_skydome;							// スカイドーム
 	std::unique_ptr<Start> m_start;							// スタート
 	std::unique_ptr<Goal> m_goal;							//　ゴール
-	std::unique_ptr<BoostItem> m_item;							//　ゴール
+	std::unique_ptr<BoostItem> m_item;							//　アイテム
 	Road* m_road;
 	SpeedMator* m_speedMator;
 	NumberRenderer m_timeRenderer;
 	NumberRenderer m_scoreRenderer;
 	SparkEmitter m_sparkEmitter;
 	RoadManager roadManager; // 道路サイズを18に設定
+	TreeManager m_TreeManager;
 };
 //このカメラにビルボードを対応させよう

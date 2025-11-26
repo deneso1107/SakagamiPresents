@@ -49,6 +49,12 @@
     <Filter Include="ヘッダー ファイル\Object\Enemy">
       <UniqueIdentifier>{54d92161-bcb8-4fd8-a8c4-f07cba68ad3d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ソース ファイル\Object\Tree">
+      <UniqueIdentifier>{bdf5a8a8-09e5-4491-a307-a52f1d9cc7f2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ヘッダー ファイル\Object\Tree">
+      <UniqueIdentifier>{a036ec75-60b2-4224-abc5-820caea53c11}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Application.h">
@@ -315,6 +321,12 @@
     <ClInclude Include="Enemies.h">
       <Filter>ヘッダー ファイル\Object\Enemy</Filter>
     </ClInclude>
+    <ClInclude Include="Tree.h">
+      <Filter>ヘッダー ファイル\Object\Tree</Filter>
+    </ClInclude>
+    <ClInclude Include="TreeManager.h">
+      <Filter>ヘッダー ファイル\Object\Tree</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Application.cpp">
@@ -526,6 +538,12 @@
     </ClCompile>
     <ClCompile Include="Enemies.cpp">
       <Filter>ソース ファイル\Object\Enemy</Filter>
+    </ClCompile>
+    <ClCompile Include="Tree.cpp">
+      <Filter>ソース ファイル\Object\Tree</Filter>
+    </ClCompile>
+    <ClCompile Include="TreeManager.cpp">
+      <Filter>ソース ファイル\Object\Tree</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

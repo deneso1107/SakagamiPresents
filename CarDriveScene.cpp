@@ -259,8 +259,8 @@ void CarDriveScene::init()
 	roadManager.InitializeGridSpacing();  // グリッド間隔を初期化
 	roadManager.SetRoad(0, 0, RoadType::START_LINE, Direction::SOUTH);
 	roadManager.SetRoad(0, 1, RoadType::STRAIGHT, Direction::SOUTH);
-	//roadManager.SetRoad(1, 1, RoadType::STRAIGHT, Direction::WEST);
-	roadManager.SetRoad(0, 2, RoadType::SLOPE_UP, Direction::NORTH);//次はGoalを作りましょう　とりあえずゲームループの完成
+	roadManager.SetRoad(0, 2, RoadType::STRAIGHT, Direction::SOUTH);
+	//roadManager.SetRoad(0, 2, RoadType::SLOPE_UP, Direction::NORTH);//次はGoalを作りましょう　とりあえずゲームループの完成
 	roadManager.SetRoad(0, 3, RoadType::STRAIGHT, Direction::SOUTH);
 	roadManager.SetRoad(0, 4, RoadType::SLOPE_UP, Direction::NORTH);
 	roadManager.SetRoad(0, 5, RoadType::SLOPE_DOWN, Direction::NORTH);
@@ -282,12 +282,50 @@ void CarDriveScene::init()
 	if (auto startPos = roadManager.GetStartPos())
 	{
 		m_player->SetPosition(*startPos);
-		FormationConfig lineConfig;
-		lineConfig.formation = EnemyFormation::LINE;
 
-		lineConfig.centerPos = *startPos;  // 配置開始位置
-		lineConfig.spacing = 15.0f;  // 敵同士の間隔
-		InitEnemiesWithFormation(this, m_field.get(), lineConfig);
+		//MultiFormationConfig config;
+		//config.totalEnemyCount = 12;  // 合計10体
+
+		//// 縦列配置で4体
+		//FormationConfig line;
+		//line.formation = EnemyFormation::LINE;
+		//line.enemyCount = 4;
+		//line.centerPos = *startPos;
+		//line.spacing = 15.0f;
+		//config.AddFormation(line);
+
+		//// 円形配置で3体
+		//FormationConfig circle;
+		//circle.formation = EnemyFormation::CIRCLE;
+		//circle.enemyCount = 5;
+		//circle.centerPos = *startPos;
+		//circle.circleRadius = 30.0f;
+		//config.AddFormation(circle);
+
+		//// ランダム配置で残り3体
+		//FormationConfig random;
+		//random.formation = EnemyFormation::RANDOM;
+		//random.enemyCount = 3;
+		//config.AddFormation(random);
+
+		//InitEnemiesWithMultiFormation(this, m_field.get(), config);
+
+		//FormationConfig lineConfig;
+		//lineConfig.formation = EnemyFormation::LINE;
+
+		//lineConfig.centerPos = *startPos;  // 配置開始位置
+		//lineConfig.spacing = 15.0f;  // 敵同士の間隔
+		//InitEnemiesWithFormation(this, m_field.get(), lineConfig);
+
+		 // 直線配置（道の右側に20本）
+		TreeFormationConfig treeconfig;
+		treeconfig.formation = TreeFormation::LINE;
+		treeconfig.treeCount = 200;
+		treeconfig.centerPos = *startPos;
+		treeconfig.centerPos.y += treeconfig.centerPos.y/2;
+		treeconfig.spacing = 15.0f;  // 15m間隔
+
+		m_TreeManager.Init(treeconfig);
 	}
 
 	m_player->SetPostProcessSetter([this](bool use, float strength) {
@@ -628,6 +666,7 @@ void CarDriveScene::draw(uint64_t deltatime)
 	m_item->Draw();
 	DrawEnemies();
 	roadManager.DrawAll();
+	m_TreeManager.Draw();
 
 	EffectManager::Instance().Draw(context,viewMatrix);
 	m_sparkEmitter.Render(context, worldMatrix);
@@ -1011,4 +1050,5 @@ void CarDriveScene::dispose()
 		m_road = nullptr;
 	}
 	EffectManager::Instance().Finalize();
+	TreeManager::DisposeSharedResources();
 }

@@ -23,100 +23,212 @@ CStaticMesh* GetEnemyMesh()
 	return &g_EnemyMesh;
 }
 
+// 内部関数：指定された配置パターンで位置と回転を計算
+static void CalculateEnemyTransform(
+    const FormationConfig& config,
+    int index,
+    int startIndex,
+    Vector3& outPos,
+    Vector3& outRot,
+    std::mt19937& mt,
+    std::uniform_real_distribution<float>& posdist,
+    std::uniform_real_distribution<float>& rotdist)
+{
+    outRot = Vector3(0.0f, 0.0f, 0.0f);
+    int localIndex = index - startIndex;  // このパターン内でのインデックス
+
+    switch (config.formation)
+    {
+    case EnemyFormation::RANDOM:
+        // ランダム配置
+        outPos = Vector3(posdist(mt), 0.0f, posdist(mt));
+        outRot.y = rotdist(mt);
+        break;
+
+    case EnemyFormation::LINE:
+        // 縦列配置（Z軸方向に並べる）
+        outPos = config.centerPos;
+        outPos.z += localIndex * config.spacing;
+        outRot.y = 0.0f;
+        break;
+
+    case EnemyFormation::CIRCLE:
+    {
+        // 円形配置
+        int enemyCountInFormation = config.enemyCount > 0 ? config.enemyCount : 1;
+        float angle = (2.0f * PI * localIndex) / enemyCountInFormation;
+        outPos = config.centerPos;
+        outPos.x += cos(angle) * config.circleRadius;
+        outPos.z += sin(angle) * config.circleRadius;
+        // 中心を向くように回転
+        outRot.y = angle + PI;
+        break;
+    }
+
+    //case EnemyFormation::GRID:
+    //{
+    //    // グリッド配置
+    //    int row = localIndex / config.columns;
+    //    int col = localIndex % config.columns;
+    //    outPos = config.centerPos;
+    //    outPos.x += (col - config.columns / 2.0f) * config.spacing;
+    //    outPos.z += row * config.spacing;
+    //    outRot.y = 0.0f;
+    //    break;
+    //}
+
+    //case EnemyFormation::DOUBLE_LINE:
+    //{
+    //    // 2列配置
+    //    int row = localIndex % 2;  // 0 or 1
+    //    int colIndex = localIndex / 2;
+    //    outPos = config.centerPos;
+    //    outPos.x += (row == 0 ? -config.spacing * 0.5f : config.spacing * 0.5f);
+    //    outPos.z += colIndex * config.spacing;
+    //    outRot.y = 0.0f;
+    //    break;
+    //}
+
+    default:
+        // デフォルトはランダム
+        outPos = Vector3(posdist(mt), 0.0f, posdist(mt));
+        outRot.y = rotdist(mt);
+        break;
+    }
+}
+
 // 既存のランダム配置版（互換性維持）
 void InitEnemies(IScene* currentscene, Field* field)
 {
-	FormationConfig config;
-	config.formation = EnemyFormation::RANDOM;
-	InitEnemiesWithFormation(currentscene, field, config);
+    FormationConfig config;
+    config.formation = EnemyFormation::RANDOM;
+    config.enemyCount = ENEMYMAX;
+    InitEnemiesWithFormation(currentscene, field, config);
 }
 
-// 配置パターン指定版
+// 単一配置パターン版
 void InitEnemiesWithFormation(IScene* currentscene, Field* field, const FormationConfig& config)
 {
-	std::mt19937 mt{ std::random_device{}() };
-	std::uniform_real_distribution<float> posdist{ -500.0f, 500.0f };
-	std::uniform_real_distribution<float> rotdist{ 0.0f, PI };
+    MultiFormationConfig multiConfig;
+    multiConfig.totalEnemyCount = config.enemyCount > 0 ? config.enemyCount : ENEMYMAX;
+    multiConfig.AddFormation(config);
+    InitEnemiesWithMultiFormation(currentscene, field, multiConfig);
+}
 
-	// モデルの初期化
-	g_EnemyMesh.Load(
-		"assets/model/car001.x",
-		"assets/model/");
-	// レンダラ初期化
-	g_EnemyMeshRenderer.Init(g_EnemyMesh);
-	// シェーダーの初期化
-	g_Shader.Create(
-		"shader/vertexLightingVS.hlsl",
-		"shader/vertexLightingPS.hlsl");
 
-	for (int i = 0; i < ENEMYMAX; i++)
-	{
-		std::unique_ptr<Enemy> enemy = std::make_unique<Enemy>(currentscene);
-		enemy->Init();
+// 複数配置パターン版（メイン実装）
+void InitEnemiesWithMultiFormation(IScene* currentscene, Field* field, const MultiFormationConfig& config)
+{
+    // バリデーションチェック
+    if (!config.Validate())
+    {
+        // エラー：指定された敵の数が総数を超えている
+        printf("Error: Total enemy count in formations exceeds totalEnemyCount!\n");
+        return;
+    }
 
-		Vector3 pos;
-		Vector3 rot(0.0f, 0.0f, 0.0f);
+    if (config.formations.empty())
+    {
+        // エラー：配置パターンが指定されていない
+        printf("Error: No formation patterns specified!\n");
+        return;
+    }
 
-		// 配置パターンによって位置を決定
-		switch (config.formation)
-		{
-		case EnemyFormation::RANDOM:
-			// ランダム配置
-			pos = Vector3(posdist(mt), 0.0f, posdist(mt));
-			rot.y = rotdist(mt);
-			break;
+    // 既存の敵をクリア
+    g_Enemies.clear();
 
-		case EnemyFormation::LINE:
-			// 縦列配置（Z軸方向に並べる）
-			pos = config.centerPos;
-			pos.z += i * config.spacing;
-			// プレイヤー方向を向くように（仮にZ+方向）
-			rot.y = 0.0f;
-			break;
+    std::mt19937 mt{ std::random_device{}() };
+    std::uniform_real_distribution<float> posdist{ -500.0f, 500.0f };
+    std::uniform_real_distribution<float> rotdist{ 0.0f, PI };
 
-		case EnemyFormation::CIRCLE:
-		{
-			// 円形配置
-			float angle = (2.0f * PI * i) / ENEMYMAX;
-			pos = config.centerPos;
-			pos.x += cos(angle) * config.circleRadius;
-			pos.z += sin(angle) * config.circleRadius;
-			// 中心を向くように回転
-			rot.y = angle + PI;
-		}
-		break;
+    // モデルの初期化
+    g_EnemyMesh.Load(
+        "assets/model/car001.x",
+        "assets/model/");
+    // レンダラ初期化
+    g_EnemyMeshRenderer.Init(g_EnemyMesh);
+    // シェーダーの初期化
+    g_Shader.Create(
+        "shader/vertexLightingVS.hlsl",
+        "shader/vertexLightingPS.hlsl");
 
-		//case EnemyFormation::GRID:
-		//{
-		//	// グリッド配置
-		//	int row = i / config.columns;
-		//	int col = i % config.columns;
-		//	pos = config.centerPos;
-		//	pos.x += (col - config.columns / 2.0f) * config.spacing;
-		//	pos.z += row * config.spacing;
-		//	rot.y = 0.0f;
-		//}
-		//break;
+    // 各配置パターンで指定された数の合計を計算
+    int specifiedTotal = 0;
+    for (const auto& formation : config.formations)
+    {
+        specifiedTotal += formation.enemyCount;
+    }
 
-		//case EnemyFormation::DOUBLE_LINE:
-		//{
-		//	// 2列配置
-		//	int row = i % 2;  // 0 or 1
-		//	int index = i / 2;
-		//	pos = config.centerPos;
-		//	pos.x += (row == 0 ? -config.spacing * 0.5f : config.spacing * 0.5f);
-		//	pos.z += index * config.spacing;
-		//	rot.y = 0.0f;
-		//}
-		//break;
-		}
+    // 残りの敵の数を計算
+    int remainingEnemies = config.totalEnemyCount - specifiedTotal;
+    if (remainingEnemies < 0)
+    {
+        remainingEnemies = 0;
+    }
 
-		enemy->SetPosition(pos);
-		enemy->SetRotation(rot);
-		enemy->SetMeshRenderer(&g_EnemyMeshRenderer);
-		enemy->SetField(field);
-		g_Enemies.emplace_back(std::move(enemy));
-	}
+    int currentIndex = 0;
+
+    // 各配置パターンで敵を生成
+    for (const auto& formation : config.formations)
+    {
+        int countForThisFormation = formation.enemyCount;
+
+        // enemyCountが0の場合は残り全部を使用
+        if (countForThisFormation == 0)
+        {
+            countForThisFormation = remainingEnemies;
+            remainingEnemies = 0;
+        }
+
+        // 安全チェック：総数を超えないように
+        if (currentIndex + countForThisFormation > config.totalEnemyCount)
+        {
+            countForThisFormation = config.totalEnemyCount - currentIndex;
+        }
+
+        // この配置パターンで敵を生成
+        for (int i = 0; i < countForThisFormation; i++)
+        {
+            if (currentIndex >= config.totalEnemyCount)
+            {
+                break;  // 総数に達したら終了
+            }
+
+            std::unique_ptr<Enemy> enemy = std::make_unique<Enemy>(currentscene);
+
+            // nullptrチェック
+            if (!enemy)
+            {
+                printf("Error: Failed to create enemy at index %d\n", currentIndex);
+                continue;
+            }
+
+            enemy->Init();
+
+            Vector3 pos, rot;
+            CalculateEnemyTransform(formation, currentIndex, currentIndex - i, pos, rot, mt, posdist, rotdist);
+
+            enemy->SetPosition(pos);
+            enemy->SetRotation(rot);
+            enemy->SetMeshRenderer(&g_EnemyMeshRenderer);
+
+            // fieldのnullptrチェック
+            if (field)
+            {
+                enemy->SetField(field);
+            }
+            else
+            {
+                printf("Warning: Field pointer is null for enemy at index %d\n", currentIndex);
+            }
+
+            g_Enemies.emplace_back(std::move(enemy));
+            currentIndex++;
+        }
+    }
+
+    // 最終チェック：生成された敵の数を確認
+    printf("Initialized %d enemies (requested: %d)\n", (int)g_Enemies.size(), config.totalEnemyCount);
 }
 
 //void InitEnemies(IScene* currentscene,Field* field)
