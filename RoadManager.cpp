@@ -341,6 +341,22 @@ std::optional<Vector3> RoadManager::GetStartPos()
     return std::nullopt; // Œ©‚Â‚©‚ç‚È‚©‚Á‚½
 }
 
+BaseRoad* RoadManager::GetStart()
+{
+    for (auto& row : m_roadGrid) {
+        for (auto& road : row)
+        {
+            if (road)
+            {
+                if (road->GetRoadType() == RoadType::START_LINE) {
+                    return road.get();
+                }
+            }
+        }
+    }
+    return nullptr; // Œ©‚Â‚©‚ç‚È‚©‚Á‚½
+}
+
 std::optional<Vector3> RoadManager::GetGoalPos()
 {
     for (auto& row : m_roadGrid) {

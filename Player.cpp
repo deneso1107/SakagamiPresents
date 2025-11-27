@@ -342,18 +342,19 @@ void Player::UpdateSmoothTerrainFollowing(uint64_t deltatime)
 						normalChangeRate = normalDiff.Length();
 					}
 
-					float normalLerpSpeed = isHighSpeed ? 0.03f : 0.08f; // 高速時はより慎重
+					float normalLerpSpeed = /*isHighSpeed ? 0.03f :*/ 0.08f; // 高速時はより慎重
 
-					if (normalChangeRate > 0.5f && m_previousTerrainNormal.Length() > 0.1f) {
-						normalLerpSpeed *= 0.5f; // さらに慎重に
-					}
+					//if (normalChangeRate > 0.5f && m_previousTerrainNormal.Length() > 0.1f) {
+					//	normalLerpSpeed *= 0.5f; // さらに慎重に
+					//}
 
 					m_terrainNormal = Lerp3(m_terrainNormal, terrainNormal, normalLerpSpeed);
 					m_terrainNormal.Normalize();
 				}
 
 				// 坂道処理（高速時は影響を軽減）
-				if (IsOnSlope() && horizontalSpeedForLerp > 0.1f) {
+				if (IsOnSlope() && horizontalSpeedForLerp > 0.01f) //ここで速度を増減
+				{
 					Vector3 gravityDirection = Vector3(0, -1, 0);
 					Vector3 slopeDirection = gravityDirection - m_terrainNormal * gravityDirection.Dot(m_terrainNormal);
 					slopeDirection.Normalize();
@@ -376,7 +377,7 @@ void Player::UpdateSmoothTerrainFollowing(uint64_t deltatime)
 					else {
 						// 上り坂抵抗
 						float resistance = CDirectInput::GetInstance().CheckKeyBuffer(DIK_W) ?
-							(isHighSpeed ? 0.002f : 0.005f) : 0.01f;
+							(isHighSpeed ? 0.2f : 0.5f) : 0.1f;
 						float resistanceFactor = 1.0f - (slopeInfluence * resistance);
 						m_Velocity *= resistanceFactor;
 					}
@@ -817,41 +818,3 @@ void Player::UpdateCarRotationFromTerrain(const Vector3& terrainNormal)
 	}
 	}
 
-
-// より高度な傾斜計算バージョン（オプション）
-//void Player::UpdateCarRotationFromTerrainAdvanced(const Vector3& terrainNormal)
-//{
-//	// 重力方向（下向き）
-//	Vector3 gravity = Vector3(0.0f, -1.0f, 0.0f);
-//
-//	// 車の現在の上方向ベクトル
-//	Vector3 carUp = Vector3(0.0f, 1.0f, 0.0f);
-//
-//	// 地形の法線を車の上方向として使用
-//	Vector3 newUp = terrainNormal;
-//
-//	// 車の前方向（Y回転のみ考慮）
-//	Vector3 carForward = Vector3(sinf(m_Rotation.y), 0.0f, cosf(m_Rotation.y));
-//
-//	// 新しい右方向を計算（上方向と前方向の外積）
-//	Vector3 newRight = carForward.Cross(newUp);
-//	newRight.Normalize();
-//
-//	// 新しい前方向を計算（右方向と上方向の外積）
-//	Vector3 newForward = newUp.Cross(newRight);
-//	newForward.Normalize();
-//
-//	// 回転行列から角度を計算
-//	// X軸回転（ピッチ）
-//	float pitch = atan2f(-newForward.y, sqrtf(newForward.x * newForward.x + newForward.z * newForward.z));
-//
-//	// Z軸回転（ロール）
-//	float roll = atan2f(newRight.y, newUp.y);
-//
-//	// 目標回転角度
-//	Vector3 targetRotation = Vector3(pitch, m_Rotation.y, roll);
-//
-//	// スムーズに補間
-//	m_Rotation.x = Lerp(m_Rotation.x, targetRotation.x, m_terrainTiltLerpSpeed);
-//	m_Rotation.z = Lerp(m_Rotation.z, targetRotation.z, m_terrainTiltLerpSpeed);
-//}

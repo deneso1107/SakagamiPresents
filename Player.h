@@ -61,7 +61,7 @@ class Player:public ObjectBase
 	float m_targetHeight = 0.0f;        // 目標の高さ
 	float m_heightLerpSpeed = 0.2f;    // 高さの補間速度
 	bool m_smoothHeightTransition = true; // 滑らかな高さ遷移を有効にするか
-	float m_slopeThreshold = 0.8f;      // 急な坂の判定閾値
+	float m_slopeThreshold = 0.995f;      // 急な坂の判定閾値
 
 	// 前フレームの情報
 	Vector3 m_previousPosition;

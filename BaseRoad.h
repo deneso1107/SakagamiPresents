@@ -155,6 +155,16 @@ public:
         return m_mesh.GetModelSize();
     }
 
+    Vector3 GetModelEdge()
+    {
+        Vector3 actualSize = GetActualModelSize();
+        return Vector3(
+            actualSize.x + m_Scale.x/2,
+            actualSize.y,
+            actualSize.z
+		);
+    }
+
     bool IsPlayerOnEdge(const Vector3& playerPos, float edgeThreshold = 1.0f) const;
     EdgeType GetPlayerEdgeType(const Vector3& playerPos, float edgeThreshold = 1.0f) const;
 };

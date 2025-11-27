@@ -23,7 +23,7 @@ private:
 
 	float m_RoadLength=0.0f; // 道路の長さ（デフォルト値）
 	float startHeight = 0.0f; // 道路の開始高さ
-	float m_slopeangle = 5.0f; // 坂の角度
+	float m_slopeangle = 6.0f; // 坂の角度(とんとんしないギリギリを攻める)
 
     // ファクトリーメソッド - 道路タイプに応じて適切なインスタンスを生成
     std::unique_ptr<BaseRoad> CreateRoad(RoadType type, Direction direction);
@@ -110,6 +110,7 @@ public:
     }
 
     std::optional<Vector3> GetStartPos();
+    BaseRoad* GetStart();
     std::optional<Vector3> GetGoalPos();
 
     // デバッグ用: 回転軸を指定して角度を設定

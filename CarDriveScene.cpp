@@ -279,9 +279,10 @@ void CarDriveScene::init()
 	///roadManager.SetRoad(0, 1, RoadType::STRAIGHT, Direction::NORTH);
 	//roadManager.SetRoad(1, 1, RoadType::SLOPE_UP, Direction::EAST);
 
-	if (auto startPos = roadManager.GetStartPos())
+	if (auto start = roadManager.GetStart())
 	{
-		m_player->SetPosition(*startPos);
+		Vector3 startPos = start->GetPosition();
+		m_player->SetPosition(startPos);
 
 		//MultiFormationConfig config;
 		//config.totalEnemyCount = 12;  // 合計10体
@@ -320,10 +321,11 @@ void CarDriveScene::init()
 		 // 直線配置（道の右側に20本）
 		TreeFormationConfig treeconfig;
 		treeconfig.formation = TreeFormation::LINE;
-		treeconfig.treeCount = 200;
-		treeconfig.centerPos = *startPos;
+		treeconfig.treeCount = 20;
+		treeconfig.centerPos = startPos;
+		treeconfig.centerPos.x += (start->GetActualModelSize().x*start->GetScale().x) / 2; // 道の右側に配置
 		treeconfig.centerPos.y += treeconfig.centerPos.y/2;
-		treeconfig.spacing = 15.0f;  // 15m間隔
+		treeconfig.spacing =50.0f;  // 50m間隔
 
 		m_TreeManager.Init(treeconfig);
 	}
