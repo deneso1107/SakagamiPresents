@@ -327,6 +327,9 @@
     <ClInclude Include="TreeManager.h">
       <Filter>ヘッダー ファイル\Object\Tree</Filter>
     </ClInclude>
+    <ClInclude Include="Dirt.h">
+      <Filter>ヘッダー ファイル\Object\Road</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Application.cpp">
@@ -544,6 +547,9 @@
     </ClCompile>
     <ClCompile Include="TreeManager.cpp">
       <Filter>ソース ファイル\Object\Tree</Filter>
+    </ClCompile>
+    <ClCompile Include="Dirt.cpp">
+      <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

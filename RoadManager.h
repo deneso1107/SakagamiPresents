@@ -8,6 +8,7 @@
 #include <optional> 
 #include"Start.h"
 #include"Goal.h"
+#include"Dirt.h"
 class RoadManager 
 {
 private:    
@@ -83,6 +84,9 @@ public:
         printf("Grid spacing initialized: X=%.2f, Z=%.2f\n", m_gridSpacingX, m_gridSpacingZ);
     }
 
+    //地面の状態を取得
+    bool GetRoadSurfaceType(const Vector3& position, RoadType& outSurfaceType);
+
     void SetRoadRotation(int, int, const Vector3&);
     // プレイヤーとの地形追従・当たり判定
     bool GetTerrainHeight(const Vector3& position, float& height, Vector3& normal);
@@ -139,8 +143,6 @@ public:
     void CheckPlayerPosition(const Vector3& playerPos);
 
     // プリセットレイアウト生成メソッド
-    static std::vector<std::vector<RoadSegment>> CreateSimpleOval(int width, int height);
-    static std::vector<std::vector<RoadSegment>> CreateFigureEight(int size);
     static std::vector<std::vector<RoadSegment>> CreateTestStraightGrid(int width, int height);  // デバッグ用
     static std::vector<std::vector<RoadSegment>> CreateCustomCircuit();  // 3x3カスタムサーキット
     static std::vector<std::vector<RoadSegment>> CreateCustomRectangleCircuit(int width, int height);  // 可変サイズ

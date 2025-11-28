@@ -145,6 +145,9 @@ public:
 	void UpdateSmoothTerrainFollowing(uint64_t deltatime);
 	bool IsOnSlope() const;
 
+	// 路面効果を適用する関数（のちのち追加するならここから追加してください）
+	void ApplyRoadSurfaceEffect(RoadType surfaceType, float deltatime);
+
 	// アイテム取得時に呼び出す関数
 	void AddBoostGauge(float amount);
 

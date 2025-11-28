@@ -13,6 +13,7 @@ enum class RoadType {
     // 将来的な拡張用
     START_LINE,  // スタートライン
     GOAL_LINE,  // スタートライン
+    DIRT,  // ダート
     CHECKPOINT,  // チェックポイント
     BRIDGE,      // 橋
     TUNNEL       // トンネル
@@ -110,6 +111,13 @@ public:
     void Update(float deltatime) override;
     void Draw() override;
     void Dispose() override;
+
+
+    //路面タイプを取得
+    RoadType GetSurfaceType() const 
+    {
+        return m_roadType;  // RoadTypeがそのまま路面タイプを示す
+    }
 
     // 初期化状態を確認
     bool IsInitialized() const { return m_isInitialized; }

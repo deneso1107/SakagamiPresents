@@ -16,6 +16,8 @@ std::unique_ptr<BaseRoad> RoadManager::CreateRoad(RoadType type, Direction direc
         return std::make_unique<StraightRoad>(direction);
     case RoadType::SLOPE_DOWN:
         return std::make_unique<StraightRoad>(direction);
+    case RoadType::DIRT:
+        return std::make_unique<Dirt>(direction);
     case RoadType::NONE:
         return nullptr;  // 道路なしの場合はnullptrを返す
     default:
@@ -313,17 +315,59 @@ void RoadManager::DisposeAll() {
 
 
 bool RoadManager::GetTerrainHeight(const Vector3& position, float& height, Vector3& normal) {
-    // 最も近い道路を見つけて地形高度を取得
+
+    const float LANDING_THRESHOLD = 1.0f;  // 着地可能な高さ差（調整可能）
+
+    bool foundAny = false;
+    float closestHeight = 0.0f;
+    Vector3 closestNormal;
+    float minDistance = FLT_MAX;
+
     for (auto& row : m_roadGrid) {
         for (auto& road : row) {
             if (road) {
-                if (road->GetTerrainHeight(position, height, normal)) {
-                    return true;
+                float candidateHeight;
+                Vector3 candidateNormal;
+
+                if (road->GetTerrainHeight(position, candidateHeight, candidateNormal)) {
+                    // ★重要な変更：プレイヤーより上の道路は無視★
+                    if (candidateHeight >= position.y+ LANDING_THRESHOLD) {
+                        continue;  // 上の道路はスキップ
+                    }
+
+                    // プレイヤーとの高さの差を計算
+                    float heightDifference = abs(position.y - candidateHeight);
+
+                    // より近い道路を優先
+                    if (heightDifference < minDistance) {
+                        minDistance = heightDifference;
+                        closestHeight = candidateHeight;
+                        closestNormal = candidateNormal;
+                        foundAny = true;
+                    }
                 }
             }
         }
     }
+
+    if (foundAny) {
+        height = closestHeight;
+        normal = closestNormal;
+        return true;
+    }
+
     return false;
+    //// 最も近い道路を見つけて地形高度を取得
+    //for (auto& row : m_roadGrid) {
+    //    for (auto& road : row) {
+    //        if (road) {
+    //            if (road->GetTerrainHeight(position, height, normal)) {
+    //                return true;
+    //            }
+    //        }
+    //    }
+    //}
+    //return false;
 }
 std::optional<Vector3> RoadManager::GetStartPos()
 {
@@ -387,6 +431,27 @@ BaseRoad* RoadManager::GetGoalRoad()
         }
     }
     return nullptr; // 見つからなかった
+}
+
+//Plauerがどの路面タイプにいるか取得する際に使用
+bool RoadManager::GetRoadSurfaceType(const Vector3& position, RoadType& outSurfaceType) {
+    // プレイヤーの位置にある道路を検索
+    for (auto& row : m_roadGrid) {
+        for (auto& road : row) {
+            if (road) {
+                // 道路の範囲内にプレイヤーがいるかチェック
+                float height;
+                Vector3 normal;
+                if (road->GetTerrainHeight(position, height, normal))
+                {
+                    // この道路の上にいる
+                    outSurfaceType = road->GetRoadType();
+                    return true;
+                }
+            }
+        }
+    }
+    return false;  // どの道路の上にもいない
 }
 
 

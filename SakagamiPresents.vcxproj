@@ -29,6 +29,7 @@
     <ClInclude Include="CarPhysics.h" />
     <ClInclude Include="ChaseCamera.h" />
     <ClInclude Include="CTerrainMesh.h" />
+    <ClInclude Include="Dirt.h" />
     <ClInclude Include="EffeectManager.h" />
     <ClInclude Include="Ending.h" />
     <ClInclude Include="Enemies.h" />
@@ -121,6 +122,7 @@
     <ClCompile Include="CarPhysics.cpp" />
     <ClCompile Include="ChaseCamera.cpp" />
     <ClCompile Include="CTerrainMesh.cpp" />
+    <ClCompile Include="Dirt.cpp" />
     <ClCompile Include="EffectManager.cpp" />
     <ClCompile Include="Ending.cpp" />
     <ClCompile Include="Enemies.cpp" />
