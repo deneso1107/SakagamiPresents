@@ -13,6 +13,7 @@ enum class RoadType {
     // 将来的な拡張用
     START_LINE,  // スタートライン
     GOAL_LINE,  // スタートライン
+    DIRT,  // ダート
     CHECKPOINT,  // チェックポイント
     BRIDGE,      // 橋
     TUNNEL       // トンネル
@@ -111,6 +112,13 @@ public:
     void Draw() override;
     void Dispose() override;
 
+
+    //路面タイプを取得
+    RoadType GetSurfaceType() const 
+    {
+        return m_roadType;  // RoadTypeがそのまま路面タイプを示す
+    }
+
     // 初期化状態を確認
     bool IsInitialized() const { return m_isInitialized; }
 
@@ -153,6 +161,16 @@ public:
     // モデルの実際のサイズを取得
     Vector3 GetActualModelSize() const {
         return m_mesh.GetModelSize();
+    }
+
+    Vector3 GetModelEdge()
+    {
+        Vector3 actualSize = GetActualModelSize();
+        return Vector3(
+            actualSize.x + m_Scale.x/2,
+            actualSize.y,
+            actualSize.z
+		);
     }
 
     bool IsPlayerOnEdge(const Vector3& playerPos, float edgeThreshold = 1.0f) const;

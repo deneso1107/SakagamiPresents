@@ -342,18 +342,22 @@ void Player::UpdateSmoothTerrainFollowing(uint64_t deltatime)
 						normalChangeRate = normalDiff.Length();
 					}
 
-					float normalLerpSpeed = isHighSpeed ? 0.03f : 0.08f; // 高速時はより慎重
-
-					if (normalChangeRate > 0.5f && m_previousTerrainNormal.Length() > 0.1f) {
-						normalLerpSpeed *= 0.5f; // さらに慎重に
-					}
+					float normalLerpSpeed = /*isHighSpeed ? 0.03f :*/ 0.08f; // 高速時はより慎重
 
 					m_terrainNormal = Lerp3(m_terrainNormal, terrainNormal, normalLerpSpeed);
 					m_terrainNormal.Normalize();
 				}
 
-				// 坂道処理（高速時は影響を軽減）
-				if (IsOnSlope() && horizontalSpeedForLerp > 0.1f) {
+				RoadType currentRoadType;
+				if (m_roadManager->GetRoadSurfaceType(m_Position, currentRoadType))
+				{
+					//道ごとにPlayerに作用する効果を変える
+					ApplyRoadSurfaceEffect(currentRoadType, deltatime);
+				}
+
+				// 坂道処理(個々の調整はおいおい)
+				if (IsOnSlope() && horizontalSpeedForLerp > 0.01f) //ここで速度を増減
+				{
 					Vector3 gravityDirection = Vector3(0, -1, 0);
 					Vector3 slopeDirection = gravityDirection - m_terrainNormal * gravityDirection.Dot(m_terrainNormal);
 					slopeDirection.Normalize();
@@ -371,13 +375,13 @@ void Player::UpdateSmoothTerrainFollowing(uint64_t deltatime)
 					if (slopeDot > 0 && hasThrottleInput) {
 						// 下り坂加速（高速時は控えめに）
 						float acceleration = isHighSpeed ? 0.001f : 0.002f;
-						m_Velocity += slopeDirection * slopeInfluence * acceleration;
+						m_Velocity += slopeDirection /** slopeInfluence * acceleration*/;
 					}
 					else {
 						// 上り坂抵抗
-						float resistance = CDirectInput::GetInstance().CheckKeyBuffer(DIK_W) ?
-							(isHighSpeed ? 0.002f : 0.005f) : 0.01f;
-						float resistanceFactor = 1.0f - (slopeInfluence * resistance);
+						//float resistance = CDirectInput::GetInstance().CheckKeyBuffer(DIK_W) ?
+						//	(isHighSpeed ? 0.2f : 0.5f) : 0.1f;
+						float resistanceFactor = 1.0f/* - (slopeInfluence * resistance)*/;
 						m_Velocity *= resistanceFactor;
 					}
 				}
@@ -421,6 +425,52 @@ void Player::ApplyGravity(float deltatime)
 		if (m_verticalVelocity < maxFallSpeed) {
 			m_verticalVelocity = maxFallSpeed;
 		}
+	}
+}
+
+void Player::ApplyRoadSurfaceEffect(RoadType surfaceType, float deltatime)
+{
+	float timeScale = GameManager::Instance().GetTimeScale();
+
+	switch (surfaceType) {
+	case RoadType::DIRT:
+	{
+		// ダートでは摩擦が大きく、速度が低下
+		float dirtFriction = 0.96f;  // 通常より強い減速（0.98fが通常）
+		m_Velocity.x *= pow(dirtFriction, timeScale);
+		m_Velocity.z *= pow(dirtFriction, timeScale);
+
+		// 最大速度も制限
+		float dirtMaxSpeedRatio = 0.75f;  // 通常の75%の速度
+		float dirtMaxSpeed = m_MaxSpeed * dirtMaxSpeedRatio;
+
+		if (m_IsBoosting) {
+			dirtMaxSpeed *= m_BoostRatio;  // ブースト時も制限
+		}
+
+		float currentSpeed = sqrt(m_Velocity.x * m_Velocity.x +
+			m_Velocity.z * m_Velocity.z);
+		if (currentSpeed > dirtMaxSpeed) {
+			float speedRatio = dirtMaxSpeed / currentSpeed;
+			m_Velocity.x *= speedRatio;
+			m_Velocity.z *= speedRatio;
+		}
+
+		// デバッグ表示（オプション）
+		 printf("On DIRT road - Speed limited to %.2f\n", currentSpeed);
+		break;
+	}
+
+	case RoadType::STRAIGHT:
+	case RoadType::TURN_LEFT:
+	case RoadType::TURN_RIGHT:
+	case RoadType::SLOPE_UP:
+	case RoadType::SLOPE_DOWN:
+	case RoadType::START_LINE:
+	case RoadType::GOAL_LINE:
+	default:
+		// 通常の道路では何もしない
+		break;
 	}
 }
 
@@ -817,41 +867,3 @@ void Player::UpdateCarRotationFromTerrain(const Vector3& terrainNormal)
 	}
 	}
 
-
-// より高度な傾斜計算バージョン（オプション）
-//void Player::UpdateCarRotationFromTerrainAdvanced(const Vector3& terrainNormal)
-//{
-//	// 重力方向（下向き）
-//	Vector3 gravity = Vector3(0.0f, -1.0f, 0.0f);
-//
-//	// 車の現在の上方向ベクトル
-//	Vector3 carUp = Vector3(0.0f, 1.0f, 0.0f);
-//
-//	// 地形の法線を車の上方向として使用
-//	Vector3 newUp = terrainNormal;
-//
-//	// 車の前方向（Y回転のみ考慮）
-//	Vector3 carForward = Vector3(sinf(m_Rotation.y), 0.0f, cosf(m_Rotation.y));
-//
-//	// 新しい右方向を計算（上方向と前方向の外積）
-//	Vector3 newRight = carForward.Cross(newUp);
-//	newRight.Normalize();
-//
-//	// 新しい前方向を計算（右方向と上方向の外積）
-//	Vector3 newForward = newUp.Cross(newRight);
-//	newForward.Normalize();
-//
-//	// 回転行列から角度を計算
-//	// X軸回転（ピッチ）
-//	float pitch = atan2f(-newForward.y, sqrtf(newForward.x * newForward.x + newForward.z * newForward.z));
-//
-//	// Z軸回転（ロール）
-//	float roll = atan2f(newRight.y, newUp.y);
-//
-//	// 目標回転角度
-//	Vector3 targetRotation = Vector3(pitch, m_Rotation.y, roll);
-//
-//	// スムーズに補間
-//	m_Rotation.x = Lerp(m_Rotation.x, targetRotation.x, m_terrainTiltLerpSpeed);
-//	m_Rotation.z = Lerp(m_Rotation.z, targetRotation.z, m_terrainTiltLerpSpeed);
-//}

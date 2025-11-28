@@ -61,7 +61,7 @@ class Player:public ObjectBase
 	float m_targetHeight = 0.0f;        // 目標の高さ
 	float m_heightLerpSpeed = 0.2f;    // 高さの補間速度
 	bool m_smoothHeightTransition = true; // 滑らかな高さ遷移を有効にするか
-	float m_slopeThreshold = 0.8f;      // 急な坂の判定閾値
+	float m_slopeThreshold = 0.995f;      // 急な坂の判定閾値
 
 	// 前フレームの情報
 	Vector3 m_previousPosition;
@@ -144,6 +144,9 @@ public:
 	float GetVerticalVelocity() const { return m_verticalVelocity; }
 	void UpdateSmoothTerrainFollowing(uint64_t deltatime);
 	bool IsOnSlope() const;
+
+	// 路面効果を適用する関数（のちのち追加するならここから追加してください）
+	void ApplyRoadSurfaceEffect(RoadType surfaceType, float deltatime);
 
 	// アイテム取得時に呼び出す関数
 	void AddBoostGauge(float amount);
