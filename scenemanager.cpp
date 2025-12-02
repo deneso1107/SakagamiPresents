@@ -167,10 +167,10 @@ void SceneManager::ChangeScene(const std::string& sceneName, bool useFade) {
     m_nextSceneName = sceneName;
     m_sceneChangeRequested = true;
 
-    if (useFade) {
+    //if (useFade) {
         m_fadeInProgress = true;
         m_fadeAlpha = 0.0f;
-    }
+   // }
 }
 
 void SceneManager::ProcessSceneChange() {
@@ -201,7 +201,7 @@ void SceneManager::UpdateFade(float deltaTime) {
 
     if (m_sceneChangeRequested) {
         // フェードイン
-        m_fadeAlpha += m_fadeSpeed * deltaTime/1000000;
+        m_fadeAlpha += m_fadeSpeed * deltaTime;
         if (m_fadeAlpha >= 1.0f) {
             m_fadeAlpha = 1.0f;
         }

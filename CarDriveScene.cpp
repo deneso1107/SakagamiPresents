@@ -382,37 +382,39 @@ void CarDriveScene::update(float deltatime)//uint64_tとfloatの衝突　圧倒的衝突
 		m_aberrationStrength = 0.02f;
 	}
 
-	//auto currentRoad = roadManager.GetGoalRoad();
- //     // 道路の端にいるかチェック（1.5f = 端から1.5単位以内）
- //     if (currentRoad) {
- //     	// 端の詳細を取得
- //     	EdgeType edgeType = currentRoad->GetPlayerEdgeType(m_player->GetPosition(), 15.0f);
- //     
- //     	switch (edgeType) {
- //     	case EdgeType::LEFT:
- //     		printf("左端！注意！\n");
- //     		// 左端の処理（警告音を鳴らす、速度を下げるなど）
- //     		break;
- //     
- //     	case EdgeType::RIGHT:
- //     		printf("右端！注意！\n");
- //     		break;
- //     
- //     	case EdgeType::CORNER:
- //     		printf("角！危険！\n");
- //     		// より強い減速
- //     		break;
-	//	case EdgeType::BACK:
-	//		printf("後ろ\n");//Scene変更完了！
-	//		SceneManager::ChangeScene("CarDriveScene", false);
-	//		// より強い減速
-	//		break;
-	//	case EdgeType::FRONT:
-	//		printf("前\n");
-	//		// より強い減速
-	//		break;
- //     	}
- //     }
+       auto currentRoad = roadManager.GetGoalRoad();
+     // 道路の端にいるかチェック（1.5f = 端から1.5単位以内）
+     if (currentRoad) {
+     	// 端の詳細を取得
+     	EdgeType edgeType = currentRoad->GetPlayerEdgeType(m_player->GetPosition(), 15.0f);
+     
+     	switch (edgeType) {
+     	case EdgeType::LEFT:
+     		printf("左端！注意！\n");
+     		// 左端の処理（警告音を鳴らす、速度を下げるなど）
+     		break;
+     
+     	case EdgeType::RIGHT:
+     		printf("右端！注意！\n");
+     		break;
+     
+     	case EdgeType::CORNER:
+     		printf("角！危険！\n");
+			//SceneManager::ChangeScene("CarDriveScene", true);
+     		// より強い減速
+     		break;
+        case EdgeType::BACK:
+        	printf("後ろ\n");//Scene変更完了！
+			//SceneManager::SetTransitionSpeed(2.5f);
+        	SceneManager::ChangeScene("CarDriveScene", true);
+        	// より強い減速
+        	break;
+        case EdgeType::FRONT:
+        	printf("前\n");
+        	// より強い減速
+        	break;
+          	}
+	 }
 
 	if (CDirectInput::GetInstance().CheckKeyBuffer(DIK_1))
 	{
