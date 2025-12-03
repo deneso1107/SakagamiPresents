@@ -182,6 +182,7 @@ public:
 	}
 	float GetSpeed() { return speed; }
 	float GetMaxSpeed() { return m_MaxSpeed * m_BoostRatio; }
+	float GetNormalSpeed() { return m_MaxSpeed; }
 	
 	void SetPostProcessSetter(std::function<void(bool, float)> setter) 
 	{

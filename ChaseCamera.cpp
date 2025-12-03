@@ -21,7 +21,6 @@ void CheeseCamera::Init()
         Vector3 backward = Vector3(-sinf(playerRot.y), 0.0f, -cosf(playerRot.y));
         m_currentOffset = backward * m_distance;
         m_currentOffset.y = m_height;
-
         m_position = playerPos + m_currentOffset;
         m_currentLookAt = playerPos + Vector3(0.0f, 2.0f, 0.0f);
         m_lookat = m_currentLookAt;
@@ -33,9 +32,11 @@ void CheeseCamera::Init()
         SetLookAtSpeed(0.15f);
 
         // 加速演出パラメータの設定
-        SetBoostDistance(55.0f);      // 加速時はさらに引く
+        SetBoostDistance(45.0f);      // 加速時はさらに引く
         SetBoostFOV(70.0f);           // 加速時はFOVを広げる
-        SetBoostSpeedThreshold(50.0f);// この速度から演出開始
+        SetBoostSpeedThreshold(m_targetPlayer->GetNormalSpeed());// この速度から演出開始
+		m_maxBoostSpeed = m_targetPlayer->GetMaxSpeed();// この速度で最大演出+66+
+
         SetCameraTransitionSpeed(0.08f); // 演出の遷移速度
     }
 }
@@ -52,6 +53,24 @@ void CheeseCamera::Update(float deltaTime)
     // 目標位置と注視点を計算
     Vector3 targetPos = CalculateTargetPosition();
     Vector3 targetLookAt = CalculateTargetLookAt();
+
+    //加速時の振動
+    float speedRatio = CalculateSpeedRatio();
+    if (speedRatio > 0.1f) {
+        float engineShake = speedRatio * 0.3f; // 揺れ強度
+        m_position.x += (rand() % 200 - 100) / 100.0f * engineShake;
+        m_position.y += (rand() % 200 - 100) / 150.0f * engineShake;
+    }
+
+	// カメラバンクの計算
+    Vector3 steer = m_targetPlayer->GetRotation(); 
+	float steerNorm = steer.y / 3.14f;//基本的にYのほうしか使わないのでYだけ正規化
+    // 最大バンク角（度）
+    float maxBankDeg = 1.25f;
+    // 実際に適用するバンク角
+    float bankDeg = steerNorm * maxBankDeg;
+    m_currentBank = Lerp(m_currentBank, bankDeg, 0.1f);
+
 
     // スムーズに追従
     m_position = Lerp3(m_position, targetPos, m_followSpeed);
@@ -121,6 +140,17 @@ void CheeseCamera::Draw()
         m_position,
         m_lookat,
         up);
+
+    //m_viewmtx = Matrix4x4::CreateLookAt(m_position, m_lookat, up);
+
+    // バンク角（ロール）を追加
+    float bankRad = DirectX::XMConvertToRadians(m_currentBank);
+    Matrix4x4 bankRot = Matrix4x4::CreateRotationY(bankRad);
+
+    // 合成
+    m_viewmtx = bankRot * m_viewmtx;
+
+
     Renderer::SetViewMatrix(&m_viewmtx);
 
     // 動的FOVの計算(通常FOV + 速度による追加FOV)
@@ -156,6 +186,8 @@ float CheeseCamera::CalculateSpeedRatio() const
     // 閾値と最大速度の間で0.0〜1.0に正規化
     float ratio = (speed - m_boostSpeedThreshold) /
         (m_maxBoostSpeed - m_boostSpeedThreshold);
+
+	printf("Speed: %.2f, Ratio: %.2f\n", speed, ratio);
     return std::max(0.0f, std::min(1.0f, ratio));
 }
 

@@ -259,7 +259,7 @@ void CarDriveScene::init()
 	roadManager.InitializeGridSpacing();  // グリッド間隔を初期化
 	roadManager.SetRoad(0, 0, RoadType::START_LINE, Direction::SOUTH);
 	roadManager.SetRoad(0, 1, RoadType::STRAIGHT, Direction::SOUTH);
-	//roadManager.SetRoad(0, 2, RoadType::STRAIGHT, Direction::SOUTH);
+	roadManager.SetRoad(0, 2, RoadType::STRAIGHT, Direction::SOUTH);
 	roadManager.SetRoad(0, 2, RoadType::SLOPE_UP, Direction::NORTH);//次はGoalを作りましょう　とりあえずゲームループの完成
 	roadManager.SetRoad(0, 3, RoadType::STRAIGHT, Direction::SOUTH);
 	roadManager.SetRoad(0, 4, RoadType::SLOPE_UP, Direction::NORTH);
@@ -406,7 +406,7 @@ void CarDriveScene::update(float deltatime)//uint64_tとfloatの衝突　圧倒的衝突
         case EdgeType::BACK:
         	printf("後ろ\n");//Scene変更完了！
 			//SceneManager::SetTransitionSpeed(2.5f);
-        	SceneManager::ChangeScene("CarDriveScene", true);
+        	SceneManager::ChangeScene("CarDriveScene",true);
         	// より強い減速
         	break;
         case EdgeType::FRONT:

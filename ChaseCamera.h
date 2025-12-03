@@ -19,14 +19,15 @@ private:
     float m_normalFOV = 45.0f;             // 通常時のFOV(度数)
     float m_boostFOV = 55.0f;              // 加速時のFOV(度数)
     float m_cameraTransitionSpeed = 0.05f; // カメラ演出の遷移速度
+	float m_currentBank = 0.0f;      // 現在のカメラバンク角度(補完用)
 
     // 現在の動的な値
     float m_currentDynamicDistance = 0.0f; // 速度に応じた追加距離
     float m_currentDynamicFOV = 0.0f;      // 速度に応じた追加FOV
 
     // 速度閾値
-    float m_boostSpeedThreshold = 30.0f;   // この速度以上で加速演出開始
-    float m_maxBoostSpeed = 60.0f;         // この速度で最大演出
+    float m_boostSpeedThreshold = 2.0f;   // この速度以上で加速演出開始
+    float m_maxBoostSpeed = 3.0f;         // この速度で最大演出
 
     // カメラの現在状態
     Vector3 m_currentOffset;

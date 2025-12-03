@@ -41,7 +41,7 @@ private:
     float CalculateAccumulatedPosition(int x, int y, Direction direction, float thisSpacing, float, float);
 
 public:
-    RoadManager(float roadSize = 28.0f) : m_roadSize(roadSize), m_gridWidth(0), m_gridHeight(0) {
+    RoadManager(float roadSize = 38.0f) : m_roadSize(roadSize), m_gridWidth(0), m_gridHeight(0) {
         // デフォルト設定を初期化（Z軸回転をデフォルトに）
        //m_modelConfig.SetAnglesForCurrentModel();
     }
