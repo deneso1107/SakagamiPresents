@@ -37,26 +37,26 @@ void gameupdate(uint64_t deltatime)
 void gamedraw(uint64_t deltatime) 
 {
 	// ========== 第1パス: シャドウマップ生成 ==========
-	if (Renderer::IsShadowMapEnabled())
-	{
-		//printf("\n========== SHADOW MAP PASS START ==========\n");
-
-		Renderer::BeginShadowPass();
-
-		// ここが重要！SceneManager::Draw()が呼ばれているか確認
-		//printf("Calling SceneManager::Draw for shadow map...\n");
-		float scaledDelta = GameManager::Instance().GetScaledDelta();
-		SceneManager::Draw(scaledDelta);
-		//printf("SceneManager::Draw completed\n");
-
-		Renderer::EndShadowPass();
-
-		//printf("========== SHADOW MAP PASS END ==========\n\n");
-	}
-	else
-	{
-		//printf("Shadow map is DISABLED\n");
-	}
+	//if (Renderer::IsShadowMapEnabled())
+	//{
+	//	//printf("\n========== SHADOW MAP PASS START ==========\n");
+	//
+	//	Renderer::BeginShadowPass();
+	//
+	//	// ここが重要！SceneManager::Draw()が呼ばれているか確認
+	//	//printf("Calling SceneManager::Draw for shadow map...\n");
+	//	float scaledDelta = GameManager::Instance().GetScaledDelta();
+	//	SceneManager::Draw(scaledDelta);
+	//	//printf("SceneManager::Draw completed\n");
+	//
+	//	Renderer::EndShadowPass();
+	//
+	//	//printf("========== SHADOW MAP PASS END ==========\n\n");
+	//}
+	//else
+	//{
+	//	//printf("Shadow map is DISABLED\n");
+	//}
 
 	// ========== 第2パス: 通常描画 ==========
 	//printf("========== NORMAL PASS START ==========\n");
