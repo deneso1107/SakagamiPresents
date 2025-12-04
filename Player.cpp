@@ -8,6 +8,9 @@
 #include <iostream>
 #include "ChaseCamera.h"
 #include "EffeectManager.h"
+
+
+
 float VALUE_MOVE_MODEL = 2.0f;						// キー入力時の移動量
 float VALUE_ROTATE_MODEL = PI * 0.02f;				// キー入力時の回転量
 float RATE_ROTATE_MODEL = 0.40f;					// １フレーム当たりの回転割合
@@ -673,7 +676,7 @@ void Player::OnCollisionWithEnemy(Enemy& enemy)
 
 
 	// カメラの前方向を取得(水平方向のみ)
-	Vector3 cameraForward = CheeseCamera::Instance().GetForward();
+	Vector3 cameraForward = SpringCamera::Instance().GetForward();
 	cameraForward.y = 0.0f;
 	cameraForward.Normalize();
 
@@ -696,7 +699,7 @@ void Player::OnCollisionWithEnemy(Enemy& enemy)
 
 	//敵を飛ばしたときに起きる効果
 	ApplyHitStop(0.008f, 0.1f);
-	CheeseCamera::Instance().Shake(0.5f, 0.1f);
+	SpringCamera::Instance().Shake(0.5f, 0.1f);
 
 	enemy.ApplyKnockback(knockbackDirection, knockbackForce,timeScale);
 }
@@ -847,6 +850,7 @@ void Player::UpdateCarRotationFromTerrain(const Vector3& terrainNormal)
 			lerpSpeed *= 0.5f;
 		}
 	}
+
 
 	// 地面に接触している場合のみ回転を適用
 	if (m_isGrounded) {

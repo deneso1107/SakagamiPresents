@@ -179,7 +179,7 @@ void Enemy::KnockBack(float deltaTime)
     // タイマー更新
     m_KnockbackTimer -= deltaTime* timeScale;
     m_Rotation.x += m_RotateSpeed * deltaTime * timeScale; // 回転速度は調整可能
-	Vector3 cameraPos = CheeseCamera::Instance().GetPosition();
+	Vector3 cameraPos = SpringCamera::Instance().GetPosition();
     float distance = (m_Position - cameraPos).Length();
 
     // 一定距離以上、または時間経過でエフェクト発生

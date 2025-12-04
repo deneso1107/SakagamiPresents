@@ -23,12 +23,16 @@
     <ClInclude Include="BaseRoad.h" />
     <ClInclude Include="Billboard.h" />
     <ClInclude Include="BlastEnemy.h" />
+    <ClInclude Include="BoostCameraState.h" />
     <ClInclude Include="BoostItem.h" />
     <ClInclude Include="camera.h" />
+    <ClInclude Include="CameraManager.h" />
     <ClInclude Include="CarDriveScene.h" />
     <ClInclude Include="CarPhysics.h" />
-    <ClInclude Include="ChaseCamera.h" />
+    <ClInclude Include="SpringCamera.h" />
+    <ClInclude Include="CollisionCameraState.h" />
     <ClInclude Include="CTerrainMesh.h" />
+    <ClInclude Include="CurveCameraState.h" />
     <ClInclude Include="Dirt.h" />
     <ClInclude Include="EffeectManager.h" />
     <ClInclude Include="Ending.h" />
@@ -39,8 +43,10 @@
     <ClInclude Include="game.h" />
     <ClInclude Include="GameManager.h" />
     <ClInclude Include="Goal.h" />
+    <ClInclude Include="ICameraState.h" />
     <ClInclude Include="LeftTurnRoad.h" />
     <ClInclude Include="main.h" />
+    <ClInclude Include="NormalCameraState.h" />
     <ClInclude Include="NumberRenderer.h" />
     <ClInclude Include="ObjectBase.h" />
     <ClInclude Include="ParticleTypes.h" />
@@ -52,6 +58,7 @@
     <ClInclude Include="scenemanager.h" />
     <ClInclude Include="ScreenFixedBillboard.h" />
     <ClInclude Include="ScreenGaugeBillboard.h" />
+    <ClInclude Include="SimpleCamera.h" />
     <ClInclude Include="Skydome.h" />
     <ClInclude Include="SparkEmitter.h" />
     <ClInclude Include="SpeedMator.h" />
@@ -118,9 +125,10 @@
     <ClCompile Include="BlastEnemy.cpp" />
     <ClCompile Include="BoostItem.cpp" />
     <ClCompile Include="camera.cpp" />
+    <ClCompile Include="CameraManager.cpp" />
     <ClCompile Include="CarDriveScene.cpp" />
     <ClCompile Include="CarPhysics.cpp" />
-    <ClCompile Include="ChaseCamera.cpp" />
+    <ClCompile Include="SpringCamera.cpp" />
     <ClCompile Include="CTerrainMesh.cpp" />
     <ClCompile Include="Dirt.cpp" />
     <ClCompile Include="EffectManager.cpp" />
@@ -131,6 +139,7 @@
     <ClCompile Include="game.cpp" />
     <ClCompile Include="GameManager.cpp" />
     <ClCompile Include="Goal.cpp" />
+    <ClCompile Include="ICameraState.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="NumberRenderer.cpp" />
     <ClCompile Include="ObjectBase.cpp" />
@@ -143,6 +152,7 @@
     <ClCompile Include="scenemanager.cpp" />
     <ClCompile Include="ScreenFixedBillboard.cpp" />
     <ClCompile Include="ScreenGaugeBillboard.cpp" />
+    <ClCompile Include="SImpleCamera.cpp" />
     <ClCompile Include="Skydome.cpp" />
     <ClCompile Include="SparkEmitter.cpp" />
     <ClCompile Include="SpeedMator.cpp" />

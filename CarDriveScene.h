@@ -18,7 +18,7 @@
 #include "system/SphereDrawer.h"
 #include"Billboard.h"
 #include"ScreenFixedBillBoard.h"
-#include"ChaseCamera.h"
+#include"SpringCamera.h"
 #include"ScreenGaugeBillboard.h"
 #include"BoostItem.h"
 #include"SpeedMator.h"
@@ -27,6 +27,8 @@
 #include"EffeectManager.h"
 #include"PostProcessManager.h"
 #include"TreeManager.h"
+#include"CameraManager.h"
+#include"SimpleCamera.h"
 class CarDriveScene : public IScene
 {
 public:
@@ -113,7 +115,7 @@ private:
 
 	float m_RemainingTime;//タイム三校用
 	//ChaseCamera m_CheeseCamera;										// フリーカメラ
-	FreeCamera m_FreeCamera;
+	//FreeCamera m_FreeCamera;
 	ScreenFixedBillboard* m_screenBillboard;//ゲッターあるよ
 	ScreenGaugeBillboard* m_Gauge;
 	std::array<std::unique_ptr<::Segment>, 3> m_segments;			// ローカル軸表示用線分
@@ -130,5 +132,8 @@ private:
 	SparkEmitter m_sparkEmitter;
 	RoadManager roadManager; // 道路サイズを18に設定
 	TreeManager m_TreeManager;
+	CameraManager m_CameraManager;
+
+	Camera* m_currentCamera;
 };
 //このカメラにビルボードを対応させよう

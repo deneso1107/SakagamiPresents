@@ -102,38 +102,38 @@ void CarDriveScene::debugDirectionalLight()
 // デバッグフリーカメラ
 void CarDriveScene::debugFreeCamera()
 {
-	ImGui::Begin("debug Free camera");
+	//ImGui::Begin("debug Free camera");
 
-	static float radius = 100.0f;
-	static Vector3 pos = Vector3(0, 0, radius);
-	static Vector3 lookat = Vector3(0, 0, 0);
-	static float elevation = -90.0f * PI / 180.0f;
-	static float azimuth = PI/2.0f;
+	//static float radius = 100.0f;
+	//static Vector3 pos = Vector3(0, 0, radius);
+	//static Vector3 lookat = Vector3(0, 0, 0);
+	//static float elevation = -90.0f * PI / 180.0f;
+	//static float azimuth = PI/2.0f;
 
-	static Vector3 spherecenter = Vector3(0, 0, 0);	
+	//static Vector3 spherecenter = Vector3(0, 0, 0);	
 
-	ImGui::SliderFloat("Radius", &radius, 1,800);
-	ImGui::SliderFloat("Elevation", &elevation, -PI, PI);
-	ImGui::SliderFloat("Azimuth", &azimuth, -PI, PI);
+	//ImGui::SliderFloat("Radius", &radius, 1,800);
+	//ImGui::SliderFloat("Elevation", &elevation, -PI, PI);
+	//ImGui::SliderFloat("Azimuth", &azimuth, -PI, PI);
 
-	ImGui::SliderFloat3("lookat ", &lookat.x, -100, 100);
+	//ImGui::SliderFloat3("lookat ", &lookat.x, -100, 100);
 
-	// カメラの位置を極座標からデカルト座標に変換
-	m_FreeCamera.SetRadius(radius);
-	m_FreeCamera.SetElevation(elevation);
-	m_FreeCamera.SetAzimuth(azimuth);
-	m_FreeCamera.SetLookat(lookat);
+	//// カメラの位置を極座標からデカルト座標に変換
+	//m_FreeCamera.SetRadius(radius);
+	//m_FreeCamera.SetElevation(elevation);
+	//m_FreeCamera.SetAzimuth(azimuth);
+	//m_FreeCamera.SetLookat(lookat);
 
-	// カメラの位置を極座標から求める
-	m_FreeCamera.CalcCameraPosition();
+	//// カメラの位置を極座標から求める
+	//m_FreeCamera.CalcCameraPosition();
 
-	ImGui::End();
+	//ImGui::End();
 }
 
 void CarDriveScene::debugChangeCamera()
 {
 	ImGui::Begin("Change Camera");
-	if (ImGui::Button("CheeseCamera")) {
+	if (ImGui::Button("SpringCamera")) {
 		m_NowCamera = true;
 	}
 	if (ImGui::Button("FreeCamera")) {
@@ -177,6 +177,7 @@ void CarDriveScene::init()
 		MessageBox(nullptr, "Renderer not initialized!", "Error", MB_OK);
 		return;
 	}
+
 	// シャドウマップの初期化
 	Renderer::InitShadowMap(2048);
 	Renderer::EnableShadowMap(true);
@@ -231,10 +232,13 @@ void CarDriveScene::init()
 	m_player->SetRoad(m_road);
 
 	// カメラの初期化とプレイヤーの設定
-	CheeseCamera::Instance().SetTargetPlayer(m_player.get());
-	CheeseCamera::Instance().Init();
+	SpringCamera::Instance().SetTargetPlayer(m_player.get());
+	SpringCamera::Instance().Init();
+	SimpleFollowCamera::Instance().SetTargetPlayer(m_player.get());
+	SimpleFollowCamera::Instance().Init();	
+	m_currentCamera = &SimpleFollowCamera::Instance();
 
-	m_FreeCamera.Init();
+	//m_FreeCamera.Init();
 
 
 	// スカイドームの初期化
@@ -336,6 +340,9 @@ void CarDriveScene::init()
 		m_aberrationStrength = strength;
 		});
 
+	m_CameraManager.SetTargetPlayer(m_player.get());
+	m_CameraManager.Init();
+
 
 
 	if (!m_sparkEmitter.Init(Renderer::GetDevice()))
@@ -373,6 +380,20 @@ float m_slowMotionDuration = 1.0f; // スロー演出の長さ（秒）
 bool m_isInSlowMotion = false;
 void CarDriveScene::update(float deltatime)//uint64_tとfloatの衝突　圧倒的衝突
 {
+	// キーで切り替え
+	if (CDirectInput::GetInstance().CheckKeyBuffer(1)) {
+		m_currentCamera = &SimpleFollowCamera::Instance();
+		printf("SimpleFollowCamera\n");
+	}
+	if (CDirectInput::GetInstance().CheckKeyBuffer(2)) {
+		m_currentCamera = &SpringCamera::Instance();
+		printf("SpringCamera (Lerp)\n");
+	}
+	//if (CDirectInput::GetInstance().CheckKeyBuffer(3)) {
+	//	m_currentCamera = &SpringCamera::Instance();
+	//	printf("SpringCamera (Physics)\n");
+	//}
+
 	//次は加速しましょう
 	m_time += deltatime;
 
@@ -520,14 +541,16 @@ void CarDriveScene::update(float deltatime)//uint64_tとfloatの衝突　圧倒的衝突
 	m_speedMator->SetSpeed(m_player->GetSpeed());
 	m_speedMator->Update(deltatime);
 	// カメラの更新を先に行う
+
 	if (m_NowCamera)
 	{
-		CheeseCamera::Instance().Update(deltatime);
+		m_currentCamera->Update(deltatime);
 	}
 	else
 	{
-		m_FreeCamera.Update();
+		//m_FreeCamera.Update();
 	}
+	//m_CameraManager.Update(deltatime);
 
 	// カメラ更新後にビルボードを更新（正しいビューマトリックスを使用）
 	m_screenBillboard->Update();
@@ -641,11 +664,13 @@ void CarDriveScene::draw(uint64_t deltatime)
 
 	// カメラ設定
 	if (m_NowCamera) {
-		CheeseCamera::Instance().Draw();
+		m_currentCamera->Draw();
 	}
 	else {
-		m_FreeCamera.Draw();
+		//m_FreeCamera.Draw();
 	}
+
+	//m_CameraManager.Draw();
 
 	Matrix4x4 viewMatrix =Renderer::GetViewMatrix();
 

@@ -15,10 +15,10 @@ void Camera::Dispose()
 }
 
 
-void Camera::Update()
-{
-
-}
+//void Camera::Update()
+//{
+//
+//}
 
 void Camera::Draw()
 {

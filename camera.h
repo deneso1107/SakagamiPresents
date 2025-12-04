@@ -18,7 +18,7 @@ public:
 
 	virtual void Init();
 	virtual void Dispose();
-	virtual void Update();
+	virtual void Update(float)=0;
 	virtual void Draw();
 	void SetPosition(const Vector3& position) { m_position = position; }
 	void SetLookat(const Vector3& position) { m_lookat = position; }
