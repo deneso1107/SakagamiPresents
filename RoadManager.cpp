@@ -433,6 +433,75 @@ BaseRoad* RoadManager::GetGoalRoad()
     return nullptr; // 見つからなかった
 }
 
+//指定したグリッド座標の道路位置を取得する
+std::optional<Vector3> RoadManager::GetRoadPosition(int x, int y) const
+{
+    // 範囲チェック
+    if (x < 0 || x >= m_gridWidth || y < 0 || y >= m_gridHeight) {
+        return std::nullopt;
+    }
+
+    // nullチェック（これがないとnullエラー）
+    if (!m_roadGrid[y][x]) {
+        return std::nullopt;
+    }
+
+    return m_roadGrid[y][x]->GetPosition();
+}
+
+//指定した道路情報を取得する
+BaseRoad* RoadManager::GetRoad(int x, int y) const
+{
+    if (x < 0 || x >= m_gridWidth || y < 0 || y >= m_gridHeight) {
+        return nullptr;
+    }
+    return m_roadGrid[y][x].get();
+}
+//特定の状態をすべて取得
+std::vector<Vector3> RoadManager::GetRoadPositionsByType(RoadType type) const
+{
+    std::vector<Vector3> positions;
+
+    for (int y = 0; y < m_gridHeight; y++) {
+        for (int x = 0; x < m_gridWidth; x++) {
+            if (m_roadGrid[y][x] && m_roadLayout[y][x].type == type) {
+                positions.push_back(m_roadGrid[y][x]->GetPosition());
+            }
+        }
+    }
+
+    return positions;
+}
+
+std::vector<BaseRoad*> RoadManager::GetRoadByType(RoadType type) const
+{
+    std::vector<BaseRoad*> positions;
+
+    for (int y = 0; y < m_gridHeight; y++) {
+        for (int x = 0; x < m_gridWidth; x++) {
+            if (m_roadGrid[y][x] && m_roadLayout[y][x].type == type) {
+                positions.push_back(m_roadGrid[y][x].get());
+            }
+        }
+    }
+
+    return positions;
+}
+
+
+//指定した道路の位置をずらした場所を取得する
+std::optional<Vector3> RoadManager::GetRoadEdgePosition(
+    int x, int y, float offsetX, float offsetZ) const
+{
+    auto basePos = GetRoadPosition(x, y);
+    if (!basePos) return std::nullopt;
+
+    Vector3 pos = *basePos;
+    pos.x += offsetX;
+    pos.z += offsetZ;
+    return pos;
+}
+
 //Plauerがどの路面タイプにいるか取得する際に使用
 bool RoadManager::GetRoadSurfaceType(const Vector3& position, RoadType& outSurfaceType) {
     // プレイヤーの位置にある道路を検索

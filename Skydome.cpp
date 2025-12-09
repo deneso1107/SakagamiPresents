@@ -8,11 +8,11 @@ void Skydome::Init()
 {
 	m_Position = Vector3(0.0f, 0.0f, 0.0f);
 	m_Rotation = Vector3(0.0f, 0.0f, 0.0f);
-	m_Scale = Vector3(1.0f, 1.0f, 1.0f);
+	m_Scale = Vector3(10.0f, 10.0f, 10.0f);
 
 	// ƒ‚ƒfƒ‹‚Ì‰Šú‰»
 	m_mesh.Load(
-		"assets/model/skydome.x",
+		"assets/model/SkyDome_2.fbx",
 		"assets/model/");
 
 	// ƒŒƒ“ƒ_ƒ‰‰Šú‰»

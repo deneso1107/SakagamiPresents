@@ -102,38 +102,38 @@ void CarDriveScene::debugDirectionalLight()
 // デバッグフリーカメラ
 void CarDriveScene::debugFreeCamera()
 {
-	ImGui::Begin("debug Free camera");
+	//ImGui::Begin("debug Free camera");
 
-	static float radius = 100.0f;
-	static Vector3 pos = Vector3(0, 0, radius);
-	static Vector3 lookat = Vector3(0, 0, 0);
-	static float elevation = -90.0f * PI / 180.0f;
-	static float azimuth = PI/2.0f;
+	//static float radius = 100.0f;
+	//static Vector3 pos = Vector3(0, 0, radius);
+	//static Vector3 lookat = Vector3(0, 0, 0);
+	//static float elevation = -90.0f * PI / 180.0f;
+	//static float azimuth = PI/2.0f;
 
-	static Vector3 spherecenter = Vector3(0, 0, 0);	
+	//static Vector3 spherecenter = Vector3(0, 0, 0);	
 
-	ImGui::SliderFloat("Radius", &radius, 1,800);
-	ImGui::SliderFloat("Elevation", &elevation, -PI, PI);
-	ImGui::SliderFloat("Azimuth", &azimuth, -PI, PI);
+	//ImGui::SliderFloat("Radius", &radius, 1,800);
+	//ImGui::SliderFloat("Elevation", &elevation, -PI, PI);
+	//ImGui::SliderFloat("Azimuth", &azimuth, -PI, PI);
 
-	ImGui::SliderFloat3("lookat ", &lookat.x, -100, 100);
+	//ImGui::SliderFloat3("lookat ", &lookat.x, -100, 100);
 
-	// カメラの位置を極座標からデカルト座標に変換
-	m_FreeCamera.SetRadius(radius);
-	m_FreeCamera.SetElevation(elevation);
-	m_FreeCamera.SetAzimuth(azimuth);
-	m_FreeCamera.SetLookat(lookat);
+	//// カメラの位置を極座標からデカルト座標に変換
+	//m_FreeCamera.SetRadius(radius);
+	//m_FreeCamera.SetElevation(elevation);
+	//m_FreeCamera.SetAzimuth(azimuth);
+	//m_FreeCamera.SetLookat(lookat);
 
-	// カメラの位置を極座標から求める
-	m_FreeCamera.CalcCameraPosition();
+	//// カメラの位置を極座標から求める
+	//m_FreeCamera.CalcCameraPosition();
 
-	ImGui::End();
+	//ImGui::End();
 }
 
 void CarDriveScene::debugChangeCamera()
 {
 	ImGui::Begin("Change Camera");
-	if (ImGui::Button("CheeseCamera")) {
+	if (ImGui::Button("SpringCamera")) {
 		m_NowCamera = true;
 	}
 	if (ImGui::Button("FreeCamera")) {
@@ -177,6 +177,7 @@ void CarDriveScene::init()
 		MessageBox(nullptr, "Renderer not initialized!", "Error", MB_OK);
 		return;
 	}
+
 	// シャドウマップの初期化
 	Renderer::InitShadowMap(2048);
 	Renderer::EnableShadowMap(true);
@@ -231,10 +232,15 @@ void CarDriveScene::init()
 	m_player->SetRoad(m_road);
 
 	// カメラの初期化とプレイヤーの設定
+	SpringCamera::Instance().SetTargetPlayer(m_player.get());
+	SpringCamera::Instance().Init();
+	SimpleFollowCamera::Instance().SetTargetPlayer(m_player.get());
+	SimpleFollowCamera::Instance().Init();	
 	CheeseCamera::Instance().SetTargetPlayer(m_player.get());
 	CheeseCamera::Instance().Init();
+	m_currentCamera = &SpringCamera::Instance();
 
-	m_FreeCamera.Init();
+	//m_FreeCamera.Init();
 
 
 	// スカイドームの初期化
@@ -255,21 +261,39 @@ void CarDriveScene::init()
 	m_player->SetPosition(m_start->GetPosition());
 
 
-	roadManager.ResizeGrid(4, 8);//East=東　West＝西　North＝北　South＝南
+	roadManager.ResizeGrid(4, 18);//East=東　West＝西　North＝北　South＝南
 	roadManager.InitializeGridSpacing();  // グリッド間隔を初期化
 	roadManager.SetRoad(0, 0, RoadType::START_LINE, Direction::SOUTH);
 	roadManager.SetRoad(0, 1, RoadType::STRAIGHT, Direction::SOUTH);
-	roadManager.SetRoad(0, 2, RoadType::STRAIGHT, Direction::SOUTH);
-	roadManager.SetRoad(0, 2, RoadType::SLOPE_UP, Direction::NORTH);//次はGoalを作りましょう　とりあえずゲームループの完成
+	roadManager.SetRoad(1, 1, RoadType::TURN_LEFT, Direction::EAST);
+    roadManager.SetRoad(0, 2, RoadType::SLOPE_UP, Direction::NORTH);//次はGoalを作りましょう　とりあえずゲームループの完成
 	roadManager.SetRoad(0, 3, RoadType::STRAIGHT, Direction::SOUTH);
 	roadManager.SetRoad(0, 4, RoadType::SLOPE_UP, Direction::NORTH);
 	roadManager.SetRoad(0, 5, RoadType::SLOPE_DOWN, Direction::NORTH);
 	roadManager.SetRoad(0, 6, RoadType::SLOPE_DOWN, Direction::NORTH);
-	roadManager.SetRoad(0, 7, RoadType::TURN_LEFT, Direction::NORTH);
-	roadManager.SetRoad(1, 7, RoadType::STRAIGHT, Direction::WEST);
-	roadManager.SetRoad(2, 7, RoadType::TURN_LEFT, Direction::EAST);
-	roadManager.SetRoad(2, 6, RoadType::GOAL_LINE, Direction::SOUTH);
+
+	//ながーーーーーいお付き合い
+	roadManager.SetRoad(0, 7, RoadType::STRAIGHT, Direction::SOUTH);
+	roadManager.SetRoad(0, 8, RoadType::STRAIGHT, Direction::SOUTH);
+	roadManager.SetRoad(0, 9, RoadType::STRAIGHT, Direction::SOUTH);
+	roadManager.SetRoad(0, 10, RoadType::STRAIGHT, Direction::SOUTH);
+	roadManager.SetRoad(0, 11, RoadType::STRAIGHT, Direction::SOUTH);
+	roadManager.SetRoad(0, 12, RoadType::STRAIGHT, Direction::SOUTH);
+	roadManager.SetRoad(0, 13, RoadType::STRAIGHT, Direction::SOUTH);
+	roadManager.SetRoad(0, 14, RoadType::STRAIGHT, Direction::SOUTH);
+	roadManager.SetRoad(0, 15, RoadType::STRAIGHT, Direction::SOUTH);
+	roadManager.SetRoad(0, 16, RoadType::STRAIGHT, Direction::SOUTH);
+	roadManager.SetRoad(0, 17, RoadType::STRAIGHT, Direction::SOUTH);
+
+
+
+	//roadManager.SetRoad(0, 7, RoadType::TURN_LEFT, Direction::NORTH);
+	//roadManager.SetRoad(1, 7, RoadType::STRAIGHT, Direction::WEST);
+	//roadManager.SetRoad(2, 7, RoadType::TURN_LEFT, Direction::EAST);
+	//roadManager.SetRoad(2, 6, RoadType::GOAL_LINE, Direction::SOUTH);
 	roadManager.SetRoad(2, 5, RoadType::DIRT, Direction::SOUTH);
+	
+
 	//roadManager.SetRoad(0, 4, RoadType::STRAIGHT, Direction::SOUTH);
 	//roadManager.SetRoad(0, 5, RoadType::SLOPE_DOWN, Direction::NORTH);
 	//roadManager.SetRoad(0, 6, RoadType::STRAIGHT, Direction::SOUTH);
@@ -285,6 +309,7 @@ void CarDriveScene::init()
 		Vector3 startPos = start->GetPosition();
 		m_player->SetPosition(startPos);
 
+		SetupEnemiesOnRoad();
 		//MultiFormationConfig config;
 		//config.totalEnemyCount = 12;  // 合計10体
 
@@ -292,7 +317,7 @@ void CarDriveScene::init()
 		//FormationConfig line;
 		//line.formation = EnemyFormation::LINE;
 		//line.enemyCount = 4;
-		//line.centerPos = *startPos;
+		//line.centerPos = startPos;
 		//line.spacing = 15.0f;
 		//config.AddFormation(line);
 
@@ -300,7 +325,7 @@ void CarDriveScene::init()
 		//FormationConfig circle;
 		//circle.formation = EnemyFormation::CIRCLE;
 		//circle.enemyCount = 5;
-		//circle.centerPos = *startPos;
+		//circle.centerPos =startPos;
 		//circle.circleRadius = 30.0f;
 		//config.AddFormation(circle);
 
@@ -315,14 +340,14 @@ void CarDriveScene::init()
 		//FormationConfig lineConfig;
 		//lineConfig.formation = EnemyFormation::LINE;
 
-		//lineConfig.centerPos = *startPos;  // 配置開始位置
+		//lineConfig.centerPos = startPos;  // 配置開始位置
 		//lineConfig.spacing = 15.0f;  // 敵同士の間隔
 		//InitEnemiesWithFormation(this, m_field.get(), lineConfig);
 
 		 // 直線配置（道の右側に20本）
 		TreeFormationConfig treeconfig;
 		treeconfig.formation = TreeFormation::LINE;
-		treeconfig.treeCount = 20;
+		treeconfig.treeCount = 80;
 		treeconfig.centerPos = startPos;
 		treeconfig.centerPos.x += (start->GetActualModelSize().x*start->GetScale().x) / 2; // 道の右側に配置
 		treeconfig.centerPos.y += treeconfig.centerPos.y/2;
@@ -335,6 +360,9 @@ void CarDriveScene::init()
 		m_usePostProcess = use;
 		m_aberrationStrength = strength;
 		});
+
+	m_CameraManager.SetTargetPlayer(m_player.get());
+	m_CameraManager.Init();
 
 
 
@@ -362,10 +390,98 @@ void CarDriveScene::init()
 		{
 			debugChangeCamera();
 		});
-	//DebugUI::RedistDebugFunction([this]()
-	//	{
-	//		debugChangeScene();
-	//	});
+}
+
+void CarDriveScene::SetupEnemiesOnRoad()
+{
+	MultiFormationConfig config;
+	config.totalEnemyCount = 100;  // 合計10体
+
+
+	//auto roadPos=roadManager.GetRoadPosition(0,3);
+
+	//// 縦列配置で4体
+	//FormationConfig line;
+	//line.formation = EnemyFormation::LINE;
+	//line.enemyCount = 4;
+	//if (roadPos)//チェック
+	//{
+	//	line.centerPos = *roadPos;
+	//}
+	//line.spacing = 15.0f;
+	//config.AddFormation(line);
+
+	std::vector<BaseRoad*> straightRoads = roadManager.GetRoadByType(RoadType::STRAIGHT);
+	for(auto& road:straightRoads)
+	{ 
+		if (!straightRoads.empty())
+		{
+			FormationConfig line;
+			line.formation = EnemyFormation::DIAGONAL;
+			line.enemyCount = 5;
+			line.centerPos = road->GetPosition();  // 最初のストレート道路
+			switch (road->GetDirection())//角度に応じて敵の配置位置を調整
+			{
+			case Direction::WEST:
+				line.diagonalAngle =90.0f;//←←←
+				break;
+			case Direction::SOUTH:
+				line.diagonalAngle = -0.0f;//↓↓↓↓↓
+				break;
+			case Direction::EAST:
+				line.diagonalAngle = -90.0f;//→→→
+				break;
+			case Direction::NORTH:
+				line.diagonalAngle = 180.0f;//↑↑↑↑↑
+				break;
+
+			}
+			line.spacing = 15.0f;
+
+			config.AddFormation(line);
+		}
+	}
+	std::vector<BaseRoad*> rightTurnRoads = roadManager.GetRoadByType(RoadType::TURN_LEFT);
+	for (auto& road : rightTurnRoads)
+	{
+		if (!rightTurnRoads.empty())
+		{
+			FormationConfig right;
+		    right.formation = EnemyFormation::DIAGONAL;
+		    right.enemyCount = 5;
+			Vector3 offset;
+			switch (road->GetDirection())//角度に応じて敵の配置位置を調整
+			{
+				case Direction::NORTH:
+				right.diagonalAngle = 45.0f;
+				offset = Vector3(0.0f, 0.0f, -100.0f); // 適切なオフセット値を設定
+				break;
+				case Direction::EAST:
+				right.diagonalAngle =135.0f;
+				offset = Vector3(-100.0f, 0.0f, 0.0f); // 適切なオフセット値を設定
+				break;
+
+			}
+			right.centerPos = road->GetPosition() + offset;  // 最初のストレート道路
+			config.AddFormation(right);
+		}
+	}
+
+	//// 円形配置で3体
+	//FormationConfig circle;
+	//circle.formation = EnemyFormation::CIRCLE;
+	//circle.enemyCount = 5;
+	//circle.centerPos = startPos;
+	//circle.circleRadius = 30.0f;
+	//config.AddFormation(circle);
+
+	//// ランダム配置で残り3体
+	//FormationConfig random;
+	//random.formation = EnemyFormation::RANDOM;
+	//random.enemyCount = 3;
+	//config.AddFormation(random);
+
+	InitEnemiesWithMultiFormation(this, m_field.get(), config);
 }
 
 float m_slowMotionStartTime = -1.0f;
@@ -373,6 +489,17 @@ float m_slowMotionDuration = 1.0f; // スロー演出の長さ（秒）
 bool m_isInSlowMotion = false;
 void CarDriveScene::update(float deltatime)//uint64_tとfloatの衝突　圧倒的衝突
 {
+	// キーで切り替え
+	if (CDirectInput::GetInstance().CheckKeyBuffer(DIK_1)) {
+		m_currentCamera = &SimpleFollowCamera::Instance();
+	}
+	if (CDirectInput::GetInstance().CheckKeyBuffer(DIK_2)) {
+		m_currentCamera = &SpringCamera::Instance();
+	}
+	if (CDirectInput::GetInstance().CheckKeyBuffer(DIK_0)) {
+		m_currentCamera = &CheeseCamera::Instance();
+	}
+
 	//次は加速しましょう
 	m_time += deltatime;
 
@@ -463,7 +590,7 @@ void CarDriveScene::update(float deltatime)//uint64_tとfloatの衝突　圧倒的衝突
 			float elapsedSlow = m_time - m_slowMotionStartTime;
 			if (elapsedSlow >= m_slowMotionDuration)
 			{
-				GameManager::Instance().SetTimeScale(1.0f); // 通常速度へ//まじで早いかわからん(周りに物をおいて確認)
+  				GameManager::Instance().SetTimeScale(1.0f); // 通常速度へ//まじで早いかわからん(周りに物をおいて確認)
 				m_isInSlowMotion = false;
 			}
 		}
@@ -520,14 +647,16 @@ void CarDriveScene::update(float deltatime)//uint64_tとfloatの衝突　圧倒的衝突
 	m_speedMator->SetSpeed(m_player->GetSpeed());
 	m_speedMator->Update(deltatime);
 	// カメラの更新を先に行う
+
 	if (m_NowCamera)
 	{
-		CheeseCamera::Instance().Update(deltatime);
+		m_currentCamera->Update(deltatime);
 	}
 	else
 	{
-		m_FreeCamera.Update();
+		//m_FreeCamera.Update();
 	}
+	//m_CameraManager.Update(deltatime);
 
 	// カメラ更新後にビルボードを更新（正しいビューマトリックスを使用）
 	m_screenBillboard->Update();
@@ -641,11 +770,13 @@ void CarDriveScene::draw(uint64_t deltatime)
 
 	// カメラ設定
 	if (m_NowCamera) {
-		CheeseCamera::Instance().Draw();
+		m_currentCamera->Draw();
 	}
 	else {
-		m_FreeCamera.Draw();
+		//m_FreeCamera.Draw();
 	}
+
+	//m_CameraManager.Draw();
 
 	Matrix4x4 viewMatrix =Renderer::GetViewMatrix();
 

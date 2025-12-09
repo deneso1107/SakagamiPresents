@@ -8,5 +8,5 @@ protected:
         return "assets/model/Road/Curve99.fbx ";
     }
 public:
-    LeftTurnRoad(Direction dir = Direction::NORTH/*テスト*/) : BaseRoad(RoadType::STRAIGHT, dir) {}
+    LeftTurnRoad(Direction dir = Direction::NORTH/*テスト*/) : BaseRoad(RoadType::TURN_LEFT, dir) {}
 };

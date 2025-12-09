@@ -108,7 +108,8 @@ private:
     }
 
     // ó‘Ô‚ğ•¶š—ñ‚É•ÏŠ·
-    std::string StateToString(State state) const {
+    std::string StateToString(State state) const 
+    {
         switch (state) {
         case State::OnGround: return "OnGround";
         case State::Drifting: return "Drifting";
