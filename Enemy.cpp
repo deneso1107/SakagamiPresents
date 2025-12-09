@@ -57,41 +57,41 @@ void Enemy::Update(float deltaTime)
         }
         else
         {
-            Player* p;
-            p = ((CarDriveScene*)(m_ownerscene))->GetPlayer();    // プレイヤの取得
-            // プレイヤの座標を取得
-            Vector3 playerpos = p->GetPosition();
-            // atan2を使用して角度を求める
-            m_Destrot.y = atan2f(-(playerpos.x - m_Position.x), -(playerpos.z - m_Position.z));
-            // 現在の向きとの差分を計算する
-            float fDiffRotY = m_Destrot.y - m_Rotation.y;
-            // 補正（－１８０～１８０の範囲）
-            if (fDiffRotY > PI)
-            {
-                fDiffRotY -= PI * 2.0f;
-            }
-            if (fDiffRotY < -PI)
-            {
-                fDiffRotY += PI * 2.0f;
-            }
-            // 回転角度計算
-            m_Rotation.y += fDiffRotY * RATE_ROTATE_ENEMY;
-            if (m_Rotation.y > PI)
-            {
-                m_Rotation.y -= PI * 2.0f;
-            }
-            if (m_Rotation.y < -PI)
-            {
-                m_Rotation.y += PI * 2.0f;
-            }
-            Matrix4x4 mtx = Matrix4x4::CreateRotationY(m_Rotation.y);    // 目標角度を現在の角度に更新
-            Vector3 forward = mtx.Forward();    // 前方ベクトルを取得
-            m_Move = forward * m_speed;    // 前方ベクトルにスピードを掛けて移動量を計算
-            /// 位置移動（X、Z軸のみ。Y軸は重力で制御済み）
-            m_Position.x += m_Move.x;
-            m_Position.z += m_Move.z;
-            // 移動量に慣性をかける(減速率)
-            m_Move += -m_Move * RATE_MOVE_MODEL;
+            //Player* p;
+            //p = ((CarDriveScene*)(m_ownerscene))->GetPlayer();    // プレイヤの取得
+            //// プレイヤの座標を取得
+            //Vector3 playerpos = p->GetPosition();
+            //// atan2を使用して角度を求める
+            //m_Destrot.y = atan2f(-(playerpos.x - m_Position.x), -(playerpos.z - m_Position.z));
+            //// 現在の向きとの差分を計算する
+            //float fDiffRotY = m_Destrot.y - m_Rotation.y;
+            //// 補正（－１８０～１８０の範囲）
+            //if (fDiffRotY > PI)
+            //{
+            //    fDiffRotY -= PI * 2.0f;
+            //}
+            //if (fDiffRotY < -PI)
+            //{
+            //    fDiffRotY += PI * 2.0f;
+            //}
+            //// 回転角度計算
+            //m_Rotation.y += fDiffRotY * RATE_ROTATE_ENEMY;
+            //if (m_Rotation.y > PI)
+            //{
+            //    m_Rotation.y -= PI * 2.0f;
+            //}
+            //if (m_Rotation.y < -PI)
+            //{
+            //    m_Rotation.y += PI * 2.0f;
+            //}
+            //Matrix4x4 mtx = Matrix4x4::CreateRotationY(m_Rotation.y);    // 目標角度を現在の角度に更新
+            //Vector3 forward = mtx.Forward();    // 前方ベクトルを取得
+            //m_Move = forward * m_speed;    // 前方ベクトルにスピードを掛けて移動量を計算
+            ///// 位置移動（X、Z軸のみ。Y軸は重力で制御済み）
+            //m_Position.x += m_Move.x;
+            //m_Position.z += m_Move.z;
+            //// 移動量に慣性をかける(減速率)
+            //m_Move += -m_Move * RATE_MOVE_MODEL;
         }
     }
     //else
@@ -162,7 +162,7 @@ void Enemy::ApplyKnockback(Vector3 direction, float force, float timeScale)
     // 初期位置は変更しない（KnockBack関数で更新される）
 
     m_IsKnockedBack = true;
-    m_KnockbackTimer = 0.5f;  // 3秒間飛行
+    m_KnockbackTimer = 10.5f;  // 3秒間飛行
     onField = false; // ノックバックで地面から離れる
 }
 
@@ -182,15 +182,16 @@ void Enemy::KnockBack(float deltaTime)
 	Vector3 cameraPos = SpringCamera::Instance().GetPosition();
     float distance = (m_Position - cameraPos).Length();
 
+
     // 一定距離以上、または時間経過でエフェクト発生
-    if ((distance > 80.0f || m_KnockbackTimer <= 0.1f) && !m_EffectSpawned)//ここから 
+    if ((/*distance > 80.0f ||*/ m_KnockbackTimer <= 0.4f) && !m_EffectSpawned)//ここから 
     {
         m_EffectSpawned = true;
-        //GameManager::Instance().SetTimeScale(1.0f);
+        GameManager::Instance().SetTimeScale(1.0f);//スローモーションの調整
     }
 
     // 完全に消す
-    if (m_KnockbackTimer <= 0.0f/* || distance > 150.0f*/)
+    if (m_KnockbackTimer <= 0.0f|| distance > 1500.0f)
     {
         SetActive(false);
         // まだエフェクトを出していなければ出す
@@ -215,7 +216,7 @@ void Enemy::KnockBack(float deltaTime)
 void Enemy::SpawnDisappearEffect()
 {
     // テスト1: 同じ位置で両方生成
-    EffectManager::Instance().SpawnEffect("Star", m_Position, Vector3(450.0f, 450.0f, 0));
+    //EffectManager::Instance().SpawnEffect("Star", m_Position, Vector3(450.0f, 450.0f, 0));
     printf("Star生成完了\n");
 
     //EffectManager::Instance().SpawnEffect("SparkleParticle", m_Position, Vector3(0, 1, 0));

@@ -29,6 +29,7 @@
     <ClInclude Include="CameraManager.h" />
     <ClInclude Include="CarDriveScene.h" />
     <ClInclude Include="CarPhysics.h" />
+    <ClInclude Include="ChaseCamera.h" />
     <ClInclude Include="SpringCamera.h" />
     <ClInclude Include="CollisionCameraState.h" />
     <ClInclude Include="CTerrainMesh.h" />
@@ -128,6 +129,7 @@
     <ClCompile Include="CameraManager.cpp" />
     <ClCompile Include="CarDriveScene.cpp" />
     <ClCompile Include="CarPhysics.cpp" />
+    <ClCompile Include="ChaseCamera.cpp" />
     <ClCompile Include="SpringCamera.cpp" />
     <ClCompile Include="CTerrainMesh.cpp" />
     <ClCompile Include="Dirt.cpp" />

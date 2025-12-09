@@ -7,5 +7,5 @@ protected:
         return "assets/model/Road/road.fbx";
     }
 public:
-    RightTurnRoad(Direction dir = Direction::NORTH/*テスト*/) : BaseRoad(RoadType::STRAIGHT, dir) {}
+    RightTurnRoad(Direction dir = Direction::NORTH/*テスト*/) : BaseRoad(RoadType::TURN_RIGHT, dir) {}
 };

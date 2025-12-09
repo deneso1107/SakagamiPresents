@@ -63,6 +63,21 @@ class Player:public ObjectBase
 	bool m_smoothHeightTransition = true; // 滑らかな高さ遷移を有効にするか
 	float m_slopeThreshold = 0.995f;      // 急な坂の判定閾値
 
+	// 速度システム
+	float m_PermanentSpeedBonus = 1.0f;     // 永続的な速度ボーナス（初期値1.0 = 100%）
+	float m_TemporarySpeedBonus = 1.0f;     // 一時的な速度ボーナス（初期値1.0 = 100%）
+	float m_SpeedBoostTimer = 0.0f;         // 一時ブーストの残り時間
+	int m_ConsecutiveHits = 0;              // 連続ヒット数（敵を倒した総数）
+
+	// 調整用パラメータ
+	const float m_PermanentBonusPerMilestone = 0.05f;  // マイルストーン達成ごとに5%アップ
+	const int m_HitsPerMilestone = 10;                 // 10体ごとにマイルストーン
+	const float m_TemporaryBonusPerHit = 0.15f;        // 1体倒すごとに15%アップ（一時）
+	const float m_MaxTemporaryBonus = 2.0f;            // 一時ボーナスの最大値（2.0 = 200%）
+	const float m_TemporaryBoostDuration = 5.0f;       // 一時ブーストの持続時間（秒）
+	const float m_TemporaryBonusDecaySpeed = 0.05f;    // 一時ボーナスの減衰速度
+	const float m_MaxPermanentBonus = 2.0f;            // 永続ボーナスの最大値（2.0 = 200%）
+
 	// 前フレームの情報
 	Vector3 m_previousPosition;
 	Vector3 m_previousTerrainNormal;
@@ -88,6 +103,10 @@ class Player:public ObjectBase
 	void UpdateBoostSystem(bool boostInput, float deltaSeconds);
 	void UpdatePositionWithCollisionCheck(float deltaSeconds);
 
+	// ★★★ ハイブリッド速度システム用メソッド ★★★
+	void UpdateSpeedBonusSystem(float deltatime);  // 速度ボーナスシステムの更新
+	float GetCurrentSpeedMultiplier() const;        // 現在の速度倍率を取得
+
 	Road* m_road;
 
 	RoadManager* m_roadManager;  // 追加
@@ -103,13 +122,21 @@ class Player:public ObjectBase
 	//牛用の変数
 	float m_groundOffset = 0.0f; // 地面補正値
 
+	//坂判定の取得
+	float m_slopeDot;           // 坂の方向と移動方向の内積
+	float m_slopeAngle;         // 実際の傾斜角度（ラジアン）
+	bool m_isOnSlope;           // 坂の上にいるか
+
+	bool m_wasGroundedLastFrame;     // 前フレームで接地していたか
+	float m_downhillVelocityDamping = 0.7f; // 下り坂での垂直速度減衰係数
+	float m_groundStickForce = 2.0f;        // 地面への吸着力
+
 	std::function<void(bool, float)>m_PostProcessSetter;
 public:
 	void Init() override;
 	void Update(float) override;
 	void Draw() override;
 	void Dispose() override;
-	void SetTerrain(CTerrainMesh* terrain);
 
 	void PlayerDriftUpdate(uint64_t deltatime) {
 		m_physics.Update(deltatime);
@@ -137,7 +164,6 @@ public:
 
 	// 重力とグランド判定用のメソッドを追加
 	void ApplyGravity(float deltatime);
-	bool CheckGroundContact();
 	void SetGrounded(bool grounded) { m_isGrounded = grounded; }
 	bool IsGrounded() const { return m_isGrounded; }
 	void ResetVerticalVelocity() { m_verticalVelocity = 0.0f; }
@@ -164,6 +190,8 @@ public:
 	Vector3 GetVelocity() const { return m_Velocity; }
 	void SetVelocity(Vector3 num) { m_Velocity = num; }
 	void ApplyHitStop(float,float);
+
+	float GetGroundSlope() const;
 
 	// 車の物理パラメータを取得
 	SparkEmitter m_sparkEmitter;
@@ -204,7 +232,7 @@ public:
 			}
 
 			if (ImGui::Button("Jump")) {
-				if (m_isGrounded) {
+				if (m_isGrounded) {	
 					m_verticalVelocity = 3.0f; // ジャンプ力
 					m_isGrounded = false;
 				}
@@ -213,4 +241,4 @@ public:
 			ImGui::TreePop();
 		}
 	}
-};
+};	

@@ -2,6 +2,7 @@
 #include <vector>
 #include <memory>
 #include <random>
+#include <algorithm>
 #include "system/CStaticMesh.h"
 #include "system/CStaticMeshRenderer.h"
 #include "system/CShader.h"
@@ -9,18 +10,16 @@
 
 // 敵多数
 std::vector<std::unique_ptr<Enemy>> g_Enemies;
-
 // 敵のメッシュデータ
 static CStaticMesh g_EnemyMesh{};
 static CStaticMeshRenderer g_EnemyMeshRenderer{};
-
 // シェーダー
-static CShader g_Shader{};	
+static CShader g_Shader{};
 
 // メッシュ
-CStaticMesh* GetEnemyMesh() 
+CStaticMesh* GetEnemyMesh()
 {
-	return &g_EnemyMesh;
+    return &g_EnemyMesh;
 }
 
 // 内部関数：指定された配置パターンで位置と回転を計算
@@ -65,29 +64,51 @@ static void CalculateEnemyTransform(
         break;
     }
 
-    //case EnemyFormation::GRID:
-    //{
-    //    // グリッド配置
-    //    int row = localIndex / config.columns;
-    //    int col = localIndex % config.columns;
-    //    outPos = config.centerPos;
-    //    outPos.x += (col - config.columns / 2.0f) * config.spacing;
-    //    outPos.z += row * config.spacing;
-    //    outRot.y = 0.0f;
-    //    break;
-    //}
+    case EnemyFormation::GRID:
+    {
+        // グリッド配置
+        int row = localIndex / config.columns;
+        int col = localIndex % config.columns;
+        outPos = config.centerPos;
+        outPos.x += (col - config.columns / 2.0f) * config.spacing;
+        outPos.z += row * config.spacing;
+        outRot.y = 0.0f;
+        break;
+    }
 
-    //case EnemyFormation::DOUBLE_LINE:
-    //{
-    //    // 2列配置
-    //    int row = localIndex % 2;  // 0 or 1
-    //    int colIndex = localIndex / 2;
-    //    outPos = config.centerPos;
-    //    outPos.x += (row == 0 ? -config.spacing * 0.5f : config.spacing * 0.5f);
-    //    outPos.z += colIndex * config.spacing;
-    //    outRot.y = 0.0f;
-    //    break;
-    //}
+    case EnemyFormation::DOUBLE_LINE:
+    {
+        // 2列配置
+        int row = localIndex % 2;  // 0 or 1
+        int colIndex = localIndex / 2;
+        outPos = config.centerPos;
+        outPos.x += (row == 0 ? -config.spacing * 0.5f : config.spacing * 0.5f);
+        outPos.z += colIndex * config.spacing;
+        outRot.y = 0.0f;
+        break;
+    }
+
+    case EnemyFormation::DIAGONAL:
+    {
+        // 斜め配置
+        // 角度を度数法からラジアンに変換
+        float angleRad = config.diagonalAngle * (PI / 180.0f);
+
+        // 配置の開始位置
+        outPos = config.centerPos;
+
+        // 斜め方向のベクトルを計算
+        float dirX = sin(angleRad);  // X方向の成分
+        float dirZ = cos(angleRad);  // Z方向の成分
+
+        // インデックスに応じて斜め方向に配置
+        outPos.x += dirX * localIndex * config.spacing;
+        outPos.z += dirZ * localIndex * config.spacing;
+
+        // 敵の向きは進行方向に設定
+        outRot.y = angleRad;
+        break;
+    }
 
     default:
         // デフォルトはランダム
@@ -114,7 +135,6 @@ void InitEnemiesWithFormation(IScene* currentscene, Field* field, const Formatio
     multiConfig.AddFormation(config);
     InitEnemiesWithMultiFormation(currentscene, field, multiConfig);
 }
-
 
 // 複数配置パターン版（メイン実装）
 void InitEnemiesWithMultiFormation(IScene* currentscene, Field* field, const MultiFormationConfig& config)
@@ -231,89 +251,84 @@ void InitEnemiesWithMultiFormation(IScene* currentscene, Field* field, const Mul
     printf("Initialized %d enemies (requested: %d)\n", (int)g_Enemies.size(), config.totalEnemyCount);
 }
 
-//void InitEnemies(IScene* currentscene,Field* field)
-//{
-//	std::mt19937 mt{ std::random_device{}() };
-//	std::uniform_real_distribution<float> posdist{ -500.0f, 500.0f };
-//
-//	std::uniform_real_distribution<float> rotdist{ 0.0f, PI };
-//
-//	// モデルの初期化
-//	g_EnemyMesh.Load(
-//		"assets/model/car001.x",
-//		"assets/model/");
-//
-//	// レンダラ初期化
-//	g_EnemyMeshRenderer.Init(g_EnemyMesh);
-//
-//	// シェーダーの初期化
-//	g_Shader.Create(
-//		"shader/vertexLightingVS.hlsl",			// 頂点シェーダー
-//		"shader/vertexLightingPS.hlsl");		// ピクセルシェーダー
-//
-//	for(int i = 0; i < ENEMYMAX; i++)
-//	{
-//		std::unique_ptr<Enemy> enemy = std::make_unique<Enemy>(currentscene);
-//		enemy->Init();
-//		enemy->SetPosition(Vector3(posdist(mt), 0.0f, posdist(mt)));
-//		enemy->SetRotation(Vector3(0.0, rotdist(mt), 0.0));
-//		enemy->SetMeshRenderer(&g_EnemyMeshRenderer);
-//		enemy->SetField(field); // Enemy に渡す
-//		g_Enemies.emplace_back(std::move(enemy));
-//	}
-//
-//}
-
 void UpdateEnemies(float deltaTime)
 {
-	for (auto& e : g_Enemies)
-	{
-		e->Update(deltaTime);
-	}
+    // 空チェック
+    if (g_Enemies.empty())
+    {
+        return;
+    }
+
+    for (auto& e : g_Enemies)
+    {
+        // nullptrチェック
+        if (e)
+        {
+            e->Update(deltaTime);
+        }
+    }
 }
 
-void DrawEnemies() 
+void DrawEnemies()
 {
+    // 空チェック
+    if (g_Enemies.empty())
+    {
+        return;
+    }
 
-	g_Shader.SetGPU();
-
-	for (auto& e:g_Enemies)
-	{
-		if (e->GetActive())
-		{
-			e->Draw();
-		}
-	}
+    g_Shader.SetGPU();
+    for (auto& e : g_Enemies)
+    {
+        // nullptrチェックとアクティブチェック
+        if (e && e->GetActive())
+        {
+            e->Draw();
+        }
+    }
 }
 
-void DisposeEnemies() 
+void DisposeEnemies()
 {
-
+    g_Enemies.clear();
 }
 
-std::vector<SRT> GetAllRTS() 
+std::vector<SRT> GetAllRTS()
 {
-	std::vector<SRT> allrts;
-	for (auto& e : g_Enemies)
-	{
-		SRT r;
-		r.pos = e->GetPosition();
-		r.rot = e->GetRotation();
-		r.scale = e->GetScale();
-		allrts.emplace_back(r);
-	}
-	return allrts;
+    std::vector<SRT> allrts;
+
+    // 空チェック
+    if (g_Enemies.empty())
+    {
+        return allrts;
+    }
+
+    allrts.reserve(g_Enemies.size());  // メモリ効率化
+
+    for (const auto& e : g_Enemies)
+    {
+        // nullptrチェック
+        if (e)
+        {
+            SRT r;
+            r.pos = e->GetPosition();
+            r.rot = e->GetRotation();
+            r.scale = e->GetScale();
+            allrts.emplace_back(r);
+        }
+    }
+    return allrts;
 }
 
 std::vector<std::unique_ptr<Enemy>>& GetAllEnemys()
 {
-	return g_Enemies; // コピーではなく参照を返すのでOK
+    return g_Enemies;
 }
 
-GM31::GE::Collision::BoundingSphere GetEnemyBoundingSphere(const Enemy& enemy)//Enemyの当たり判定を取得する関数
+GM31::GE::Collision::BoundingSphere GetEnemyBoundingSphere(const Enemy& enemy)
 {
-	GM31::GE::Collision::BoundingSphere sphere;
-	sphere.center = enemy.GetPosition();
-	sphere.radius = sphere.center.x; // X座標を半径として使用(カスコード)
-	return sphere;
+    GM31::GE::Collision::BoundingSphere sphere;
+    sphere.center = enemy.GetPosition();
+    sphere.radius = sphere.center.x;
+    return sphere;
 }

@@ -68,6 +68,7 @@ public:
     // リソース解放
     void DisposeAll();
 
+
     void InitializeGridSpacing()
     {
         // 仮の道路を作成してサイズを測定
@@ -139,8 +140,16 @@ public:
     }
 
     BaseRoad* GetGoalRoad();
-    // デバッグ用 - サーキットの妥当性をチェック
-    void CheckPlayerPosition(const Vector3& playerPos);
+
+    std::optional<Vector3> GetRoadPosition(int x, int y) const;
+    BaseRoad* GetRoad(int x, int y) const;
+
+    // 道路タイプで検索
+    std::vector<Vector3> GetRoadPositionsByType(RoadType type) const;
+    std::vector<BaseRoad*> GetRoadByType(RoadType type) const;
+    // 道路の端の位置を取得
+    std::optional<Vector3> GetRoadEdgePosition(int x, int y, float offsetX = 0.0f, float offsetZ = 0.0f) const;
+
 
     // プリセットレイアウト生成メソッド
     static std::vector<std::vector<RoadSegment>> CreateTestStraightGrid(int width, int height);  // デバッグ用

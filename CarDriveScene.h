@@ -28,7 +28,9 @@
 #include"PostProcessManager.h"
 #include"TreeManager.h"
 #include"CameraManager.h"
+
 #include"SimpleCamera.h"
+#include"ChaseCamera.h"
 class CarDriveScene : public IScene
 {
 public:
@@ -57,10 +59,8 @@ public:
 	{
 		SceneManager::ChangeScene(sceneName,false);
 	}
-	void ChangePostProcessMode(bool)
-	{
 
-	}
+	void SetupEnemiesOnRoad();
 
 	bool m_enableMotionBlur = true;
 	bool m_enableChromaticAberration = false;

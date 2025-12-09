@@ -357,6 +357,9 @@
     <ClInclude Include="SimpleCamera.h">
       <Filter>ヘッダー ファイル\Camera</Filter>
     </ClInclude>
+    <ClInclude Include="ChaseCamera.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Application.cpp">
@@ -585,6 +588,9 @@
       <Filter>ソース ファイル\Camera</Filter>
     </ClCompile>
     <ClCompile Include="SImpleCamera.cpp">
+      <Filter>ソース ファイル\Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="ChaseCamera.cpp">
       <Filter>ソース ファイル\Camera</Filter>
     </ClCompile>
   </ItemGroup>

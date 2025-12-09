@@ -357,9 +357,9 @@ namespace EffectPresets
         {
             EffectPreset preset;
             preset.type = EffectPreset::Type::Billboard;
-            preset.texturePath = L"assets/texture/white_star.png";  // 星の画像
-            preset.width = 10.5f;
-            preset.height = 10.5f;
+            preset.texturePath = L"assets/texture/white_star_big.png";  // 星の画像
+            preset.width = 50.5f;
+            preset.height = 50.5f;
             preset.duration = 0.8f;
             preset.fadeOut = true;
             mgr.RegisterPreset("Star", preset);

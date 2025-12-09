@@ -69,6 +69,15 @@ private:
     float m_shakeIntensity = 0.0f;
     float m_shakeDuration = 0.0f;
 
+    float m_basePitchAngle;      // 基本的なカメラピッチ角度（度）
+    float m_currentPitchOffset;  // 現在のピッチオフセット（ラジアン）
+    float m_targetPitchOffset;   // 目標ピッチオフセット
+    float m_pitchTransitionSpeed; // ピッチ遷移速度
+
+    // 坂道用パラメータ
+    float m_maxUphillPitch;   // 上り坂の最大ピッチ角（度）
+    float m_maxDownhillPitch; // 下り坂の最大ピッチ角（度）
+
     // ===== プライベート関数 =====
     float CalculateSpeedRatio() const;
     CameraParams DetermineTargetParams() const;
@@ -77,6 +86,9 @@ private:
     void ApplyShake(Vector3& position, float deltaTime);
     void ApplyBoostShake(Vector3& position) const;
     float Lerp(float a, float b, float t) const;
+    float CalculateGroundSlopeFromVelocity() const;
+    float CalculatePitchOffset() const;
+	Vector3 CalculateIdealCameraPositionWithPitch() const;
 
 public:
     SpringCamera();
@@ -96,4 +108,11 @@ public:
     // デバッグ用: スプリングパラメータ調整
     void SetPositionSpring(float stiffness, float damping);
     void SetLookAtSpring(float stiffness, float damping);
+    //Vector3 GetForward() const
+    //{
+    //    // カメラのターゲット - カメラ位置
+    //    Vector3 forward = m_lookat - m_position;
+    //    forward.Normalize();
+    //    return forward;
+    //}
 };

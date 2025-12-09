@@ -1,4 +1,4 @@
-﻿#include "ChaseCamera.h"
+﻿#include "SpringCamera.h"
 
 // ===================================
 // Spring実装
@@ -33,6 +33,12 @@ SpringCamera::SpringCamera()
     : m_targetPlayer(nullptr)
     , m_currentBank(0.0f)
     , m_currentFOV(45.0f)
+    , m_basePitchAngle(5.0f)   
+    , m_currentPitchOffset(0.0f)
+    , m_targetPitchOffset(0.0f)
+    , m_pitchTransitionSpeed(0.08f)  // スムーズな遷移
+    , m_maxUphillPitch(-8.0f)    // 上り坂: 下から見上げる（負の角度）
+    , m_maxDownhillPitch(5.0f)   // 下り坂: 上から見下ろす（正の角度）
 {
     // 通常パラメータ
     m_normalParams.distance = 75.0f;
@@ -100,11 +106,6 @@ void SpringCamera::Update(float deltaTime)
 
     // 現在の状態に応じたパラメータを取得
     CameraParams targetParams = DetermineTargetParams();
-    printf("Target Params: %c Distance: %.2f Height: %.2f FOV: %.2f\n",
-        (CalculateSpeedRatio() < 0.5f) ? 'N' : 'B',
-        targetParams.distance,
-        targetParams.height,
-		targetParams.fov);
 
     // パラメータを滑らかに遷移
     m_currentParams.distance = Lerp(m_currentParams.distance, targetParams.distance, m_transitionSpeed);
@@ -119,11 +120,15 @@ void SpringCamera::Update(float deltaTime)
     m_lookAtSpring.stiffness = Lerp(m_lookAtSpring.stiffness, targetParams.lookAtStiffness, m_transitionSpeed);
     m_lookAtSpring.damping = Lerp(m_lookAtSpring.damping, targetParams.lookAtDamping, m_transitionSpeed);
 
-    // 理想的なカメラ位置を計算
-    m_positionSpring.target = CalculateIdealCameraPosition();
+    // ★ 坂道対応: ピッチオフセットを計算
+    m_targetPitchOffset = CalculatePitchOffset();
+    m_currentPitchOffset = Lerp(m_currentPitchOffset, m_targetPitchOffset, m_pitchTransitionSpeed);
+
+    // 理想的なカメラ位置を計算（基本ピッチ + 坂道オフセット）
+    m_positionSpring.target = CalculateIdealCameraPositionWithPitch();
     m_lookAtSpring.target = CalculateIdealLookAtPosition();
 
-    // スプリング更新(ここで物理シミュレーション)
+    // スプリング更新
     m_positionSpring.Update(deltaTime);
     m_lookAtSpring.Update(deltaTime);
 
@@ -154,8 +159,8 @@ void SpringCamera::Draw()
 
     // バンク角適用
     float bankRad = DirectX::XMConvertToRadians(m_currentBank);
-    Matrix4x4 bankRot = Matrix4x4::CreateRotationY(bankRad);
-    m_viewmtx = bankRot * m_viewmtx;
+    Matrix4x4 bankRot = Matrix4x4::CreateRotationZ(bankRad);//- カメラの視線方向に沿ってロールさせる必要があるためYからZに変更
+    m_viewmtx = m_viewmtx * bankRot;
 
     Renderer::SetViewMatrix(&m_viewmtx);
 
@@ -171,6 +176,91 @@ void SpringCamera::Draw()
 }
 
 // ===== プライベート関数実装 =====
+
+// 方法1: 速度ベクトルから地形の傾斜を推定
+float SpringCamera::CalculateGroundSlopeFromVelocity() const
+{
+    Vector3 playerVel = m_targetPlayer->GetVelocity();
+
+    // 垂直速度
+    float verticalSpeed = playerVel.y;
+
+    // 水平速度
+    float horizontalSpeed = sqrt(playerVel.x * playerVel.x + playerVel.z * playerVel.z);
+
+    // 移動していない場合は0を返す
+    if (horizontalSpeed < 0.5f) {
+        return 0.0f;
+    }
+
+    // 傾斜角度を計算（ラジアン）
+    float slopeAngle = atan2(verticalSpeed, horizontalSpeed);
+
+    // 過度な反応を防ぐため、範囲を制限
+    slopeAngle = std::max(-0.5f, std::min(0.5f, slopeAngle));
+
+    return slopeAngle;
+}
+//
+float SpringCamera::CalculatePitchOffset() const
+{
+    // 方法1を使用（方法2を使う場合はこちらを呼ぶ）
+    float slopeAngle = m_targetPlayer->GetGroundSlope();
+    printf(" %f\n", slopeAngle);
+    // スロープの角度に応じてピッチオフセットを計算
+    float pitchOffset = 0.0f;
+
+    if(slopeAngle > 0.0f) {
+        // 上り坂: 下から見上げる（負の角度を追加）
+        float slopeRad = slopeAngle;
+        float slopeDeg = DirectX::XMConvertToDegrees(slopeRad);
+        float ratio = std::min(slopeDeg / 20.0f, 1.0f);  // 20度以上で最大
+        pitchOffset = m_maxUphillPitch * ratio;
+    }
+    else if (slopeAngle < 0.0f) {
+        // 下り坂: 上から見下ろす（正の角度を追加）
+        float slopeRad = -slopeAngle;
+        float slopeDeg = DirectX::XMConvertToDegrees(slopeRad);
+        float ratio = std::min(slopeDeg / 20.0f, 1.0f);
+        pitchOffset = m_maxDownhillPitch * ratio;
+    }
+
+    return pitchOffset;
+}
+// ピッチオフセットを考慮したカメラ位置計算
+Vector3 SpringCamera::CalculateIdealCameraPositionWithPitch() const
+{
+    Vector3 playerPos = m_targetPlayer->GetPosition();
+    Vector3 playerRot = m_targetPlayer->GetRotation();
+    Vector3 playerVel = m_targetPlayer->GetVelocity();
+
+    // プレイヤーの後ろ方向ベクトル（水平面上）
+    Vector3 backward = Vector3(-sinf(playerRot.y), 0.0f, -cosf(playerRot.y));
+
+    // 速度に応じた先読み
+    float speed = sqrt(playerVel.x * playerVel.x + playerVel.z * playerVel.z);
+    float anticipation = std::min(speed * m_currentParams.anticipation, 5.0f);
+
+    // 基本距離
+    float effectiveDistance = m_currentParams.distance + anticipation;
+
+    // ★ 合計ピッチ角度 = 基本角度 + 坂道オフセット
+    float totalPitchDeg = m_basePitchAngle + m_currentPitchOffset;
+    float totalPitchRad = DirectX::XMConvertToRadians(totalPitchDeg);
+
+    // ピッチ角度を考慮したカメラ位置
+    // 水平距離と垂直距離に分解
+    float horizontalDist = effectiveDistance * cosf(totalPitchRad);
+    float verticalOffset = effectiveDistance * sinf(totalPitchRad);
+
+    // カメラの理想位置
+    Vector3 idealPos = playerPos + backward * horizontalDist;
+    idealPos.y += m_currentParams.height + verticalOffset;
+
+    return idealPos;
+}
+
+
 
 float SpringCamera::CalculateSpeedRatio() const
 {
@@ -307,6 +397,7 @@ void SpringCamera::SetTargetPlayer(Player* player)
 
 void SpringCamera::Shake(float intensity, float duration)
 {
+    
     m_shakeIntensity = intensity;
     m_shakeDuration = duration;
     m_isShaking = true;
