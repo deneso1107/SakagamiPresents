@@ -17,6 +17,7 @@ float SceneManager::m_slideOffset = 0.0f;
 float SceneManager::m_transitionSpeed = 2.0f;
 bool SceneManager::m_sceneLoaded = false;
 float SceneManager::m_loadingRotation = 0.0f;
+float SceneManager::m_fadeAlpha = 0.0f; // ★追加
 
 CShader SceneManager::m_transitionShader;
 ID3D11Buffer* SceneManager::m_transitionVertexBuffer = nullptr;
@@ -31,9 +32,9 @@ int m_gameScore = 0;
 void SceneManager::Init()
 {
     // シーンの登録
-    RegisterScene<Title>("Title");
     RegisterScene<CarDriveScene>("CarDriveScene");
-    // RegisterScene<Ending>("Ending");
+    RegisterScene<Title>("Title");
+    RegisterScene<Ending>("Ending");
 
     // トランジションリソースの初期化
     InitTransitionResources();
@@ -178,6 +179,10 @@ void SceneManager::Draw(float deltaTime)
 
     // トランジション描画（最前面）
     if (m_transitionState != TransitionState::None) {
+        // ★1. まず黒背景フェード
+        if (m_fadeAlpha > 0.0f) {
+            //DrawBlackFade();
+        }
         DrawTransitionOverlay();
 
         // ローディング中の表示
@@ -199,8 +204,14 @@ void SceneManager::UpdateTransition(float deltaTime)
     case TransitionState::SlideIn:
         // 右から中央へ (1.5 → 0.0)
         m_slideOffset -= m_transitionSpeed * dt;
+
+        // ★背景フェードイン (0.0 → 1.0)
+        m_fadeAlpha += m_transitionSpeed * dt;
+        if (m_fadeAlpha > 1.0f) m_fadeAlpha = 1.0f;
+
         if (m_slideOffset <= 0.0f) {
             m_slideOffset = 0.0f;
+            m_fadeAlpha = 1.0f; // 完全に黒
             // 中央到達、ロード開始
             m_transitionState = TransitionState::Loading;
             m_sceneLoaded = false;
@@ -213,6 +224,9 @@ void SceneManager::UpdateTransition(float deltaTime)
         // ローディングアニメーション（上下に揺れる）
         m_loadingRotation += dt;
 
+        // ★背景は完全に黒のまま
+        m_fadeAlpha = 1.0f;
+
         // ロード完了チェック
         if (m_sceneLoaded) {
             // スライドアウト開始
@@ -224,8 +238,14 @@ void SceneManager::UpdateTransition(float deltaTime)
     case TransitionState::SlideOut:
         // 中央から左へ (0.0 → -1.5)
         m_slideOffset -= m_transitionSpeed * dt;
+
+        // ★背景フェードアウト (1.0 → 0.0)
+        m_fadeAlpha -= m_transitionSpeed * dt;
+        if (m_fadeAlpha < 0.0f) m_fadeAlpha = 0.0f;
+
         if (m_slideOffset <= -1.5f) {
             m_slideOffset = -1.5f;
+            m_fadeAlpha = 0.0f; // 完全に透明
             m_transitionState = TransitionState::None;
         }
         break;
@@ -284,6 +304,7 @@ void SceneManager::ChangeScene(const std::string& sceneName, bool useTransition)
         m_transitionState = TransitionState::SlideIn;
         m_slideOffset = 1.5f; // 画面右端外からスタート
         m_loadingRotation = 0.0f;
+         m_fadeAlpha = 0.0f;   // フェード初期化
     }
     else {
         // トランジションなしの場合は即座にロード

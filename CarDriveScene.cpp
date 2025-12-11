@@ -232,6 +232,7 @@ void CarDriveScene::init()
 	m_player->SetRoad(m_road);
 
 	// カメラの初期化とプレイヤーの設定
+	// カメラの初期化とプレイヤーの設定
 	SpringCamera::Instance().SetTargetPlayer(m_player.get());
 	SpringCamera::Instance().Init();
 	SimpleFollowCamera::Instance().SetTargetPlayer(m_player.get());
@@ -258,7 +259,6 @@ void CarDriveScene::init()
 
 	m_item = std::make_unique<BoostItem>();	// スタート地点の初期化
 	m_item->Init();	// スタート地点の初期化   ここまで
-	m_player->SetPosition(m_start->GetPosition());
 
 
 	roadManager.ResizeGrid(4, 18);//East=東　West＝西　North＝北　South＝南
@@ -283,7 +283,7 @@ void CarDriveScene::init()
 	roadManager.SetRoad(0, 14, RoadType::STRAIGHT, Direction::SOUTH);
 	roadManager.SetRoad(0, 15, RoadType::STRAIGHT, Direction::SOUTH);
 	roadManager.SetRoad(0, 16, RoadType::STRAIGHT, Direction::SOUTH);
-	roadManager.SetRoad(0, 17, RoadType::STRAIGHT, Direction::SOUTH);
+	roadManager.SetRoad(0, 17, RoadType::GOAL_LINE, Direction::SOUTH);
 
 
 
@@ -308,41 +308,9 @@ void CarDriveScene::init()
 	{
 		Vector3 startPos = start->GetPosition();
 		m_player->SetPosition(startPos);
-
+		m_player->StartRaceSequence(startPos);
+		//敵配置
 		SetupEnemiesOnRoad();
-		//MultiFormationConfig config;
-		//config.totalEnemyCount = 12;  // 合計10体
-
-		//// 縦列配置で4体
-		//FormationConfig line;
-		//line.formation = EnemyFormation::LINE;
-		//line.enemyCount = 4;
-		//line.centerPos = startPos;
-		//line.spacing = 15.0f;
-		//config.AddFormation(line);
-
-		//// 円形配置で3体
-		//FormationConfig circle;
-		//circle.formation = EnemyFormation::CIRCLE;
-		//circle.enemyCount = 5;
-		//circle.centerPos =startPos;
-		//circle.circleRadius = 30.0f;
-		//config.AddFormation(circle);
-
-		//// ランダム配置で残り3体
-		//FormationConfig random;
-		//random.formation = EnemyFormation::RANDOM;
-		//random.enemyCount = 3;
-		//config.AddFormation(random);
-
-		//InitEnemiesWithMultiFormation(this, m_field.get(), config);
-
-		//FormationConfig lineConfig;
-		//lineConfig.formation = EnemyFormation::LINE;
-
-		//lineConfig.centerPos = startPos;  // 配置開始位置
-		//lineConfig.spacing = 15.0f;  // 敵同士の間隔
-		//InitEnemiesWithFormation(this, m_field.get(), lineConfig);
 
 		 // 直線配置（道の右側に20本）
 		TreeFormationConfig treeconfig;
@@ -489,6 +457,12 @@ float m_slowMotionDuration = 1.0f; // スロー演出の長さ（秒）
 bool m_isInSlowMotion = false;
 void CarDriveScene::update(float deltatime)//uint64_tとfloatの衝突　圧倒的衝突
 {
+
+	// デバッグ: Rキーでレースシーケンスを再スタート
+	if (CDirectInput::GetInstance().CheckKeyBuffer(DIK_R))
+	{
+		m_player->StartRaceSequence(Vector3(0.0f, 0.0f, 0.0f));
+	}
 	// キーで切り替え
 	if (CDirectInput::GetInstance().CheckKeyBuffer(DIK_1)) {
 		m_currentCamera = &SimpleFollowCamera::Instance();
@@ -533,7 +507,7 @@ void CarDriveScene::update(float deltatime)//uint64_tとfloatの衝突　圧倒的衝突
         case EdgeType::BACK:
         	printf("後ろ\n");//Scene変更完了！
 			//SceneManager::SetTransitionSpeed(2.5f);
-        	SceneManager::ChangeScene("CarDriveScene",true);
+        	SceneManager::ChangeScene("Ending",true);
         	// より強い減速
         	break;
         case EdgeType::FRONT:

@@ -143,7 +143,7 @@ void Enemy::Draw()
 
     Color bscolor(1, 1, 1, 0.5f);
 
-    //SphereDrawerDraw(m_BoundingSphere.radius, bscolor, m_Position.x, m_Position.y, m_Position.z);//球体を描画
+    SphereDrawerDraw(m_BoundingSphere.radius, bscolor, m_Position.x, m_Position.y, m_Position.z);//球体を描画
 }
 
 void Enemy::Dispose()
@@ -227,6 +227,6 @@ GM31::GE::Collision::BoundingSphere Enemy::GetEnemyBoundingSphere()//Enemyの当た
 {
     GM31::GE::Collision::BoundingSphere sphere;
     sphere.center = m_Position;//敵のデフォルトのBoundingSquareとは別のやつを使っているのでどっちも変更尾する必要あり
-    sphere.radius = 5.0f; // X座標を半径として使用(カスコード)
+	sphere.radius = 10.0f; // X座標を半径として使用(カスコード)→ここの当たり判定だけ大きくする
     return sphere;
 }

@@ -37,7 +37,7 @@ void Title::update(float deltatime)
 	{
 		if (CDirectInput::GetInstance().CheckKeyBuffer(DIK_SPACE) && changepic)
 		{
-			SceneManager::ChangeScene("CarDriveScene",true);
+ 			SceneManager::ChangeScene("CarDriveScene",true);
 		}
 	}
 	else

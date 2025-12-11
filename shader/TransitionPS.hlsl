@@ -1,5 +1,14 @@
+// TransitionPS.hlsl - ロケット牛用（黒フェード対応）
 Texture2D transitionTexture : register(t0);
 SamplerState transitionSampler : register(s0);
+
+cbuffer TransitionBuffer : register(b0)
+{
+    float slideOffset;
+    float imageScale;
+    float imageYPosition;
+    float imageAlpha; // 黒フェード用のアルファ値
+};
 
 struct PS_INPUT
 {
@@ -12,11 +21,12 @@ float4 main(PS_INPUT input) : SV_TARGET
     // テクスチャをサンプリング
     float4 color = transitionTexture.Sample(transitionSampler, input.uv);
     
-    // ★PNG画像の透明部分を処理
-    // アルファ値が低い部分は描画しない（背景を透過）
+    // ★画像全体のアルファ値を適用
+    color.a *= imageAlpha;
+    
+    // アルファ値が低い部分は描画しない
     if (color.a < 0.01f)
         discard;
     
-    // そのまま色を返す（ロケット牛の画像をそのまま表示）
     return color;
 }

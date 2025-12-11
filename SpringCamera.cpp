@@ -206,7 +206,7 @@ float SpringCamera::CalculatePitchOffset() const
 {
     // 方法1を使用（方法2を使う場合はこちらを呼ぶ）
     float slopeAngle = m_targetPlayer->GetGroundSlope();
-    printf(" %f\n", slopeAngle);
+    //printf(" %f\n", slopeAngle);
     // スロープの角度に応じてピッチオフセットを計算
     float pitchOffset = 0.0f;
 

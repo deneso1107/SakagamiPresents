@@ -2,6 +2,7 @@
 #include <memory>
 #include <unordered_map>
 #include <string>
+#include <vector>
 #include "system/noncopyable.h"
 #include "system/CShader.h"
 #include <d3d11.h>
@@ -17,6 +18,7 @@ private:
     static ID3D11Buffer* m_transitionVertexBuffer;
     static ID3D11Buffer* m_transitionConstantBuffer;
     static ID3D11ShaderResourceView* m_transitionTexture;
+    static ID3D11ShaderResourceView* m_blackFadeTexture; // ★黒画像用
     static ID3D11DepthStencilState* m_transitionDepthState;
     static ID3D11BlendState* m_transitionBlendState;
     static ID3D11SamplerState* m_transitionSamplerState;
@@ -32,7 +34,8 @@ private:
         float slideOffset;      // スライド位置
         float imageScale;       // スケール
         float imageYPosition;   // Y位置（揺れ用）
-        float padding;
+		float padding;          // パディング
+        float imageAlpha;       // ★画像のアルファ値
     };
 
     // シーン関連
@@ -54,6 +57,7 @@ private:
     static float m_transitionSpeed;    // スライド速度
     static bool m_sceneLoaded;         // シーンのロード完了フラグ
     static float m_loadingRotation;    // ローディングアニメーション用
+    static float m_fadeAlpha;          // 背景フェードのアルファ値 (0.0=透明, 1.0=不透明)
 
     // 内部処理
     static void ProcessSceneChange();
@@ -71,6 +75,7 @@ public:
     static void InitTransitionResources();
     static void DisposeTransitionResources();
     static void DrawTransitionOverlay();
+    static void DrawBlackFade();  // ★黒背景フェード描画
     static void DrawLoadingIndicator();
     static void LoadTransitionTexture(const wchar_t* filepath);
 
