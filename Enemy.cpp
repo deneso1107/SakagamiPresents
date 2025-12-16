@@ -184,14 +184,14 @@ void Enemy::KnockBack(float deltaTime)
 
 
     // 一定距離以上、または時間経過でエフェクト発生
-    if ((/*distance > 80.0f ||*/ m_KnockbackTimer <= 0.4f) && !m_EffectSpawned)//ここから 
+    if ((/*distance > 80.0f ||*/ m_KnockbackTimer <= 0.2f) && !m_EffectSpawned)//ここから 
     {
         m_EffectSpawned = true;
         GameManager::Instance().SetTimeScale(1.0f);//スローモーションの調整
     }
 
     // 完全に消す
-    if (m_KnockbackTimer <= 0.0f|| distance > 1500.0f)
+    if (m_KnockbackTimer <= 0.0f|| distance > 1000.0f)
     {
         SetActive(false);
         // まだエフェクトを出していなければ出す
@@ -216,10 +216,10 @@ void Enemy::KnockBack(float deltaTime)
 void Enemy::SpawnDisappearEffect()
 {
     // テスト1: 同じ位置で両方生成
-    //EffectManager::Instance().SpawnEffect("Star", m_Position, Vector3(450.0f, 450.0f, 0));
+    EffectManager::Instance().SpawnEffect("Star", m_Position, Vector3(450.0f, 450.0f, 0));
     printf("Star生成完了\n");
 
-    //EffectManager::Instance().SpawnEffect("SparkleParticle", m_Position, Vector3(0, 1, 0));
+    EffectManager::Instance().SpawnEffect("SparkleParticle", m_Position, Vector3(0, 1, 0));
     //printf("SparkleParticle生成完了\n");
 }
 

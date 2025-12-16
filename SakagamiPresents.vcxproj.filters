@@ -237,9 +237,6 @@
     <ClInclude Include="Field.h">
       <Filter>ヘッダー ファイル\Object</Filter>
     </ClInclude>
-    <ClInclude Include="CTerrainMesh.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="CarDriveScene.h">
       <Filter>ヘッダー ファイル\Scene</Filter>
     </ClInclude>
@@ -359,6 +356,9 @@
     </ClInclude>
     <ClInclude Include="ChaseCamera.h">
       <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="CTerrainMesh.h">
+      <Filter>ヘッダー ファイル\Object\Road</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -488,9 +488,6 @@
     <ClCompile Include="Field.cpp">
       <Filter>ソース ファイル\Object</Filter>
     </ClCompile>
-    <ClCompile Include="CTerrainMesh.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="Start.cpp">
       <Filter>ソース ファイル\Object</Filter>
     </ClCompile>
@@ -593,6 +590,9 @@
     <ClCompile Include="ChaseCamera.cpp">
       <Filter>ソース ファイル\Camera</Filter>
     </ClCompile>
+    <ClCompile Include="CTerrainMesh.cpp">
+      <Filter>ソース ファイル\Object\Road</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="shader\chromatic_aberrationPS.hlsl">
@@ -643,5 +643,7 @@
     <FxCompile Include="shader\TransitionVS.hlsl">
       <Filter>リソース ファイル</Filter>
     </FxCompile>
+    <FxCompile Include="shader\BlackFadePS.hlsl" />
+    <FxCompile Include="shader\BlackFadeVS.hlsl" />
   </ItemGroup>
 </Project>

@@ -287,11 +287,11 @@ void CarDriveScene::init()
 
 
 
-	//roadManager.SetRoad(0, 7, RoadType::TURN_LEFT, Direction::NORTH);
-	//roadManager.SetRoad(1, 7, RoadType::STRAIGHT, Direction::WEST);
-	//roadManager.SetRoad(2, 7, RoadType::TURN_LEFT, Direction::EAST);
-	//roadManager.SetRoad(2, 6, RoadType::GOAL_LINE, Direction::SOUTH);
-	roadManager.SetRoad(2, 5, RoadType::DIRT, Direction::SOUTH);
+	/*roadManager.SetRoad(0, 7, RoadType::TURN_LEFT, Direction::NORTH);
+	roadManager.SetRoad(1, 7, RoadType::STRAIGHT, Direction::WEST);
+	roadManager.SetRoad(2, 7, RoadType::TURN_LEFT, Direction::EAST);
+	roadManager.SetRoad(2, 6, RoadType::GOAL_LINE, Direction::SOUTH);
+	roadManager.SetRoad(2, 5, RoadType::DIRT, Direction::SOUTH);*/
 	
 
 	//roadManager.SetRoad(0, 4, RoadType::STRAIGHT, Direction::SOUTH);
@@ -464,13 +464,13 @@ void CarDriveScene::update(float deltatime)//uint64_tとfloatの衝突　圧倒的衝突
 		m_player->StartRaceSequence(Vector3(0.0f, 0.0f, 0.0f));
 	}
 	// キーで切り替え
-	if (CDirectInput::GetInstance().CheckKeyBuffer(DIK_1)) {
+	if (CDirectInput::GetInstance().CheckKeyBuffer(DIK_2)) {
 		m_currentCamera = &SimpleFollowCamera::Instance();
 	}
-	if (CDirectInput::GetInstance().CheckKeyBuffer(DIK_2)) {
+	if (CDirectInput::GetInstance().CheckKeyBuffer(DIK_3)) {
 		m_currentCamera = &SpringCamera::Instance();
 	}
-	if (CDirectInput::GetInstance().CheckKeyBuffer(DIK_0)) {
+	if (CDirectInput::GetInstance().CheckKeyBuffer(DIK_4)) {
 		m_currentCamera = &CheeseCamera::Instance();
 	}
 
@@ -520,7 +520,7 @@ void CarDriveScene::update(float deltatime)//uint64_tとfloatの衝突　圧倒的衝突
 	if (CDirectInput::GetInstance().CheckKeyBuffer(DIK_1))
 	{
 		//EffectManager::Instance().SpawnEffect("Flash", Vector3(-90.0f, 0.0f, 0.0f));
-		DirectX::XMFLOAT3 pos_ = m_player.get()->GetPosition();
+		DirectX::XMFLOAT3 pos_ = { 0.0f, 0.0f, 0.0f };
 		pos_.x += 1.0f;
 		pos_.y += 2.0f;
 		EffectManager::Instance().SpawnEffect("SparkleParticle", pos_/*m_ParticlePos*/);//一旦諦めます！
@@ -686,7 +686,7 @@ void CarDriveScene::update(float deltatime)//uint64_tとfloatの衝突　圧倒的衝突
 
     DirectX::XMFLOAT3 pos = m_player.get()->GetPosition();
     //pos.x += m_ParticlePos.x;x	
-    pos.y -= 5.0f;
+    pos.y -= 2.5f;
     //pos.z += m_ParticlePos.z;
     DirectX::XMFLOAT3 dir = DirectX::XMFLOAT3(0.0f, 1.0f, 0.0f);
     m_sparkEmitter.Emit(pos, dir);

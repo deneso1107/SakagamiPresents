@@ -10,7 +10,7 @@ void Title::init()
 	m_VideoBB = ScreenFixedBillboard::CreateFromVideo(
 		Vector2(0.5f, 0.5f),
 		1.0f, 1.0f,
-		L"assets/video/–³‘è‚Ì“®‰æ ] Clipchamp‚Åì¬.mp4"
+		L"assets/video/‰æ–Ê˜^‰æ 2025-12-11 130239.mp4"
 	);
 	if (m_VideoBB == nullptr) {
 		MessageBoxA(nullptr, "“®‰æ‚Ì“Ç‚İ‚İ‚É¸”s‚µ‚Ü‚µ‚½", "Error", MB_OK);

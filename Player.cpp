@@ -376,7 +376,7 @@ void Player::Init()
 	{
 		OutputDebugStringA("サンプラーステート作成失敗\n");
 	}
-	m_Scale = Vector3(10.0f, 10.0f, 10.0f);
+	m_Scale = Vector3(5.0f, 5.0f, 5.0f);
 
 	m_stateManager.ClearAllStates();
 	m_stateManager.AddState(PlayerStateManager::State::OnGround);
@@ -575,7 +575,7 @@ void Player::Update(float deltatime)
 	};
 
 	// 滑らかな地形追従処理
-	UpdateSmoothTerrainFollowing(deltatime);//道心折れたので明日がエンジンゲージを作りましょう
+	UpdateSmoothTerrainFollowing(deltatime);
 
 	// リセット
 	if (CDirectInput::GetInstance().CheckKeyBuffer(DIK_RETURN)) {
@@ -703,7 +703,7 @@ void Player::UpdateSmoothTerrainFollowing(uint64_t deltatime)
 				m_targetHeight = terrainHeight - (bottomOffsetY * m_Scale.y);
 
 				float currentHeight = m_Position.y;
-				float heightDiff = abs(m_targetHeight - currentHeight);
+				float heightDiff = abs(m_targetHeight - currentHeight);// 高さの差分
 
 				Vector3 horizontalVelocity = Vector3(m_Velocity.x, 0.0f, m_Velocity.z);
 				float horizontalSpeedForLerp = horizontalVelocity.Length();
@@ -711,7 +711,8 @@ void Player::UpdateSmoothTerrainFollowing(uint64_t deltatime)
 
 				// ★★★ 下り坂判定の追加 ★★★
 				bool isMovingDownhill = false;
-				if (horizontalSpeedForLerp > 0.1f) {
+				if (horizontalSpeedForLerp > 0.1f) 
+				{
 					Vector3 movementDir = horizontalVelocity;
 					movementDir.Normalize();
 
@@ -725,22 +726,23 @@ void Player::UpdateSmoothTerrainFollowing(uint64_t deltatime)
 				}
 
 				// 高速移動時の高さ補正
-				if (isHighSpeed) {
-					if (heightDiff > 1.5f) {
-						// 即座に修正
+				if (isHighSpeed) 
+				{
+					if (heightDiff > 1.5f)
+					{
+						//// 即座に修正
 						m_Position.y = m_targetHeight;
 
-						// ★★★ 垂直速度を強制的にリセット ★★★
+						//垂直速度をリセット
 						m_verticalVelocity = 0.0f;
-
-						printf("High-speed terrain correction: %.3f\n", heightDiff);
 					}
-					else {
-						// より積極的な補間
+					else 
+					{
+						//段差が細かい場所補間なのでゆっくり補間
 						float lerpSpeed = isMovingDownhill ? 0.5f : 0.3f; // 下り坂ではより強く
 						m_Position.y = Lerp(currentHeight, m_targetHeight, lerpSpeed);
 
-						// ★★★ 下り坂では垂直速度を減衰 ★★★
+						//下り坂では垂直速度を減衰
 						if (isMovingDownhill && m_verticalVelocity < 0.0f) {
 							m_verticalVelocity *= m_downhillVelocityDamping;
 						}
@@ -866,8 +868,7 @@ void Player::ApplyGravity(float deltatime)
 	if (!m_isGrounded) 
 	{
 		// 重力を垂直速度に加算
-		float deltaSeconds = deltatime/* / 1000000.0f*/; // マイクロ秒を秒に変換
-		m_verticalVelocity += m_gravity * (deltaSeconds*0.1f) * 60.0f; // 60FPS基準で調整
+		m_verticalVelocity += m_gravity * (deltatime *0.1f) * 60.0f; // 60FPS基準で調整
 
 		// 落下速度の制限（ターミナル速度）
 		const float maxFallSpeed = -10.0f;
@@ -877,7 +878,7 @@ void Player::ApplyGravity(float deltatime)
 	}
 }
 
-void Player::ApplyRoadSurfaceEffect(RoadType surfaceType, float deltatime)
+void Player::ApplyRoadSurfaceEffect(RoadType surfaceType, float deltatime)//道路ごとに効果をつけられる
 {
 	float timeScale = GameManager::Instance().GetTimeScale();
 
@@ -1219,7 +1220,7 @@ void Player::OnCollisionWithEnemy(Enemy& enemy)
 	if (speedRatio > 1.5f)
 	{
 		// 高速時はより派手な演出
-		ApplyHitStop(0.015f, 0.005f);
+		ApplyHitStop(0.1f, 0.5f);
 		SpringCamera::Instance().Shake(2.0f, 0.15f);
 	}
 	else

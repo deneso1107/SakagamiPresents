@@ -17,7 +17,6 @@
 #include"Goal.h"
 #include "system/SphereDrawer.h"
 #include"Billboard.h"
-#include"ScreenFixedBillBoard.h"
 #include"SpringCamera.h"
 #include"ScreenGaugeBillboard.h"
 #include"BoostItem.h"
