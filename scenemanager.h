@@ -4,6 +4,7 @@
 #include <string>
 #include "system/noncopyable.h"
 #include "system/CShader.h"
+#include"ScreenFixedBillboard.h"
 #include <d3d11.h>
 
 // 前方宣言
@@ -17,6 +18,10 @@ private:
     static ID3D11Buffer* m_transitionVertexBuffer;
     static ID3D11Buffer* m_transitionConstantBuffer;
     static ID3D11ShaderResourceView* m_transitionTexture;
+    static ID3D11ShaderResourceView* m_blackFadeTexture; // ★黒画像用
+    static ID3D11ShaderResourceView* m_loadingTextTexture;
+    static ID3D11ShaderResourceView* m_cowIconTexture;
+    static ScreenFixedBillboard* m_screenBillboard;
     static ID3D11DepthStencilState* m_transitionDepthState;
     static ID3D11BlendState* m_transitionBlendState;
     static ID3D11SamplerState* m_transitionSamplerState;
@@ -32,7 +37,7 @@ private:
         float slideOffset;      // スライド位置
         float imageScale;       // スケール
         float imageYPosition;   // Y位置（揺れ用）
-        float padding;
+        float fadeAlpha;
     };
 
     // シーン関連
@@ -55,10 +60,17 @@ private:
     static bool m_sceneLoaded;         // シーンのロード完了フラグ
     static float m_loadingRotation;    // ローディングアニメーション用
 
+    //フェード用
+    static CShader m_blackfadeShader;
+    static float m_fadeAlpha;          // 背景フェードのアルファ値 (0.0=透明, 1.0=不透明)
+
     // 内部処理
     static void ProcessSceneChange();
     static void UpdateTransition(float deltaTime);
     static void LoadNextSceneAsync();
+
+    static void CreateBlackTexture();
+    static void LoadLoadingTextures();
 
 public:
     // 基本機能
@@ -71,8 +83,9 @@ public:
     static void InitTransitionResources();
     static void DisposeTransitionResources();
     static void DrawTransitionOverlay();
+    static void DrawBlackFade();  // ★黒背景フェード描画
     static void DrawLoadingIndicator();
-    static void LoadTransitionTexture(const wchar_t* filepath);
+    static void LoadTransitionTexture(const wchar_t* filepath );
 
     // シーン管理
     template<typename SceneType>

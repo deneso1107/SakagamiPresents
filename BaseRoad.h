@@ -74,8 +74,8 @@ struct RoadSegment {
     float spacingZ = 0.0f;  // この道路の実際の占有距離
 
     RoadSegment(RoadType t = RoadType::NONE, Direction d = Direction::NORTH)
-        : type(t), direction(d), position(0, 0, 0), rotation(0, 0, 0), scale(28, 1, 28), endHeight(0.0f) {
-    }
+        : type(t), direction(d), position(0, 0, 0), rotation(0, 0, 0), scale(14, 1, 14), endHeight(0.0f) {//道路のサイズを変える場合はRoadManagerのコンストラクタも変更
+	}//また、パーティクルを出す位置も変える必要がある
 
     // 道路が存在するかチェック
     bool HasRoad() const { return type != RoadType::NONE; }

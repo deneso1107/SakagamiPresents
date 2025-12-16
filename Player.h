@@ -12,7 +12,7 @@
 #include"GameManager.h"
 class Player:public ObjectBase 
 {
-	PlayerStateManager m_PlayerStateManager;
+	PlayerStateManager m_stateManager;
 
 	// 描画の為の情報（メッシュに関わる情報）
 	CStaticMeshRenderer	m_meshrenderer;
@@ -32,6 +32,29 @@ class Player:public ObjectBase
 	CarPhysics m_physics;
 
 	float speed;
+
+	// スパイラル降下用の変数
+	float m_spiralTime = 0.0f;          // 螺旋アニメーションの経過時間
+	float m_countdownTime = 0.0f;       // カウントダウンの経過時間
+	int m_countdownNumber = 3;          // 表示するカウント数
+
+	Vector3 m_spiralStartPos;           // 螺旋開始位置
+	Vector3 m_spiralTargetPos;          // 螺旋終了位置（スタート地点）
+	float m_spiralInitialYaw = 0.0f;    // ★開始時の正面方向（Y軸回転）
+
+	float m_spiralRadius = 15.0f;       // 螺旋の半径
+	float m_spiralHeight = 50.0f;       // 螺旋の高さ
+	float m_spiralDuration = 2.0f;      // 螺旋降下にかかる時間（秒）
+	float m_spiralRotations = 2.0f;     // 螺旋の回転数
+
+	// 少し機械っぽいので追加の揺れパラメータ
+	float m_spiralWaveIntensity = 0.08f;    // 半径の波打ち強度
+	float m_spiralPulseIntensity = 0.05f;   // 脈動の強度
+	float m_spiralVerticalWave = 0.8f;      // 上下の揺れ幅
+	float m_spiralPitchWave = 0.1f;         // ピッチの揺れ幅
+	float m_spiralRollIntensity = 0.2f;     // ロールの傾き強度
+	float m_spiralDesiredSpeed = 25.0f; // ★降下速度（調整可能）
+
 
 	// 重力関連の変数
 	float m_gravity = -0.5f;          // 重力の強さ（負の値）
@@ -95,7 +118,6 @@ class Player:public ObjectBase
 
 	bool m_OnTheGround = false;
 
-	void DebugPlayerMoveParameter_();
 	void UpdateDriftMovement(float throttle, float steering, Vector3 forwardDir, Vector3 rightDir, float speedFactor/*,float deltatime*/);
 	void UpdateNormalMovement(float throttle, float steering, Vector3 forwardDir, Vector3 rightDir, float speedFactor/*,float deltatime*/);
 
@@ -132,6 +154,10 @@ class Player:public ObjectBase
 	float m_groundStickForce = 2.0f;        // 地面への吸着力
 
 	std::function<void(bool, float)>m_PostProcessSetter;
+
+	//当たり判定の半径
+	float m_CollisionRadius = 0.5f;
+
 public:
 	void Init() override;
 	void Update(float) override;
@@ -144,6 +170,10 @@ public:
 		m_Rotation = m_physics.GetRotation();
 		m_Velocity = m_physics.GetVelocity();
 	}
+
+	//最初の演出
+	void StartRaceSequence(const Vector3& startPosition);
+	void UpdateStartSequence(float deltatime);
 
 	const CStaticMesh& GetMesh() 
 	{
@@ -211,6 +241,12 @@ public:
 	float GetSpeed() { return speed; }
 	float GetMaxSpeed() { return m_MaxSpeed * m_BoostRatio; }
 	float GetNormalSpeed() { return m_MaxSpeed; }
+
+	const PlayerStateManager& GetStateManager() const { return m_stateManager; }
+
+	//最初の演出系
+	int GetCountdownNumber() const { return m_countdownNumber; }
+	float GetCountdownProgress() const { return m_countdownTime; }
 	
 	void SetPostProcessSetter(std::function<void(bool, float)> setter) 
 	{

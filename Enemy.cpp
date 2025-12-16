@@ -143,7 +143,7 @@ void Enemy::Draw()
 
     Color bscolor(1, 1, 1, 0.5f);
 
-    //SphereDrawerDraw(m_BoundingSphere.radius, bscolor, m_Position.x, m_Position.y, m_Position.z);//球体を描画
+    SphereDrawerDraw(m_BoundingSphere.radius, bscolor, m_Position.x, m_Position.y, m_Position.z);//球体を描画
 }
 
 void Enemy::Dispose()
@@ -184,14 +184,14 @@ void Enemy::KnockBack(float deltaTime)
 
 
     // 一定距離以上、または時間経過でエフェクト発生
-    if ((/*distance > 80.0f ||*/ m_KnockbackTimer <= 0.4f) && !m_EffectSpawned)//ここから 
+    if ((/*distance > 80.0f ||*/ m_KnockbackTimer <= 0.2f) && !m_EffectSpawned)//ここから 
     {
         m_EffectSpawned = true;
         GameManager::Instance().SetTimeScale(1.0f);//スローモーションの調整
     }
 
     // 完全に消す
-    if (m_KnockbackTimer <= 0.0f|| distance > 1500.0f)
+    if (m_KnockbackTimer <= 0.0f|| distance > 1000.0f)
     {
         SetActive(false);
         // まだエフェクトを出していなければ出す
@@ -216,10 +216,10 @@ void Enemy::KnockBack(float deltaTime)
 void Enemy::SpawnDisappearEffect()
 {
     // テスト1: 同じ位置で両方生成
-    //EffectManager::Instance().SpawnEffect("Star", m_Position, Vector3(450.0f, 450.0f, 0));
+    EffectManager::Instance().SpawnEffect("Star", m_Position, Vector3(450.0f, 450.0f, 0));
     printf("Star生成完了\n");
 
-    //EffectManager::Instance().SpawnEffect("SparkleParticle", m_Position, Vector3(0, 1, 0));
+    EffectManager::Instance().SpawnEffect("SparkleParticle", m_Position, Vector3(0, 1, 0));
     //printf("SparkleParticle生成完了\n");
 }
 
@@ -227,6 +227,6 @@ GM31::GE::Collision::BoundingSphere Enemy::GetEnemyBoundingSphere()//Enemyの当た
 {
     GM31::GE::Collision::BoundingSphere sphere;
     sphere.center = m_Position;//敵のデフォルトのBoundingSquareとは別のやつを使っているのでどっちも変更尾する必要あり
-    sphere.radius = 5.0f; // X座標を半径として使用(カスコード)
+	sphere.radius = 10.0f; // X座標を半径として使用(カスコード)→ここの当たり判定だけ大きくする
     return sphere;
 }

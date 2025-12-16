@@ -51,24 +51,6 @@ void BillboardEffect::Draw(const Matrix4x4& viewMatrix)
     m_Billboard.Draw();
 }
 
-// ========================================
-// ParticleEffect - 改良版
-// ========================================
-//ParticleEffect(SparkEmitter* sharedEmitter,
-//    const Vector3& position, const Vector3& direction,
-//    const ParticleEmitterGroup& config)
-//    : m_Emitter(sharedEmitter),
-//    m_Config(config),
-//    m_Position(position),
-//    m_Direction(direction),
-//    m_ParticleCountToEmit(config.emitCount),
-//    m_HasSetup(false),
-//    m_EmitDuration(0.3f)  // ★ 最初の0.3秒だけ放出
-//{
-//    m_MaxLifeTime = config.duration;
-//    m_LifeTime = 0.0f;
-//}
-
 
 void ParticleEffect::Update(float deltaTime)
 {
@@ -81,7 +63,7 @@ void ParticleEffect::Update(float deltaTime)
         m_Emitter->SetSpreadAngle(m_Config.spreadAngle);
         m_Emitter->SetGravity(m_Config.gravity);
         m_Emitter->SetParticleSize(m_Config.particleSize);
-        m_Emitter->SetBehaviorType(m_Config.behaviorType);  // ★ 設定
+        m_Emitter->SetBehaviorType(m_Config.behaviorType);  // 設定
         m_HasSetup = true;
     }
 
@@ -99,41 +81,6 @@ void ParticleEffect::Update(float deltaTime)
         m_IsActive = false;
     }
 }
-
-//void ParticleEffect::Update(float deltaTime)
-//{
-//    m_LifeTime += deltaTime;
-//
-//    // ★ 最初の1フレームだけ設定を適用
-//    if (!m_HasSetup && m_Emitter)
-//    {
-//        m_Emitter->SetColorRange(m_Config.startColor, m_Config.endColor);
-//        m_Emitter->SetSpeedRange(m_Config.minSpeed, m_Config.maxSpeed);
-//        m_Emitter->SetSpreadAngle(m_Config.spreadAngle);
-//        m_Emitter->SetGravity(m_Config.gravity);
-//        m_Emitter->SetParticleSize(m_Config.particleSize);
-//        m_HasSetup = true;
-//    }
-//
-//    // ★ 最初の m_EmitDuration 秒だけパーティクルを放出
-//    if (m_HasSetup && m_Emitter && m_LifeTime < m_EmitDuration)
-//    {
-//        DirectX::XMFLOAT3 m_ParticlePos = { m_Position.x, m_Position.y, m_Position.z };
-//        DirectX::XMFLOAT3 dir = { m_Direction.x, m_Direction.y, m_Direction.z };
-//
-//        // 放出
-//        for (int i = 0; i < m_ParticleCountToEmit; ++i)
-//        {
-//            m_Emitter->Emit(m_ParticlePos, dir);
-//        }
-//    }
-//
-//    // エフェクトの寿命終了
-//    if (m_LifeTime >= m_MaxLifeTime)
-//    {
-//        m_IsActive = false;
-//    }
-//}
 
 // ========================================
 // EffectManager - 改良版
@@ -167,7 +114,6 @@ void EffectManager::Initialize()
 
     char buffer[128];
     printf( "合計 %zu 個のエミッタが作成されました\n", m_Emitters.size());
-    OutputDebugStringA(buffer);
 
     EffectPresets::RegisterDefaultPresets();
 }
@@ -188,7 +134,6 @@ void EffectManager::Finalize()
     m_Emitters.clear();
     m_Presets.clear();
 
-    OutputDebugStringA("EffectManager 終了処理完了\n");
 }
 
 void EffectManager::Update(float deltaTime)

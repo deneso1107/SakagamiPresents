@@ -187,7 +187,6 @@ float CheeseCamera::CalculateSpeedRatio() const
     float ratio = (speed - m_boostSpeedThreshold) /
         (m_maxBoostSpeed - m_boostSpeedThreshold);
 
-	printf("Speed: %.2f, Ratio: %.2f\n", speed, ratio);
     return std::max(0.0f, std::min(1.0f, ratio));
 }
 

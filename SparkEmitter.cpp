@@ -17,16 +17,7 @@ bool SparkEmitter::Init(ID3D11Device* device)
         return false;
     }
 
-    // 他の初期化でもエラーチェック
-    hr = CreateWICTextureFromFile(device, L"assets/texture/space.png",
-        nullptr, m_texture.ReleaseAndGetAddressOf());
-    if (FAILED(hr))
-    {
-        OutputDebugStringA("テクスチャ読み込み失敗\n");
-        return false;
-    }
-
-    // 3. マテリアル初期化 ★BillBoardから移植
+    // 3. マテリアル初期化
     MATERIAL materialData = {};
     materialData.Diffuse = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
     materialData.TextureEnable = 1.0f;
@@ -126,69 +117,6 @@ void SparkEmitter::UpdateTrail(Particle& p, float deltaTime)
     p.color.w = fadeT;
 }
 
-//void SparkEmitter::Update(float deltaTime)
-//{
-//    float deltaTimeInMicroseconds = deltaTime;
-//
-//    //for (auto& p : m_particles)
-//    //{
-//    //    p.life += deltaTimeInMicroseconds;
-//    //    p.m_ParticlePos.x += p.velocity.x * deltaTimeInMicroseconds;
-//    //    p.m_ParticlePos.y += p.velocity.y * deltaTimeInMicroseconds;
-//    //    p.m_ParticlePos.z += p.velocity.z * deltaTimeInMicroseconds;
-//
-//    //    // ★ フェードアウト処理だけを行う（色は変えない）
-//    //    float t = 1.0f - (p.life / p.lifespan);
-//    //    t = std::max(0.0f, std::min(1.0f, t));
-//
-//    //    // アルファ値だけ更新（RGB は保持）
-//    //    p.color.w = t;  // ★ アルファ値をフェードアウト
-//
-//    //    // 注：RGB は p.color.x, y, z として Emit時に設定されたまま保持される
-//    //}
-//
-//    //// 寿命で削除
-//    //m_particles.erase(
-//    //    std::remove_if(m_particles.begin(), m_particles.end(),
-//    //        [](const Particle& p) { return p.life >= p.lifespan; }),
-//    //    m_particles.end()
-//    //);
-//    for (auto& p : m_particles)
-//    {
-//        p.life += deltaTimeInMicroseconds;
-//        p.m_ParticlePos.x += p.velocity.x * deltaTimeInMicroseconds;
-//        p.m_ParticlePos.y += p.velocity.y * deltaTimeInMicroseconds;
-//        p.m_ParticlePos.z += p.velocity.z * deltaTimeInMicroseconds;
-//
-//        float t = 1.0f - (p.life / p.lifespan);  // ★ 正規化：0.0 ~ 1.0
-//        t = std::max(0.0f, std::min(1.0f, t));   // ★ クランプ
-//
-//        DirectX::XMFLOAT3 color;
-//        if (t > 0.7f)  // ← 逆向きに
-//        {
-//            // 黄色→オレンジ
-//            float u = (t - 0.7f) / 0.3f;
-//            color = LerpColor({ 1,1,0 }, { 1,0.5f,0 }, u);
-//        }
-//        else
-//        {
-//            // オレンジ→赤
-//            float u = t / 0.7f;
-//            color = LerpColor({ 1,0.5f,0 }, { 1,0,0 }, u);
-//        }
-//
-//        // ★ アルファ値を正しく計算（0.0 ~ 1.0の範囲で）
-//        float alpha = t;  // 古くなるほど透明に
-//        p.color = { color.x, color.y, color.z, alpha };
-//    }
-//
-//    // 寿命で削除
-//    m_particles.erase(
-//        std::remove_if(m_particles.begin(), m_particles.end(),
-//            [](const Particle& p) { return p.life >= p.lifespan; }),
-//        m_particles.end()
-//    );
-//}
 
 void SparkEmitter::CreateBuffers()
 {

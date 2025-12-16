@@ -38,15 +38,286 @@ static void DebugPlayerMoveParameter() {
 	ImGui::End();
 }
 
-void  Player::DebugPlayerMoveParameter_() {
+//最初の演出
+void Player::StartRaceSequence(const Vector3& startPosition)
+{
+	// 全状態をクリアしてスパイラル降下状態に
+	m_stateManager.ClearAllStates();
+	m_stateManager.AddState(PlayerStateManager::State::SpiralDescending);
 
-	ImGui::Begin("eeeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
+	m_spiralTime = 0.0f;
 
-	ImGui::SliderFloat("YYYYYYY", &testparticle_y, -100.1f, 105.0f);
-	ImGui::SliderFloat("XXXXXXXX", &testparticle_x, 0-100.1f, 105.0f);
-	ImGui::SliderFloat("ZZZZZZZZZZZZZZ", &testparticle_z, 0-100.1f, 105.0f);
-	ImGui::End();
+	// ★現在の向き（正面方向）を保存
+	m_spiralInitialYaw = m_Rotation.y;
+
+	// 開始位置を設定（スタート地点の上空）
+	m_spiralTargetPos = startPosition;
+	m_spiralStartPos = startPosition;
+	m_spiralStartPos.y += m_spiralHeight;
+
+	// ★★★ 実際の地形高度を取得して、正確な降下距離を計算 ★★★
+	if (m_roadManager) {
+		float terrainHeight;
+		Vector3 terrainNormal;
+		if (m_roadManager->GetTerrainHeight(startPosition, terrainHeight, terrainNormal)) {
+			// 地形の高さに合わせて目標位置を調整
+			float bottomOffsetY = m_mesh.GetBottomY();
+			m_spiralTargetPos.y = terrainHeight - (bottomOffsetY * m_Scale.y);
+			m_spiralStartPos.y = m_spiralTargetPos.y + m_spiralHeight;
+		}
+	}
+
+	// ★★★ 螺旋の長さから最適な時間を自動計算 ★★★
+	float verticalDistance = m_spiralHeight;
+	float spiralCircumference = 2.0f * PI * m_spiralRadius;
+	float horizontalDistance = spiralCircumference * m_spiralRotations;
+	float totalDistance = sqrt(verticalDistance * verticalDistance +
+		horizontalDistance * horizontalDistance);
+
+	float desiredSpeed = m_spiralDesiredSpeed;
+	m_spiralDuration = totalDistance / desiredSpeed;
+
+	// 最小・最大時間の制限
+	m_spiralDuration = std::max(2.0f, std::min(m_spiralDuration, 6.0f));
+
+	// プレイヤーを開始位置に配置
+	m_Position = m_spiralStartPos;
+	m_Velocity = Vector3(0.0f, 0.0f, 0.0f);
+	// 回転はリセットせず、初期方向を維持
+	m_Rotation.x = 0.0f;
+	m_Rotation.z = 0.0f;
+	//m_Rotation.y = m_spiralInitialYaw;
+	// m_Rotation.y はそのまま（正面方向）
+
+	// ブースト関連もリセット
+	m_IsBoosting = false;
+	m_IsDrifting = false;
+	m_BoostGauge = 0.0f;
+
+	printf("=== Race Sequence Started ===\n");
+	printf("Initial Yaw: %.2f degrees\n", m_spiralInitialYaw * 180.0f / PI);
+	printf("Spiral: Height=%.1f, Distance=%.1f, Duration=%.2fs\n",
+		m_spiralHeight, totalDistance, m_spiralDuration);
 }
+
+
+void Player::UpdateStartSequence(float deltatime)
+{
+	// スパイラル降下中
+	if (m_stateManager.IsSpiralDescending())
+	{
+		m_spiralTime += deltatime;
+
+		// 進行度を計算（0.0 ～ 1.0）
+		float progress = m_spiralTime / m_spiralDuration;
+
+		// ★★★ 地面との衝突チェック ★★★
+		bool shouldLand = false;
+
+		if (progress >= 1.0f)
+		{
+			// 時間経過で着地
+			shouldLand = true;
+			progress = 1.0f;
+		}
+		else if (m_roadManager)
+		{
+			// 地形との距離をチェック
+			float terrainHeight;
+			Vector3 terrainNormal;
+			if (m_roadManager->GetTerrainHeight(m_Position, terrainHeight, terrainNormal))
+			{
+				float bottomOffsetY = m_mesh.GetBottomY();
+				float carBottomY = m_Position.y + (bottomOffsetY * m_Scale.y);
+				float distanceToGround = carBottomY - terrainHeight;
+
+				// 地面に接触または非常に近い場合は着地
+				if (distanceToGround <= 0.5f)
+				{
+					shouldLand = true;
+					printf("Early landing detected! Distance: %.2f\n", distanceToGround);
+				}
+			}
+		}
+
+		if (shouldLand)
+		{
+			// 螺旋降下終了、カウントダウンへ移行
+			m_Position = m_spiralTargetPos;
+
+			m_stateManager.RemoveState(PlayerStateManager::State::SpiralDescending);
+			m_stateManager.AddState(PlayerStateManager::State::Countdown);
+			m_stateManager.AddState(PlayerStateManager::State::OnGround);
+
+			m_countdownTime = 0.0f;
+			m_countdownNumber = 3;
+
+			// ★★★ 着地時は現在の回転をそのまま使う（補間済み）★★★
+			// すでに徐々に正面を向いているので、強制的に変更しない
+			m_Rotation.x = 0.0f;  // ピッチだけ水平に
+			//m_Rotation.y =Lerp(m_Rotation.y, m_spiralInitialYaw, 1.0f);
+			m_Rotation.y = m_spiralInitialYaw;
+			// m_Rotation.y はそのまま（既に補間で正面に近づいている）
+			m_Rotation.z = 0.0f;  // ロールだけ水平に
+
+			printf("=== Countdown Started ===\n");
+			printf("Landing Yaw: %.2f degrees (Target: %.2f)\n",
+				m_Rotation.y * 180.0f / PI,
+				m_spiralInitialYaw * 180.0f / PI);
+		}
+		else
+		{
+			// ★★★ 有機的な動きのための複数のイージング ★★★
+
+			// 1. 高さ: 最初ゆっくり、途中加速、最後減速（S字カーブ）
+			float heightEase;
+			if (progress < 0.5f) {
+				// 前半: ゆっくり降下開始
+				float t = progress * 2.0f;
+				heightEase = t * t * (3.0f - 2.0f * t); // Smoothstep
+			}
+			else {
+				// 後半: 着地に向けて減速
+				float t = (progress - 0.5f) * 2.0f;
+				heightEase = 0.5f + 0.5f * (1.0f - pow(1.0f - t, 3.0f)); // EaseOutCubic
+			}
+			float height = Lerp(m_spiralStartPos.y, m_spiralTargetPos.y, heightEase);
+
+			// 2. 回転速度: 途中で加速して最後は減速（生物的な動き）
+			float rotationEase = progress + sinf(progress * PI) * 0.15f; // 波打つ
+			float angle = rotationEase * PI * 2.0f * m_spiralRotations;
+
+			// 3. 半径: 波打ちながら縮小（ふわふわ感）
+			float radiusBase = 1.0f - progress * 0.7f; // 基本的な縮小
+			float radiusWave = sinf(progress * PI * m_spiralRotations * 2.0f) * m_spiralWaveIntensity;
+			float radiusPulse = sinf(progress * PI * 6.0f) * m_spiralPulseIntensity * (1.0f - progress);
+			float currentRadius = m_spiralRadius * (radiusBase + radiusWave + radiusPulse);
+
+			// 4. 上下の揺れ（ふわふわ感の強化）
+			float verticalWave = sinf(m_spiralTime * 4.0f) * m_spiralVerticalWave * (1.0f - progress * 0.7f);
+			float verticalBounce = cosf(progress * PI * 3.0f) * 0.5f * (1.0f - progress);
+
+			// 5. 螺旋軌道の位置を計算
+			float offsetX = cosf(angle) * currentRadius;
+			float offsetZ = sinf(angle) * currentRadius;
+
+			m_Position.x = m_spiralTargetPos.x + offsetX;
+			m_Position.y = height + verticalWave + verticalBounce;
+			m_Position.z = m_spiralTargetPos.z + offsetZ;
+
+			// 6. 向きの計算（滑らかな方向転換）
+			// 少し先の位置を見て自然な向きを作る
+			float lookAheadAngle = angle + 0.2f;
+			float lookAheadRadius = currentRadius * 0.95f;
+			float lookX = m_spiralTargetPos.x + cosf(lookAheadAngle) * lookAheadRadius;
+			float lookZ = m_spiralTargetPos.z + sinf(lookAheadAngle) * lookAheadRadius;
+
+			Vector3 lookDirection = Vector3(lookX - m_Position.x, 0.0f, lookZ - m_Position.z);
+			float targetYaw = atan2f(lookDirection.x, lookDirection.z);
+
+			// ★★★ 序盤から徐々に正面方向への補正を開始 ★★★
+			if (progress > 0.01f) {
+				// 残り70%で初期方向に戻す
+				float returnProgress = (progress - 0.01f) / 0.99f; // 0.0 ~ 1.0
+
+				// イージング: 最初はゆっくり、最後は強く補正
+				float returnStrength;
+				if (returnProgress < 0.5f) {
+					// 前半: 緩やかに（二次関数）
+					returnStrength = 2.0f * returnProgress * returnProgress;
+				}
+				else {
+					// 後半: 加速して補正（三次関数）
+					float t = returnProgress - 0.5f;
+					returnStrength = 0.5f + 2.0f * t * t;
+				}
+
+				// 螺旋の接線方向と初期方向をブレンド
+				targetYaw = Lerp(targetYaw, m_spiralInitialYaw, returnStrength);
+			}
+
+			// 目標方向への滑らかな回転
+			float yawDiff = targetYaw - m_Rotation.y;
+			while (yawDiff > PI) yawDiff -= 2.0f * PI;
+			while (yawDiff < -PI) yawDiff += 2.0f * PI;
+
+			// 着地が近いほど回転速度を上げる（最後はしっかり正面を向く）
+			float rotationSpeed = 0.15f;
+			if (progress > 0.3f) {
+				// 補正フェーズでは回転速度を徐々に上げる
+				float speedBoost = (progress - 0.3f) / 0.7f;
+				rotationSpeed = Lerp(0.15f, 0.35f, speedBoost);
+			}
+
+			m_Rotation.y += yawDiff * rotationSpeed;
+
+			// 7. ピッチ角: 生き物のように揺れる
+			float pitchWave = sinf(m_spiralTime * 3.5f) * m_spiralPitchWave;
+			float pitchDescend = -0.15f * progress;
+
+			// ★着地直前はピッチを水平に戻す（より早く）
+			if (progress > 0.5f) {
+				float levelProgress = (progress - 0.5f) / 0.5f;
+				levelProgress = levelProgress * levelProgress; // 二次曲線
+				pitchDescend = Lerp(pitchDescend, 0.0f, levelProgress);
+				pitchWave *= (1.0f - levelProgress);
+			}
+
+			m_Rotation.x = pitchDescend + pitchWave;
+
+			// 8. ロール角: 旋回に合わせて傾く
+			float rollFromTurn = -sinf(angle) * m_spiralRollIntensity * (1.0f - progress * 0.5f);
+			float rollWave = cosf(m_spiralTime * 2.8f) * 0.08f;
+
+			// ★着地直前はロールを水平に戻す（より早く）
+			if (progress > 0.5f) {
+				float levelProgress = (progress - 0.5f) / 0.5f;
+				levelProgress = levelProgress * levelProgress; // 二次曲線
+				rollFromTurn *= (1.0f - levelProgress);
+				rollWave *= (1.0f - levelProgress);
+			}
+
+			m_Rotation.z = rollFromTurn + rollWave;
+		}
+	}
+
+	// カウントダウン中
+	else if (m_stateManager.IsCountdown())
+	{
+		m_countdownTime += deltatime;
+
+		// 1秒ごとにカウントダウン
+		if (m_countdownTime >= 1.0f)
+		{
+			m_countdownTime = 0.0f;
+			m_countdownNumber--;
+
+			printf("Countdown: %d\n", m_countdownNumber);
+
+			if (m_countdownNumber < 0)
+			{
+				// カウントダウン終了、レース開始
+				m_stateManager.RemoveState(PlayerStateManager::State::Countdown);
+				m_stateManager.AddState(PlayerStateManager::State::RaceReady);
+
+				printf("=== START! ===\n");
+			}
+		}
+
+		// カウントダウン中は静止
+		m_Velocity = Vector3(0.0f, 0.0f, 0.0f);
+		m_Rotation.x = 0.0f; // 水平に戻す
+	}
+
+	// レース準備完了（この状態はすぐに解除される）
+	else if (m_stateManager.IsRaceReady())
+	{
+		// 通常の操作を許可する
+		m_stateManager.RemoveState(PlayerStateManager::State::RaceReady);
+		// 特に状態を追加しない（通常のゲームプレイに戻る）
+	}
+}
+
 
 void Player::Init()
 {
@@ -93,10 +364,10 @@ void Player::Init()
 		m_physics.Init();
 		});
 
-	DebugUI::RedistDebugFunction([this]()
-		{
-			DebugPlayerMoveParameter_();
-		});
+	//DebugUI::RedistDebugFunction([this]()
+	//	{
+	//		DebugPlayerMoveParameter_();
+	//	});
 	//DebugUI::RedistDebugFunction([this]() {
 	//	DebugTerrainRotation_();
 	//	});
@@ -105,11 +376,84 @@ void Player::Init()
 	{
 		OutputDebugStringA("サンプラーステート作成失敗\n");
 	}
-	m_Scale = Vector3(10.0f, 10.0f, 10.0f);
+	m_Scale = Vector3(5.0f, 5.0f, 5.0f);
+
+	m_stateManager.ClearAllStates();
+	m_stateManager.AddState(PlayerStateManager::State::OnGround);
 }
 //まだちょいがたつく
 void Player::Update(float deltatime)
 {
+
+	// ★スタートシーケンス中は専用の処理
+	if (m_stateManager.IsInStartSequence())
+	{
+		UpdateStartSequence(deltatime);
+
+		// 地形追従は行うが、入力は受け付けない
+		UpdateSmoothTerrainFollowing(deltatime);
+
+		// バウンディングスフィアの更新
+		float bottomOffsetY = m_mesh.GetBottomY();
+		m_BoundingSphere = {
+			Vector3(
+				m_Position.x,
+				m_Position.y + (bottomOffsetY * m_Scale.y) + (m_BoundingSphere.radius * 0.5f),
+				m_Position.z
+			),
+			0.5f,
+		};
+
+		// スパークエフェクトの更新
+		m_sparkEmitter.Update(deltatime);
+
+		return; // 通常のUpdate処理をスキップ
+	}
+
+	// ★通常のゲームプレイ時は状態を更新
+	if (!m_stateManager.IsInStartSequence())
+	{
+		// 地面との接触状態を更新
+		if (m_isGrounded)
+		{
+			if (!m_stateManager.IsOnGround())
+			{
+				m_stateManager.AddState(PlayerStateManager::State::OnGround);
+			}
+		}
+		else
+		{
+			m_stateManager.RemoveState(PlayerStateManager::State::OnGround);
+		}
+
+		// ドリフト状態を更新
+		if (m_IsDrifting)
+		{
+			if (!m_stateManager.IsDrifting())
+			{
+				m_stateManager.AddState(PlayerStateManager::State::Drifting);
+			}
+		}
+		else
+		{
+			m_stateManager.RemoveState(PlayerStateManager::State::Drifting);
+		}
+
+		// 走行状態を更新（一定速度以上で走行中とみなす）
+		float currentSpeed = sqrt(m_Velocity.x * m_Velocity.x + m_Velocity.z * m_Velocity.z);
+		if (currentSpeed > 0.5f)
+		{
+			if (!m_stateManager.IsRunning())
+			{
+				m_stateManager.AddState(PlayerStateManager::State::Running);
+			}
+		}
+		else
+		{
+			m_stateManager.RemoveState(PlayerStateManager::State::Running);
+		}
+	}
+
 	if (m_HitStopTimer > 0.0f)//ヒットストップがなんかしっくりこない
 	{
 		m_HitStopTimer -= deltatime;
@@ -227,11 +571,11 @@ void Player::Update(float deltatime)
 			m_Position.y + (bottomOffsetY * m_Scale.y) + (m_BoundingSphere.radius * 0.5f),
 			m_Position.z
 		),
-		0.5f,
+		m_CollisionRadius,
 	};
 
 	// 滑らかな地形追従処理
-	UpdateSmoothTerrainFollowing(deltatime);//道心折れたので明日がエンジンゲージを作りましょう
+	UpdateSmoothTerrainFollowing(deltatime);
 
 	// リセット
 	if (CDirectInput::GetInstance().CheckKeyBuffer(DIK_RETURN)) {
@@ -359,7 +703,7 @@ void Player::UpdateSmoothTerrainFollowing(uint64_t deltatime)
 				m_targetHeight = terrainHeight - (bottomOffsetY * m_Scale.y);
 
 				float currentHeight = m_Position.y;
-				float heightDiff = abs(m_targetHeight - currentHeight);
+				float heightDiff = abs(m_targetHeight - currentHeight);// 高さの差分
 
 				Vector3 horizontalVelocity = Vector3(m_Velocity.x, 0.0f, m_Velocity.z);
 				float horizontalSpeedForLerp = horizontalVelocity.Length();
@@ -367,7 +711,8 @@ void Player::UpdateSmoothTerrainFollowing(uint64_t deltatime)
 
 				// ★★★ 下り坂判定の追加 ★★★
 				bool isMovingDownhill = false;
-				if (horizontalSpeedForLerp > 0.1f) {
+				if (horizontalSpeedForLerp > 0.1f) 
+				{
 					Vector3 movementDir = horizontalVelocity;
 					movementDir.Normalize();
 
@@ -381,22 +726,23 @@ void Player::UpdateSmoothTerrainFollowing(uint64_t deltatime)
 				}
 
 				// 高速移動時の高さ補正
-				if (isHighSpeed) {
-					if (heightDiff > 1.5f) {
-						// 即座に修正
+				if (isHighSpeed) 
+				{
+					if (heightDiff > 1.5f)
+					{
+						//// 即座に修正
 						m_Position.y = m_targetHeight;
 
-						// ★★★ 垂直速度を強制的にリセット ★★★
+						//垂直速度をリセット
 						m_verticalVelocity = 0.0f;
-
-						printf("High-speed terrain correction: %.3f\n", heightDiff);
 					}
-					else {
-						// より積極的な補間
+					else 
+					{
+						//段差が細かい場所補間なのでゆっくり補間
 						float lerpSpeed = isMovingDownhill ? 0.5f : 0.3f; // 下り坂ではより強く
 						m_Position.y = Lerp(currentHeight, m_targetHeight, lerpSpeed);
 
-						// ★★★ 下り坂では垂直速度を減衰 ★★★
+						//下り坂では垂直速度を減衰
 						if (isMovingDownhill && m_verticalVelocity < 0.0f) {
 							m_verticalVelocity *= m_downhillVelocityDamping;
 						}
@@ -522,8 +868,7 @@ void Player::ApplyGravity(float deltatime)
 	if (!m_isGrounded) 
 	{
 		// 重力を垂直速度に加算
-		float deltaSeconds = deltatime/* / 1000000.0f*/; // マイクロ秒を秒に変換
-		m_verticalVelocity += m_gravity * (deltaSeconds*0.1f) * 60.0f; // 60FPS基準で調整
+		m_verticalVelocity += m_gravity * (deltatime *0.1f) * 60.0f; // 60FPS基準で調整
 
 		// 落下速度の制限（ターミナル速度）
 		const float maxFallSpeed = -10.0f;
@@ -533,7 +878,7 @@ void Player::ApplyGravity(float deltatime)
 	}
 }
 
-void Player::ApplyRoadSurfaceEffect(RoadType surfaceType, float deltatime)
+void Player::ApplyRoadSurfaceEffect(RoadType surfaceType, float deltatime)//道路ごとに効果をつけられる
 {
 	float timeScale = GameManager::Instance().GetTimeScale();
 
@@ -875,7 +1220,7 @@ void Player::OnCollisionWithEnemy(Enemy& enemy)
 	if (speedRatio > 1.5f)
 	{
 		// 高速時はより派手な演出
-		ApplyHitStop(0.015f, 0.005f);
+		ApplyHitStop(0.1f, 0.5f);
 		SpringCamera::Instance().Shake(2.0f, 0.15f);
 	}
 	else

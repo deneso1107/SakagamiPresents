@@ -12,6 +12,12 @@ public:
         OnGround,
         Drifting,
         Running,
+
+        // ★新規追加：スタートシーケンス用の状態
+        SpiralDescending,  // 螺旋降下中
+        Countdown,         // カウントダウン中
+        RaceReady,         // レース準備完了（カウント0の瞬間）
+
         // 将来的に追加予定の状態をここに追加
         // Jumping,
         // Crouching,
@@ -77,6 +83,16 @@ public:
     bool IsOnGround() const { return HasState(State::OnGround); }
     bool IsDrifting() const { return HasState(State::Drifting); }
     bool IsRunning() const { return HasState(State::Running); }
+
+    // スタートシーケンス用の便利メソッド
+    bool IsSpiralDescending() const { return HasState(State::SpiralDescending); }
+    bool IsCountdown() const { return HasState(State::Countdown); }
+    bool IsRaceReady() const { return HasState(State::RaceReady); }
+    bool IsInStartSequence() const 
+    {
+        return HasAnyState({ State::SpiralDescending, State::Countdown, State::RaceReady });
+    }
+
 
     // よくある組み合わせチェック
     bool IsGroundDrifting() const {
