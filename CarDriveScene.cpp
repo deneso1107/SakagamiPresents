@@ -189,7 +189,7 @@ void CarDriveScene::init()
 	m_RemainingTime = 30.0f;
 	m_timeRenderer.Update();  //数値が変化したらUpdateを呼ぶ
 	// 画面左上に配置（位置: 0.1, 0.1、サイズ: 0.15 x 0.15）
-	//m_screenBillboard->Init(Vector2(0.1f, 0.1f), 0.15f, 0.15f, L"assets/texture/haikei.jpg");
+	//m_BillboardLoad->Init(Vector2(0.1f, 0.1f), 0.15f, 0.15f, L"assets/texture/haikei.jpg");
 
 	m_speedMator = new SpeedMator();
 	m_speedMator->Init();
@@ -261,48 +261,7 @@ void CarDriveScene::init()
 	m_item->Init();	// スタート地点の初期化   ここまで
 
 
-	roadManager.ResizeGrid(4, 18);//East=東　West＝西　North＝北　South＝南
-	roadManager.InitializeGridSpacing();  // グリッド間隔を初期化
-	roadManager.SetRoad(0, 0, RoadType::START_LINE, Direction::SOUTH);
-	roadManager.SetRoad(0, 1, RoadType::STRAIGHT, Direction::SOUTH);
-	roadManager.SetRoad(1, 1, RoadType::TURN_LEFT, Direction::EAST);
-    roadManager.SetRoad(0, 2, RoadType::SLOPE_UP, Direction::NORTH);//次はGoalを作りましょう　とりあえずゲームループの完成
-	roadManager.SetRoad(0, 3, RoadType::STRAIGHT, Direction::SOUTH);
-	roadManager.SetRoad(0, 4, RoadType::SLOPE_UP, Direction::NORTH);
-	roadManager.SetRoad(0, 5, RoadType::SLOPE_DOWN, Direction::NORTH);
-	roadManager.SetRoad(0, 6, RoadType::SLOPE_DOWN, Direction::NORTH);
 
-	//ながーーーーーいお付き合い
-	roadManager.SetRoad(0, 7, RoadType::STRAIGHT, Direction::SOUTH);
-	roadManager.SetRoad(0, 8, RoadType::STRAIGHT, Direction::SOUTH);
-	roadManager.SetRoad(0, 9, RoadType::STRAIGHT, Direction::SOUTH);
-	roadManager.SetRoad(0, 10, RoadType::STRAIGHT, Direction::SOUTH);
-	roadManager.SetRoad(0, 11, RoadType::STRAIGHT, Direction::SOUTH);
-	roadManager.SetRoad(0, 12, RoadType::STRAIGHT, Direction::SOUTH);
-	roadManager.SetRoad(0, 13, RoadType::STRAIGHT, Direction::SOUTH);
-	roadManager.SetRoad(0, 14, RoadType::STRAIGHT, Direction::SOUTH);
-	roadManager.SetRoad(0, 15, RoadType::STRAIGHT, Direction::SOUTH);
-	roadManager.SetRoad(0, 16, RoadType::STRAIGHT, Direction::SOUTH);
-	roadManager.SetRoad(0, 17, RoadType::GOAL_LINE, Direction::SOUTH);
-
-
-
-	/*roadManager.SetRoad(0, 7, RoadType::TURN_LEFT, Direction::NORTH);
-	roadManager.SetRoad(1, 7, RoadType::STRAIGHT, Direction::WEST);
-	roadManager.SetRoad(2, 7, RoadType::TURN_LEFT, Direction::EAST);
-	roadManager.SetRoad(2, 6, RoadType::GOAL_LINE, Direction::SOUTH);
-	roadManager.SetRoad(2, 5, RoadType::DIRT, Direction::SOUTH);*/
-	
-
-	//roadManager.SetRoad(0, 4, RoadType::STRAIGHT, Direction::SOUTH);
-	//roadManager.SetRoad(0, 5, RoadType::SLOPE_DOWN, Direction::NORTH);
-	//roadManager.SetRoad(0, 6, RoadType::STRAIGHT, Direction::SOUTH);
-	//roadManager.SetRoad(1, 7, RoadType::TURN_LEFT, Direction::SOUTH);
-	//roadManager.SetRoad(0, 7, RoadType::STRAIGHT, Direction::WEST);
-	//roadManager.SetRoad(2, 7, RoadType::TURN_LEFT, Direction::EAST);
-	//roadManager.SetRoad(3, 7, RoadType::TURN_LEFT, Direction::WEST);
-	///roadManager.SetRoad(0, 1, RoadType::STRAIGHT, Direction::NORTH);
-	//roadManager.SetRoad(1, 1, RoadType::SLOPE_UP, Direction::EAST);
 
 	if (auto start = roadManager.GetStart())
 	{
@@ -358,6 +317,33 @@ void CarDriveScene::init()
 		{
 			debugChangeCamera();
 		});
+}
+
+void CarDriveScene::loadAsync()
+{
+	roadManager.ResizeGrid(4, 18);//East=東　West＝西　North＝北　South＝南
+	roadManager.InitializeGridSpacing();  // グリッド間隔を初期化
+	roadManager.SetRoad(0, 0, RoadType::START_LINE, Direction::SOUTH);
+	roadManager.SetRoad(0, 1, RoadType::STRAIGHT, Direction::SOUTH);
+	roadManager.SetRoad(1, 1, RoadType::TURN_LEFT, Direction::EAST);
+	roadManager.SetRoad(0, 2, RoadType::SLOPE_UP, Direction::NORTH);//次はGoalを作りましょう　とりあえずゲームループの完成
+	roadManager.SetRoad(0, 3, RoadType::STRAIGHT, Direction::SOUTH);
+	roadManager.SetRoad(0, 4, RoadType::SLOPE_UP, Direction::NORTH);
+	roadManager.SetRoad(0, 5, RoadType::SLOPE_DOWN, Direction::NORTH);
+	roadManager.SetRoad(0, 6, RoadType::SLOPE_DOWN, Direction::NORTH);
+
+	//ながーーーーーいお付き合い
+	roadManager.SetRoad(0, 7, RoadType::STRAIGHT, Direction::SOUTH);
+	roadManager.SetRoad(0, 8, RoadType::STRAIGHT, Direction::SOUTH);
+	roadManager.SetRoad(0, 9, RoadType::STRAIGHT, Direction::SOUTH);
+	roadManager.SetRoad(0, 10, RoadType::STRAIGHT, Direction::SOUTH);
+	roadManager.SetRoad(0, 11, RoadType::STRAIGHT, Direction::SOUTH);
+	roadManager.SetRoad(0, 12, RoadType::STRAIGHT, Direction::SOUTH);
+	roadManager.SetRoad(0, 13, RoadType::STRAIGHT, Direction::SOUTH);
+	roadManager.SetRoad(0, 14, RoadType::STRAIGHT, Direction::SOUTH);
+	roadManager.SetRoad(0, 15, RoadType::STRAIGHT, Direction::SOUTH);
+	roadManager.SetRoad(0, 16, RoadType::STRAIGHT, Direction::SOUTH);
+	roadManager.SetRoad(0, 17, RoadType::GOAL_LINE, Direction::SOUTH);
 }
 
 void CarDriveScene::SetupEnemiesOnRoad()
@@ -692,6 +678,7 @@ void CarDriveScene::update(float deltatime)//uint64_tとfloatの衝突　圧倒的衝突
     m_sparkEmitter.Emit(pos, dir);
 	m_sparkEmitter.Update(deltatime);
 	EffectManager::Instance().Update(deltatime);
+	m_skydome->Update();
 }
 
 void CarDriveScene::draw(uint64_t deltatime)

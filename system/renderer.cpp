@@ -645,6 +645,27 @@ void Renderer::SetLight(LIGHT Light)
     m_DeviceContext->PSSetConstantBuffers(4, 1, m_LightBuffer.GetAddressOf());
 }
 
+void Renderer::SetDepthTestOnly()
+{
+    static ComPtr<ID3D11DepthStencilState> depthTestOnlyState;
+
+    if (!depthTestOnlyState)
+    {
+        D3D11_DEPTH_STENCIL_DESC desc{};
+        desc.DepthEnable = TRUE;
+        desc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
+        desc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+        desc.StencilEnable = FALSE;
+
+        m_Device->CreateDepthStencilState(
+            &desc,
+            depthTestOnlyState.GetAddressOf());
+    }
+
+    m_DeviceContext->OMSetDepthStencilState(
+        depthTestOnlyState.Get(), 0);
+}
+
 /**
  * @brief 指定したブレンドステートをセットします。
  * @param nBlendState 使用するブレンドステートの種類

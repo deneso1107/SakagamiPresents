@@ -10,5 +10,6 @@ public:
 	//virtual void update(float delta) = 0;
 	virtual void draw(uint64_t delta) = 0;
 	virtual void init() = 0;
+	virtual void loadAsync()=0;
 	virtual void dispose() = 0;
 };

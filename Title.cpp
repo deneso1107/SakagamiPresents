@@ -64,8 +64,11 @@ void Title::draw(uint64_t deltatime)
 //}
 //else
 //{
-//	m_screenBillboard->Draw();
+//	m_BillboardLoad->Draw();
 //}
+}
+void Title::loadAsync()
+{
 }
 void  Title::dispose()
 {

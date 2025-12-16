@@ -38,6 +38,7 @@ public:
 	//void update(float deltatime) override;//継承！継承
 	void draw(uint64_t deltatime) override;
 	void init() override;
+	void loadAsync() override;
 	void dispose() override;
 
 	//IMGUIデバッグ形

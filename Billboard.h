@@ -5,6 +5,11 @@
 #include "system/CMaterial.h"
 using namespace DirectX::SimpleMath;
 
+enum class BillboardBlendType
+{
+    Opaque,
+    Additive
+};
 class TextureCache
 {
 public:
@@ -57,6 +62,9 @@ private:
 public:
     Billboard();
     ~Billboard();
+
+
+    BillboardBlendType m_blendType = BillboardBlendType::Opaque;
 
     void Init(const Vector3& position, float width, float height, const wchar_t* texturePath);
     void Dispose();

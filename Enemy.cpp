@@ -191,7 +191,7 @@ void Enemy::KnockBack(float deltaTime)
     }
 
     // 完全に消す
-    if (m_KnockbackTimer <= 0.0f|| distance > 1000.0f)
+    if (m_KnockbackTimer <= 0.0f|| distance > 600.0f)
     {
         SetActive(false);
         // まだエフェクトを出していなければ出す

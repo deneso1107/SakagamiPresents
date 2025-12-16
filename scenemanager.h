@@ -2,6 +2,9 @@
 #include <memory>
 #include <unordered_map>
 #include <string>
+#include <thread>        // ★追加
+#include <atomic>        // ★追加
+#include <mutex>         // ★追加
 #include "system/noncopyable.h"
 #include "system/CShader.h"
 #include"ScreenFixedBillboard.h"
@@ -21,10 +24,11 @@ private:
     static ID3D11ShaderResourceView* m_blackFadeTexture; // ★黒画像用
     static ID3D11ShaderResourceView* m_loadingTextTexture;
     static ID3D11ShaderResourceView* m_cowIconTexture;
-    static ScreenFixedBillboard* m_screenBillboard;
     static ID3D11DepthStencilState* m_transitionDepthState;
     static ID3D11BlendState* m_transitionBlendState;
     static ID3D11SamplerState* m_transitionSamplerState;
+    static ScreenFixedBillboard* m_BillboardLoad;
+    static ScreenFixedBillboard* m_BillboardCowIcon;
 
     // トランジション用頂点構造体
     struct TransitionVertex {
@@ -72,6 +76,10 @@ private:
     static void CreateBlackTexture();
     static void LoadLoadingTextures();
 
+    static std::thread m_loadingThread;
+    static std::atomic<bool> m_asyncLoading;
+    static std::atomic<bool> m_asyncFinished;
+
 public:
     // 基本機能
     static void Init();
@@ -86,6 +94,7 @@ public:
     static void DrawBlackFade();  // ★黒背景フェード描画
     static void DrawLoadingIndicator();
     static void LoadTransitionTexture(const wchar_t* filepath );
+
 
     // シーン管理
     template<typename SceneType>

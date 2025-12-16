@@ -3,12 +3,11 @@
 #include "system/CStaticMeshRenderer.h"
 #include "system/CDirectInput.h"
 #include "skydome.h"
-
+#include"SpringCamera.h"
 void Skydome::Init()
 {
-	m_Position = Vector3(0.0f,-10.0f, 0.0f);
 	m_Rotation = Vector3(0.0f, 0.0f, 0.0f);
-	m_Scale = Vector3(15.0f, 15.0f, 15.0f);
+	m_Scale = Vector3(7.50f, 7.50f, 10.0f);//スカイドームの大きさを変えるなら太陽の位置も変える必要がある
 
 	// モデルの初期化
 	m_mesh.Load(
@@ -23,10 +22,29 @@ void Skydome::Init()
 		"shader/unlitTextureVS.hlsl",		// 頂点シェーダー
 		"shader/unlitTexturePS.hlsl");		// ピクセルシェーダー
 
+	m_SunBillboard.Init(
+		Vector3(0.0f, 0.0f, 0.0f),	//位置
+		20.0f, 20.0f,				//幅、高さ
+		L"assets/texture/cow_icon.png"	//テクスチャパス
+	);
+
+	m_SunBillboard.m_blendType = BillboardBlendType::Additive;
 }
 
 void Skydome::Update()
 {
+	// 現在のカメラ位置を取得
+	Vector3 camPos = SpringCamera::Instance().GetPosition();
+	// スカイドームを常にカメラ中心に置く
+	m_Position = camPos;
+	m_Position.y -= 300.0f;//下が見えてしまうので下にoffset
+
+	Vector3 sunDir = Vector3(0.0f, 0.15f, 1.0f);
+	sunDir.Normalize();
+	float sunDistance = 200.0f; // スカイドーム半径より小さめ
+	Vector3 sunPos = camPos + sunDir * sunDistance;
+
+	m_SunBillboard.SetPosition(sunPos);
 }
 
 void Skydome::Draw()
@@ -45,6 +63,8 @@ void Skydome::Draw()
 	Renderer::SetWorldMatrix(&worldmtx);		// GPUにセット
 	m_shader.SetGPU();		// シェーダのセット
 	m_meshrenderer.Draw();	// メッシュレンダラの描画
+
+	m_SunBillboard.Draw();
 }
 
 void Skydome::Dispose()

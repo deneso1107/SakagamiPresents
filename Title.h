@@ -10,6 +10,7 @@ public:
 	void update(float deltatime) override;
 	void draw(uint64_t deltatime) override;
 	void init() override;
+	void loadAsync() override;	
 	void dispose() override;
 	bool changepic=false;//カスコード
 	//void ChangeScene(const std::string& sceneName,bool)

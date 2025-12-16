@@ -4,6 +4,7 @@
 #include "system/CShader.h"
 #include "system/CStaticMesh.h"
 #include "system/CStaticMeshRenderer.h"
+#include"Billboard.h"
 
 class Skydome {
 
@@ -15,6 +16,8 @@ class Skydome {
 	CStaticMeshRenderer	m_meshrenderer;	// メッシュレンダラ
 	CStaticMesh			m_mesh;			// メッシュレンダラ
 	CShader				m_shader;		// シェーダ
+
+	Billboard			m_SunBillboard;	// ビルボード
 public:
 	void Init();
 	void Update();

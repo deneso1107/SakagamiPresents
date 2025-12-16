@@ -101,6 +101,8 @@ public:
     // 初期化（複数パターン）
     void Init(const MultiTreeFormationConfig& config);
 
+    void InitShared();
+
     // 更新
     void Update(float deltaTime);
 

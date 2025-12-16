@@ -188,6 +188,12 @@ void TreeManager::Init(const TreeFormationConfig& config)
     Init(multiConfig);
 }
 
+void TreeManager::InitShared()
+{
+    // 共有リソースを初期化（一度だけ実行される）
+    InitializeSharedResources();
+}
+
 // 複数パターン版（メイン実装）
 void TreeManager::Init(const MultiTreeFormationConfig& config)
 {
