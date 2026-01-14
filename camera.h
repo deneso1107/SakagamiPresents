@@ -23,6 +23,7 @@ public:
 	void SetPosition(const Vector3& position) { m_position = position; }
 	void SetLookat(const Vector3& position) { m_lookat = position; }
 	Vector3  GetPosition() { return m_position; }
+	Vector3  GetLookat() { return m_lookat; }
 
 	Matrix4x4 GetViewMatrix() const { return m_viewmtx; }
 	Matrix4x4 GetProjMatrix() const { return m_projmtx; }

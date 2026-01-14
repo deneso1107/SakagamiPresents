@@ -10,6 +10,7 @@
 #include"scenemanager.h"
 #include"RoadManager.h"
 #include"GameManager.h"
+#include"CountdownEffect.h"
 class Player:public ObjectBase 
 {
 	PlayerStateManager m_stateManager;
@@ -56,6 +57,10 @@ class Player:public ObjectBase
 	float m_spiralDesiredSpeed = 25.0f; // ★降下速度（調整可能）
 
 
+	CountdownEffect* m_countdown;
+	bool m_countdownStarted;  // カウントダウンが開始されたかのフラグ
+
+
 	// 重力関連の変数
 	float m_gravity = -0.5f;          // 重力の強さ（負の値）
 	float m_verticalVelocity = 0.0f;  // Y軸方向の速度
@@ -78,6 +83,8 @@ class Player:public ObjectBase
 	float m_BoostConsumption = 15.0f;    // ブーストの消費量（per second）
 	float m_BoostPower = 1.5f;           // ブーストの力
 	float m_MaxBoostGauge = 100.0f;      // ゲージの最大値
+
+	bool m_IsMaxSpeed=false;
 
 
 	// 滑らかな地形追従用の変数
@@ -121,11 +128,10 @@ class Player:public ObjectBase
 	void UpdateDriftMovement(float throttle, float steering, Vector3 forwardDir, Vector3 rightDir, float speedFactor/*,float deltatime*/);
 	void UpdateNormalMovement(float throttle, float steering, Vector3 forwardDir, Vector3 rightDir, float speedFactor/*,float deltatime*/);
 
-	// ★ここに追加★
 	void UpdateBoostSystem(bool boostInput, float deltaSeconds);
 	void UpdatePositionWithCollisionCheck(float deltaSeconds);
 
-	// ★★★ ハイブリッド速度システム用メソッド ★★★
+	//速度システム用
 	void UpdateSpeedBonusSystem(float deltatime);  // 速度ボーナスシステムの更新
 	float GetCurrentSpeedMultiplier() const;        // 現在の速度倍率を取得
 
@@ -141,7 +147,7 @@ class Player:public ObjectBase
 	float testparticle_x = 0.0f;
 	float testparticle_z = 0.0f;
 
-	//牛用の変数
+	//道の埋め込み防止
 	float m_groundOffset = 0.0f; // 地面補正値
 
 	//坂判定の取得
@@ -154,9 +160,12 @@ class Player:public ObjectBase
 	float m_groundStickForce = 2.0f;        // 地面への吸着力
 
 	std::function<void(bool, float)>m_PostProcessSetter;
+	bool m_PlusFov = false;
 
 	//当たり判定の半径
 	float m_CollisionRadius = 0.5f;
+
+
 
 public:
 	void Init() override;
@@ -207,6 +216,9 @@ public:
 	// アイテム取得時に呼び出す関数
 	void AddBoostGauge(float amount);
 
+	float GetSpiralTime() const { return m_spiralTime; }
+    float GetSpiralDuration() const { return m_spiralDuration; }
+
 	// ブーストゲージ関連のゲッター
 	float GetBoostGauge() const { return m_BoostGauge; }
 	void SetBoostGauge(float value)
@@ -241,6 +253,8 @@ public:
 	float GetSpeed() { return speed; }
 	float GetMaxSpeed() { return m_MaxSpeed * m_BoostRatio; }
 	float GetNormalSpeed() { return m_MaxSpeed; }
+
+	bool GetIsMaxSpeed() { return m_IsMaxSpeed; }
 
 	const PlayerStateManager& GetStateManager() const { return m_stateManager; }
 

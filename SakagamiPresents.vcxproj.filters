@@ -360,6 +360,12 @@
     <ClInclude Include="CTerrainMesh.h">
       <Filter>ヘッダー ファイル\Object\Road</Filter>
     </ClInclude>
+    <ClInclude Include="CountdownEffect.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="IntroCamera.h">
+      <Filter>ヘッダー ファイル\Camera</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Application.cpp">
@@ -592,6 +598,12 @@
     </ClCompile>
     <ClCompile Include="CTerrainMesh.cpp">
       <Filter>ソース ファイル\Object\Road</Filter>
+    </ClCompile>
+    <ClCompile Include="CountdownEffect.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="IntroCamera.cpp">
+      <Filter>ソース ファイル\Camera</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

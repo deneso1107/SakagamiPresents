@@ -434,16 +434,16 @@ BaseRoad* RoadManager::GetGoalRoad()
 }
 
 //指定したグリッド座標の道路位置を取得する
-std::optional<Vector3> RoadManager::GetRoadPosition(int x, int y) const
+Vector3 RoadManager::GetRoadPosition(int x, int y) const
 {
     // 範囲チェック
     if (x < 0 || x >= m_gridWidth || y < 0 || y >= m_gridHeight) {
-        return std::nullopt;
+        return Vector3(0,0,0);
     }
 
     // nullチェック（これがないとnullエラー）
     if (!m_roadGrid[y][x]) {
-        return std::nullopt;
+        return Vector3(0, 0, 0);
     }
 
     return m_roadGrid[y][x]->GetPosition();
@@ -490,13 +490,12 @@ std::vector<BaseRoad*> RoadManager::GetRoadByType(RoadType type) const
 
 
 //指定した道路の位置をずらした場所を取得する
-std::optional<Vector3> RoadManager::GetRoadEdgePosition(
+Vector3 RoadManager::GetRoadEdgePosition(
     int x, int y, float offsetX, float offsetZ) const
 {
     auto basePos = GetRoadPosition(x, y);
-    if (!basePos) return std::nullopt;
 
-    Vector3 pos = *basePos;
+    Vector3 pos =basePos;
     pos.x += offsetX;
     pos.z += offsetZ;
     return pos;

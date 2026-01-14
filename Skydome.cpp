@@ -4,18 +4,25 @@
 #include "system/CDirectInput.h"
 #include "skydome.h"
 #include"SpringCamera.h"
+#include"IntroCamera.h"
 void Skydome::Init()
 {
 	m_Rotation = Vector3(0.0f, 0.0f, 0.0f);
-	m_Scale = Vector3(7.50f, 7.50f, 10.0f);//スカイドームの大きさを変えるなら太陽の位置も変える必要がある
+	m_Scale = Vector3(7.50f, 10.0f, 10.0f);//スカイドームの大きさを変えるなら太陽の位置も変える必要がある
 
 	// モデルの初期化
 	m_mesh.Load(
 		"assets/model/skydome/skyDome.fbx",
 		"assets/model/");
 
+	m_mesh_night.Load(
+		"assets/model/skydome_night/night_2.fbx",
+		"assets/model/");
+
+
 	// レンダラ初期化
 	m_meshrenderer.Init(m_mesh);
+	m_meshnight_renderer.Init(m_mesh_night);
 
 	// シェーダーの初期化
 	m_shader.Create(
@@ -29,6 +36,7 @@ void Skydome::Init()
 	);
 
 	m_SunBillboard.m_blendType = BillboardBlendType::Additive;
+	Vector3 camPos = IntroCamera::Instance().GetPosition();
 }
 
 void Skydome::Update()
@@ -37,7 +45,7 @@ void Skydome::Update()
 	Vector3 camPos = SpringCamera::Instance().GetPosition();
 	// スカイドームを常にカメラ中心に置く
 	m_Position = camPos;
-	m_Position.y -= 300.0f;//下が見えてしまうので下にoffset
+	m_Position.y -= 600.0f;//下が見えてしまうので下にoffset
 
 	Vector3 sunDir = Vector3(0.0f, 0.15f, 1.0f);
 	sunDir.Normalize();
@@ -47,7 +55,7 @@ void Skydome::Update()
 	m_SunBillboard.SetPosition(sunPos);
 }
 
-void Skydome::Draw()
+void Skydome::Draw(bool isboost)
 {
 	SRT srt;
 
@@ -62,7 +70,14 @@ void Skydome::Draw()
 
 	Renderer::SetWorldMatrix(&worldmtx);		// GPUにセット
 	m_shader.SetGPU();		// シェーダのセット
-	m_meshrenderer.Draw();	// メッシュレンダラの描画
+	if (isboost)
+	{
+		m_meshnight_renderer.Draw();//ブースト時は夜
+	}
+	else
+	{
+		m_meshrenderer.Draw();	// 通常時は昼
+	}
 
 	m_SunBillboard.Draw();
 }

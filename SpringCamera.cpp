@@ -6,18 +6,15 @@
 void Spring::Update(float deltaTime)
 {
     // F = -k * x - d * v
-    // k: stiffness(バネ定数)
-    // d: damping(減衰係数)
-    // x: displacement(変位)
-    // v: velocity(速度)
-
-    Vector3 displacement = position - target;
-    Vector3 springForce = displacement * (-stiffness);
-    Vector3 dampingForce = velocity * (-damping);
-    Vector3 acceleration = springForce + dampingForce;
+	//Spring-Damper System
+    Vector3 displacement = position - target; // 変位
+    Vector3 springForce = displacement * (-stiffness);// バネの力
+    Vector3 dampingForce = velocity * (-damping);// 減衰力
+    Vector3 acceleration = springForce + dampingForce;// 加速度
 
     velocity += acceleration * deltaTime;
     position += velocity * deltaTime;
+
 }
 
 void Spring::Snap()
@@ -43,7 +40,7 @@ SpringCamera::SpringCamera()
     // 通常パラメータ
     m_normalParams.distance = 75.0f;
     m_normalParams.height = 6.0f;
-    m_normalParams.fov = 45.0f;
+    m_normalParams.fov = 35.0f;
     m_normalParams.anticipation = 0.3f;
     m_normalParams.lookAheadDist = 0.5f;
     m_normalParams.positionStiffness = 150.0f;
@@ -55,16 +52,16 @@ SpringCamera::SpringCamera()
     // 加速パラメータ
     m_boostParams.distance = 55.0f;
     m_boostParams.height = 8.0f;
-    m_boostParams.fov = 55.0f;
+    m_boostParams.fov = 45.0f;
     m_boostParams.anticipation = 0.5f;
     m_boostParams.lookAheadDist = 0.8f;
-    m_boostParams.positionStiffness = 100.0f;  // 少し柔らかく
-    m_boostParams.positionDamping = 18.0f;
-    m_boostParams.lookAtStiffness = 180.0f;
-    m_boostParams.lookAtDamping = 22.0f;
+    m_boostParams.positionStiffness = 5.0f;// 少し柔らかく(値が小さければ小さいほど距離が広くなる)
+	m_boostParams.positionDamping = 2.0f;
+    m_boostParams.lookAtStiffness = 150.0f;
+    m_boostParams.lookAtDamping = 20.0f;
 	m_boostParams.name = 'B';
 
-    m_currentParams = m_normalParams;
+	m_currentParams = m_normalParams;// 初期状態は通常パラメータ
 }
 
 SpringCamera& SpringCamera::Instance()
@@ -107,7 +104,7 @@ void SpringCamera::Update(float deltaTime)
     // 現在の状態に応じたパラメータを取得
     CameraParams targetParams = DetermineTargetParams();
 
-    // パラメータを滑らかに遷移
+    // パラメータを遷移
     m_currentParams.distance = Lerp(m_currentParams.distance, targetParams.distance, m_transitionSpeed);
     m_currentParams.height = Lerp(m_currentParams.height, targetParams.height, m_transitionSpeed);
     m_currentParams.fov = Lerp(m_currentParams.fov, targetParams.fov, m_transitionSpeed);
@@ -120,11 +117,11 @@ void SpringCamera::Update(float deltaTime)
     m_lookAtSpring.stiffness = Lerp(m_lookAtSpring.stiffness, targetParams.lookAtStiffness, m_transitionSpeed);
     m_lookAtSpring.damping = Lerp(m_lookAtSpring.damping, targetParams.lookAtDamping, m_transitionSpeed);
 
-    // ★ 坂道対応: ピッチオフセットを計算
+    // 坂道のピッチオフセットを計算
     m_targetPitchOffset = CalculatePitchOffset();
     m_currentPitchOffset = Lerp(m_currentPitchOffset, m_targetPitchOffset, m_pitchTransitionSpeed);
 
-    // 理想的なカメラ位置を計算（基本ピッチ + 坂道オフセット）
+    // カメラ位置を計算（基本ピッチ + 坂道オフセット）
     m_positionSpring.target = CalculateIdealCameraPositionWithPitch();
     m_lookAtSpring.target = CalculateIdealLookAtPosition();
 
@@ -132,7 +129,7 @@ void SpringCamera::Update(float deltaTime)
     m_positionSpring.Update(deltaTime);
     m_lookAtSpring.Update(deltaTime);
 
-    // 基底クラスに反映
+    // 反映
     m_position = m_positionSpring.position;
     m_lookat = m_lookAtSpring.position;
 

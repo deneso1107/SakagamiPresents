@@ -30,6 +30,7 @@
 
 #include"SimpleCamera.h"
 #include"ChaseCamera.h"
+#include"IntroCamera.h"
 class CarDriveScene : public IScene
 {
 public:
@@ -61,6 +62,7 @@ public:
 	}
 
 	void SetupEnemiesOnRoad();
+	void SetupTreeOnRoad();
 
 	bool m_enableMotionBlur = true;
 	bool m_enableChromaticAberration = false;
@@ -135,5 +137,6 @@ private:
 	CameraManager m_CameraManager;
 
 	Camera* m_currentCamera;
+	IntroCamera* m_introCamera = nullptr;  // ★IntroCamera専用ポインタ
 };
 //このカメラにビルボードを対応させよう

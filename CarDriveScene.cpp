@@ -239,9 +239,12 @@ void CarDriveScene::init()
 	SimpleFollowCamera::Instance().Init();	
 	CheeseCamera::Instance().SetTargetPlayer(m_player.get());
 	CheeseCamera::Instance().Init();
-	m_currentCamera = &SpringCamera::Instance();
+	IntroCamera::Instance().SetTargetPlayer(m_player.get());
+	IntroCamera::Instance().Init();
+	m_introCamera = &IntroCamera::Instance();
 
-	//m_FreeCamera.Init();
+	m_currentCamera = &IntroCamera::Instance();
+
 
 
 	// スカイドームの初期化
@@ -270,17 +273,7 @@ void CarDriveScene::init()
 		m_player->StartRaceSequence(startPos);
 		//敵配置
 		SetupEnemiesOnRoad();
-
-		 // 直線配置（道の右側に20本）
-		TreeFormationConfig treeconfig;
-		treeconfig.formation = TreeFormation::LINE;
-		treeconfig.treeCount = 80;
-		treeconfig.centerPos = startPos;
-		treeconfig.centerPos.x += (start->GetActualModelSize().x*start->GetScale().x) / 2; // 道の右側に配置
-		treeconfig.centerPos.y += treeconfig.centerPos.y/2;
-		treeconfig.spacing =50.0f;  // 50m間隔
-
-		m_TreeManager.Init(treeconfig);
+		SetupTreeOnRoad();
 	}
 
 	m_player->SetPostProcessSetter([this](bool use, float strength) {
@@ -297,77 +290,59 @@ void CarDriveScene::init()
 	{
 		OutputDebugStringA("サンプラーステート作成失敗\n");
 	}
-
-	// デバッグフリーカメラ
-	DebugUI::RedistDebugFunction([this]() {
-		debugFreeCamera();
-		});
-
-	// デバッグLIGHT
-	DebugUI::RedistDebugFunction([this]()
-		{
-			debugDirectionalLight();
-		});
-	DebugUI::RedistDebugFunction([this]()
-		{
-			debugParticlePos();
-		});
-	// デバッグLIGHT
-	DebugUI::RedistDebugFunction([this]()
-		{
-			debugChangeCamera();
-		});
 }
 
 void CarDriveScene::loadAsync()
 {
 	roadManager.ResizeGrid(4, 18);//East=東　West＝西　North＝北　South＝南
 	roadManager.InitializeGridSpacing();  // グリッド間隔を初期化
-	roadManager.SetRoad(0, 0, RoadType::START_LINE, Direction::SOUTH);
-	roadManager.SetRoad(0, 1, RoadType::STRAIGHT, Direction::SOUTH);
+	roadManager.SetRoad(0, 1, RoadType::START_LINE, Direction::SOUTH);
+	roadManager.SetRoad(0, 2, RoadType::STRAIGHT, Direction::SOUTH);
 	roadManager.SetRoad(1, 1, RoadType::TURN_LEFT, Direction::EAST);
-	roadManager.SetRoad(0, 2, RoadType::SLOPE_UP, Direction::NORTH);//次はGoalを作りましょう　とりあえずゲームループの完成
-	roadManager.SetRoad(0, 3, RoadType::STRAIGHT, Direction::SOUTH);
-	roadManager.SetRoad(0, 4, RoadType::SLOPE_UP, Direction::NORTH);
-	roadManager.SetRoad(0, 5, RoadType::SLOPE_DOWN, Direction::NORTH);
+	roadManager.SetRoad(0, 3, RoadType::SLOPE_UP, Direction::NORTH);//次はGoalを作りましょう　とりあえずゲームループの完成
+	roadManager.SetRoad(0, 4, RoadType::STRAIGHT, Direction::SOUTH);
+	roadManager.SetRoad(0, 5, RoadType::SLOPE_UP, Direction::NORTH);
 	roadManager.SetRoad(0, 6, RoadType::SLOPE_DOWN, Direction::NORTH);
+	roadManager.SetRoad(0, 7, RoadType::SLOPE_DOWN, Direction::NORTH);
+	roadManager.SetRoad(0, 8, RoadType::STRAIGHT, Direction::NORTH);
+	roadManager.SetRoad(0, 9, RoadType::TURN_LEFT, Direction::NORTH);
+	roadManager.SetRoad(1, 9, RoadType::STRAIGHT, Direction::EAST);
+	roadManager.SetRoad(2, 9, RoadType::TURN_LEFT, Direction::EAST);
+	roadManager.SetRoad(2, 8, RoadType::STRAIGHT, Direction::SOUTH);
+	roadManager.SetRoad(2, 7, RoadType::STRAIGHT, Direction::SOUTH);
+	roadManager.SetRoad(2, 6, RoadType::STRAIGHT, Direction::SOUTH);
+	roadManager.SetRoad(2, 5, RoadType::STRAIGHT, Direction::SOUTH);
+	roadManager.SetRoad(2, 4, RoadType::STRAIGHT, Direction::SOUTH);
+	roadManager.SetRoad(2, 3, RoadType::STRAIGHT, Direction::SOUTH);
+	roadManager.SetRoad(2, 2, RoadType::STRAIGHT, Direction::SOUTH);
+	roadManager.SetRoad(2, 1, RoadType::STRAIGHT, Direction::SOUTH);
+	roadManager.SetRoad(2, 0, RoadType::TURN_LEFT, Direction::SOUTH);
+	roadManager.SetRoad(1, 0, RoadType::GOAL_LINE, Direction::EAST);
+	roadManager.SetRoad(0, 0, RoadType::TURN_LEFT, Direction::WEST);
 
-	//ながーーーーーいお付き合い
-	roadManager.SetRoad(0, 7, RoadType::STRAIGHT, Direction::SOUTH);
-	roadManager.SetRoad(0, 8, RoadType::STRAIGHT, Direction::SOUTH);
-	roadManager.SetRoad(0, 9, RoadType::STRAIGHT, Direction::SOUTH);
-	roadManager.SetRoad(0, 10, RoadType::STRAIGHT, Direction::SOUTH);
-	roadManager.SetRoad(0, 11, RoadType::STRAIGHT, Direction::SOUTH);
-	roadManager.SetRoad(0, 12, RoadType::STRAIGHT, Direction::SOUTH);
-	roadManager.SetRoad(0, 13, RoadType::STRAIGHT, Direction::SOUTH);
-	roadManager.SetRoad(0, 14, RoadType::STRAIGHT, Direction::SOUTH);
-	roadManager.SetRoad(0, 15, RoadType::STRAIGHT, Direction::SOUTH);
-	roadManager.SetRoad(0, 16, RoadType::STRAIGHT, Direction::SOUTH);
-	roadManager.SetRoad(0, 17, RoadType::GOAL_LINE, Direction::SOUTH);
+
+
+	////ながーーーーーいお付き合い
+	//roadManager.SetRoad(0, 7, RoadType::STRAIGHT, Direction::SOUTH);
+	//roadManager.SetRoad(0, 8, RoadType::STRAIGHT, Direction::SOUTH);
+	//roadManager.SetRoad(0, 9, RoadType::STRAIGHT, Direction::SOUTH);
+	//roadManager.SetRoad(0, 10, RoadType::STRAIGHT, Direction::SOUTH);
+	//roadManager.SetRoad(0, 11, RoadType::STRAIGHT, Direction::SOUTH);
+	//roadManager.SetRoad(0, 12, RoadType::STRAIGHT, Direction::SOUTH);
+	//roadManager.SetRoad(0, 13, RoadType::STRAIGHT, Direction::SOUTH);
+	//roadManager.SetRoad(0, 14, RoadType::STRAIGHT, Direction::SOUTH);
+	//roadManager.SetRoad(0, 15, RoadType::STRAIGHT, Direction::SOUTH);
+	//roadManager.SetRoad(0, 16, RoadType::STRAIGHT, Direction::SOUTH);
+	//roadManager.SetRoad(0, 17, RoadType::GOAL_LINE, Direction::SOUTH);
 }
-
 void CarDriveScene::SetupEnemiesOnRoad()
 {
 	MultiFormationConfig config;
 	config.totalEnemyCount = 100;  // 合計10体
 
-
-	//auto roadPos=roadManager.GetRoadPosition(0,3);
-
-	//// 縦列配置で4体
-	//FormationConfig line;
-	//line.formation = EnemyFormation::LINE;
-	//line.enemyCount = 4;
-	//if (roadPos)//チェック
-	//{
-	//	line.centerPos = *roadPos;
-	//}
-	//line.spacing = 15.0f;
-	//config.AddFormation(line);
-
 	std::vector<BaseRoad*> straightRoads = roadManager.GetRoadByType(RoadType::STRAIGHT);
-	for(auto& road:straightRoads)
-	{ 
+	for (auto& road : straightRoads)
+	{
 		if (!straightRoads.empty())
 		{
 			FormationConfig line;
@@ -377,7 +352,7 @@ void CarDriveScene::SetupEnemiesOnRoad()
 			switch (road->GetDirection())//角度に応じて敵の配置位置を調整
 			{
 			case Direction::WEST:
-				line.diagonalAngle =90.0f;//←←←
+				line.diagonalAngle = 90.0f;//←←←
 				break;
 			case Direction::SOUTH:
 				line.diagonalAngle = -0.0f;//↓↓↓↓↓
@@ -401,17 +376,17 @@ void CarDriveScene::SetupEnemiesOnRoad()
 		if (!rightTurnRoads.empty())
 		{
 			FormationConfig right;
-		    right.formation = EnemyFormation::DIAGONAL;
-		    right.enemyCount = 5;
+			right.formation = EnemyFormation::DIAGONAL;
+			right.enemyCount = 5;
 			Vector3 offset;
 			switch (road->GetDirection())//角度に応じて敵の配置位置を調整
 			{
-				case Direction::NORTH:
+			case Direction::NORTH:
 				right.diagonalAngle = 45.0f;
 				offset = Vector3(0.0f, 0.0f, -100.0f); // 適切なオフセット値を設定
 				break;
-				case Direction::EAST:
-				right.diagonalAngle =135.0f;
+			case Direction::EAST:
+				right.diagonalAngle = 135.0f;
 				offset = Vector3(-100.0f, 0.0f, 0.0f); // 適切なオフセット値を設定
 				break;
 
@@ -436,6 +411,104 @@ void CarDriveScene::SetupEnemiesOnRoad()
 	//config.AddFormation(random);
 
 	InitEnemiesWithMultiFormation(this, m_field.get(), config);
+}	
+void CarDriveScene::SetupTreeOnRoad()
+{
+	MultiTreeFormationConfig config;
+	config.totalTreeCount = 200;  // 合計10体
+
+
+	//treeconfig_right.centerPos.x += (start->GetActualModelSize().x * start->GetScale().x) / 2;
+	//treeconfig_right.centerPos.y += treeconfig_right.centerPos.y / 2;
+
+	std::vector<BaseRoad*> straightRoads = roadManager.GetRoadByType(RoadType::STRAIGHT);
+	for(auto& road:straightRoads)
+	{ 
+		if (!straightRoads.empty())
+		{
+			TreeFormationConfig treeconfig_right;
+			TreeFormationConfig treeconfig_left;
+			 treeconfig_right.treeCount = 2;
+			 treeconfig_right.centerPos = road->GetPosition();  // 最初のストレート道路
+			 treeconfig_right.randomizeScale = false;
+			 treeconfig_left.treeCount = 1;
+			 treeconfig_left.centerPos = road->GetPosition();  // 最初のストレート道路
+			 treeconfig_left.randomizeScale = false;
+			switch (road->GetDirection())//角度に応じて敵の配置位置を調整
+			{
+			case Direction::WEST:
+
+				break;
+			case Direction::SOUTH:
+				treeconfig_right.formation = TreeFormation::LINE;
+				treeconfig_right.centerPos.x += (road->GetActualModelSize().x * road->GetScale().x) / 2;
+				treeconfig_right.centerPos.z -= (road->GetActualModelSize().z * road->GetScale().z) / 2.5;
+
+				treeconfig_left.formation = TreeFormation::LINE;
+				treeconfig_left.centerPos.x -= (road->GetActualModelSize().x * road->GetScale().x) / 2;
+				treeconfig_left.centerPos.z -= (road->GetActualModelSize().z * road->GetScale().z) / 2.5;
+				break;
+			case Direction::EAST:
+				treeconfig_right.formation = TreeFormation::LINE_X;
+				treeconfig_right.centerPos.x -= (road->GetActualModelSize().x * road->GetScale().x) / 2;
+				treeconfig_right.centerPos.z -= (road->GetActualModelSize().z * road->GetScale().z) / 5;
+
+				treeconfig_left.formation = TreeFormation::LINE_X;
+				treeconfig_left.centerPos.x -= (road->GetActualModelSize().x * road->GetScale().x) / 2;
+				treeconfig_left.centerPos.z += (road->GetActualModelSize().z * road->GetScale().z) / 5;
+				break;
+			case Direction::NORTH:
+				break;
+
+			}
+			treeconfig_right.spacing = 100.0f;
+			treeconfig_left.spacing = 150.0f;
+
+			config.AddFormation(treeconfig_right);
+			config.AddFormation(treeconfig_left);
+		}
+	}
+	//std::vector<BaseRoad*> rightTurnRoads = roadManager.GetRoadByType(RoadType::TURN_LEFT);
+	//for (auto& road : rightTurnRoads)
+	//{
+	//	if (!rightTurnRoads.empty())
+	//	{
+	//		FormationConfig right;
+	//	    right.formation = EnemyFormation::DIAGONAL;
+	//	    right.enemyCount = 5;
+	//		Vector3 offset;
+	//		switch (road->GetDirection())//角度に応じて敵の配置位置を調整
+	//		{
+	//			case Direction::NORTH:
+	//			right.diagonalAngle = 45.0f;
+	//			offset = Vector3(0.0f, 0.0f, -100.0f); // 適切なオフセット値を設定
+	//			break;
+	//			case Direction::EAST:
+	//			right.diagonalAngle =135.0f;
+	//			offset = Vector3(-100.0f, 0.0f, 0.0f); // 適切なオフセット値を設定
+	//			break;
+
+	//		}
+	//		right.centerPos = road->GetPosition() + offset;  // 最初のストレート道路
+	//		config.AddFormation(right);
+	//	}
+	//}
+
+	//// 円形配置で3体
+	//FormationConfig circle;
+	//circle.formation = EnemyFormation::CIRCLE;
+	//circle.enemyCount = 5;
+	//circle.centerPos = startPos;
+	//circle.circleRadius = 30.0f;
+	//config.AddFormation(circle);
+
+	//// ランダム配置で残り3体
+	//FormationConfig random;
+	//random.formation = EnemyFormation::RANDOM;
+	//random.enemyCount = 3;
+	//config.AddFormation(random);
+
+	m_TreeManager.Init(config);
 }
 
 float m_slowMotionStartTime = -1.0f;
@@ -458,6 +531,28 @@ void CarDriveScene::update(float deltatime)//uint64_tとfloatの衝突　圧倒的衝突
 	}
 	if (CDirectInput::GetInstance().CheckKeyBuffer(DIK_4)) {
 		m_currentCamera = &CheeseCamera::Instance();
+	}
+
+
+	if (m_introCamera->IsIntroFinished()) {
+		// ★★★ SpringCameraのスプリングをIntroCameraの最終状態で初期化 ★★★
+		SpringCamera& springCam = SpringCamera::Instance();
+
+		// 位置スプリングを現在の状態に設定
+		Spring posSpring = springCam.GetPositionSpring();
+		posSpring.position = m_introCamera->GetPosition();
+		posSpring.velocity = Vector3(0, 0, 0);  // 速度はリセット
+		springCam.SetPositionSpring(posSpring);
+
+		// LookAtスプリングも同様
+		Spring lookSpring = springCam.GetLookAtSpring();
+		lookSpring.position = m_introCamera->GetLookat();
+		lookSpring.velocity = Vector3(0, 0, 0);
+		springCam.SetLookAtSpring(lookSpring);
+
+		// カメラ切り替え
+		m_currentCamera = &springCam;
+		m_introCamera->ResetIntro();
 	}
 
 	//次は加速しましょう
@@ -643,29 +738,29 @@ void CarDriveScene::update(float deltatime)//uint64_tとfloatの衝突　圧倒的衝突
 	roadManager.UpdateAll(deltatime); // 道路マネージャの描画
 	bool onField = false;
 
-	//if (GM31::GE::Collision::CollisionSphereAABB(m_player->GetCollision(), m_field->GetFieldCollision()))
-	//{
-	//	// フィールドに接触している場合
-	//	Vector3 playerPos = m_player->GetPosition();
-	//	float fieldTop = m_field->GetFieldCollision().max.y;
+	if (GM31::GE::Collision::CollisionSphereAABB(m_player->GetCollision(), m_field->GetFieldCollision()))
+	{
+		// フィールドに接触している場合
+		Vector3 playerPos = m_player->GetPosition();
+		float fieldTop = m_field->GetFieldCollision().max.y;
 
-	//	// プレイヤーがフィールドの上にいるかチェック
-	//	if (playerPos.y - m_player->GetCollision().radius <= fieldTop + 0.1f) {
+		// プレイヤーがフィールドの上にいるかチェック
+		if (playerPos.y - m_player->GetCollision().radius <= fieldTop + 0.1f) {
 
-	//		//// GameSceneのUpdate内で、位置を強制変更する前にプレイヤーの状態を保存
-	//		//Vector3 originalVelocity = m_player->GetVelocity();
-	//		//// 位置補正後
-	//		//m_player->SetVelocity(originalVelocity); // 速度を復元
-	//		// フィールドの上に配置
-	//		playerPos.y = fieldTop + m_player->GetCollision().radius;
-	//		m_player->SetPosition(playerPos);
-	//		m_player->SetGrounded(true);
-	//		onField = true;
+			//// GameSceneのUpdate内で、位置を強制変更する前にプレイヤーの状態を保存
+			//Vector3 originalVelocity = m_player->GetVelocity();
+			//// 位置補正後
+			//m_player->SetVelocity(originalVelocity); // 速度を復元
+			// フィールドの上に配置
+			playerPos.y = fieldTop + m_player->GetCollision().radius;
+			m_player->SetPosition(playerPos);
+			m_player->SetGrounded(true);
+			onField = true;
 
-	//		// 垂直速度をリセット
-	//		m_player->ResetVerticalVelocity();
-	//	}
-	//}
+			// 垂直速度をリセット
+			m_player->ResetVerticalVelocity();
+		}
+	}
 	UpdateEnemies(deltatime);
 	// 道路の更新
 
@@ -756,15 +851,15 @@ void CarDriveScene::draw(uint64_t deltatime)
 	//	m_segments[axisno]->Draw(rotmtx, axiscol[axisno]);
 	//}
 
-	m_skydome->Draw();
+	m_skydome->Draw(m_player->GetIsMaxSpeed());
 	//m_road->Draw();
-	m_player->Draw();
 	m_goal->Draw();
 	m_item->Draw();
 	DrawEnemies();
 	roadManager.DrawAll();
 	m_TreeManager.Draw();
-	m_field->Draw();
+	//m_field->Draw();
+	m_player->Draw();
 
 	EffectManager::Instance().Draw(context,viewMatrix);
 	m_sparkEmitter.Render(context, worldMatrix);

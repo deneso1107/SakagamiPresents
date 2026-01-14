@@ -21,6 +21,7 @@ float4 main(PS_INPUT input) : SV_TARGET
     float2 dir = input.texCoord - center;
     float distance = length(dir);
     
+    // •úŽËƒuƒ‰-    
     float4 color = float4(0, 0, 0, 0);
     float4 glowColor = float4(0, 0, 0, 0);
     int samples = 12;

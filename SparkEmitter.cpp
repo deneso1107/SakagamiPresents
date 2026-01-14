@@ -31,25 +31,24 @@ bool SparkEmitter::Init(ID3D11Device* device)
 
 void SparkEmitter::Update(float deltaTime)
 {
-    float deltaTimeInMicroseconds = deltaTime;
 
     for (auto& p : m_particles)
     {
-        p.life += deltaTimeInMicroseconds;
+        p.life += deltaTime;
 
-        // ★ 現在設定されている動作タイプで更新
+        //現在設定されている動作タイプで更新
         switch (m_BehaviorType)
         {
         case ParticleBehaviorType::Burst:
-            UpdateBurst(p, deltaTimeInMicroseconds);
+            UpdateBurst(p, deltaTime);
             break;
 
         case ParticleBehaviorType::Continuous:
-            UpdateContinuous(p, deltaTimeInMicroseconds);
+            UpdateContinuous(p, deltaTime);
             break;
 
         case ParticleBehaviorType::Trail:
-            UpdateTrail(p, deltaTimeInMicroseconds);
+            UpdateTrail(p, deltaTime);
             break;
         }
     }
@@ -60,7 +59,7 @@ void SparkEmitter::Update(float deltaTime)
         m_particles.end()
     );
 }
-// ★ バースト型の更新
+//バースト型の更新
 void SparkEmitter::UpdateBurst(Particle& p, float deltaTime)
 {
     p.pos.x += p.velocity.x * deltaTime;
@@ -76,7 +75,7 @@ void SparkEmitter::UpdateBurst(Particle& p, float deltaTime)
     p.color.w = fadeT;
 }
 
-// ★ 連続型の更新（砂煙用）
+//連続型の更新（砂煙用）
 void SparkEmitter::UpdateContinuous(Particle& p, float deltaTime)
 {
     // 重力的な減速
@@ -102,7 +101,7 @@ void SparkEmitter::UpdateContinuous(Particle& p, float deltaTime)
     p.color.w = fadeT;
 }
 
-// ★ 軌跡型の更新
+//軌跡型の更新
 void SparkEmitter::UpdateTrail(Particle& p, float deltaTime)
 {
     p.velocity.x *= 0.9f;
@@ -166,7 +165,7 @@ void SparkEmitter::CreateBuffers()
     cbDesc.CPUAccessFlags = 0;
     device->CreateBuffer(&cbDesc, nullptr, &m_constantBuffer);
 
-    // ★ ブレンドステート作成
+    //ブレンドステート作成
     D3D11_BLEND_DESC blendDesc = {};
     blendDesc.RenderTarget[0].BlendEnable = TRUE;
     blendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
@@ -184,7 +183,7 @@ void SparkEmitter::CreateBuffers()
 
     D3D11_DEPTH_STENCIL_DESC dsDesc = {};
     dsDesc.DepthEnable = TRUE;                    // 深度テストは有効
-    dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;  // ★ 深度書き込みOFF
+    dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;  //深度書き込みOFF
     dsDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
 
     hr = device->CreateDepthStencilState(&dsDesc, m_depthStencilState.GetAddressOf());
@@ -192,7 +191,7 @@ void SparkEmitter::CreateBuffers()
         OutputDebugStringA("深度ステンシルステート作成失敗\n");
     }
 
-    // ★ サンプラーステート作成
+    //サンプラーステート作成
     D3D11_SAMPLER_DESC sampDesc = {};
     sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
     sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
@@ -231,7 +230,7 @@ void SparkEmitter::SetupRenderState()
     // ブレンドステート設定（加算合成）
     context->OMSetBlendState(m_blendState.Get(), nullptr, 0xFFFFFFFF);
 
-    // ★ 深度ステンシルステート設定（追加）
+    //深度ステンシルステート設定（追加）
     context->OMSetDepthStencilState(m_depthStencilState.Get(), 0);
 
     // テクスチャとサンプラー設定
@@ -273,7 +272,7 @@ void SparkEmitter::Render(ID3D11DeviceContext* context, const DirectX::XMMATRIX&
 
     // --- 5. インスタンスデータ作成 ---
     std::vector<InstanceData> instances;
-   // ★ emitterのワールド行列（位置）を加味する
+   //emitterのワールド行列（位置）を加味する
         DirectX::XMMATRIX emitterWorld = DirectX::XMMatrixTranslation(m_Position.x, m_Position.y, m_Position.z);
 
     for (const auto& p : m_particles)
@@ -281,7 +280,7 @@ void SparkEmitter::Render(ID3D11DeviceContext* context, const DirectX::XMMATRIX&
         DirectX::XMMATRIX scale = DirectX::XMMatrixScaling(p.size, p.size, p.size);
         DirectX::XMMATRIX trans = DirectX::XMMatrixTranslation(p.pos.x, p.pos.y, p.pos.z);
 
-        // ✅ ローカル(粒子) → エミッタ位置(ワールド)
+        //ローカル(粒子) → エミッタ位置(ワールド)
         DirectX::XMMATRIX world = scale * billboardRot * trans * emitterWorld;
 
         InstanceData inst;
@@ -353,7 +352,7 @@ void SparkEmitter::EmitBurst(const DirectX::XMFLOAT3& pos, const DirectX::XMFLOA
             sinf(randomAngle) * cosf(randomPitch) * speed
         };
 
-        float t = static_cast<float>(rand() % 100) / 100.0f;
+        float t = static_cast<float>(rand() % 100) / 100.0f;//複数の色幅を持たせる
         p.color = {
             LerpFloat(m_StartColor.x, m_EndColor.x, t),
             LerpFloat(m_StartColor.y, m_EndColor.y, t),
@@ -362,14 +361,14 @@ void SparkEmitter::EmitBurst(const DirectX::XMFLOAT3& pos, const DirectX::XMFLOA
         };
 
         p.life = 0.0f;
-        p.lifespan = 0.5f + (rand() % 100) / 100.0f * 0.5f;
-        p.size = m_ParticleSize;
+		p.lifespan = 0.5f + (rand() % 100) / 100.0f * 0.5f;//寿命0.5〜1.0秒
+		p.size = m_ParticleSize;
 
         m_particles.push_back(p);
     }
 }
 
-// ★ 連続型の放出（砂煙用）
+// 連続型の放出（砂煙用）
 void SparkEmitter::EmitContinuous(const DirectX::XMFLOAT3& pos, const DirectX::XMFLOAT3& dir)
 {
     if (m_particles.size() >= m_maxParticles) return;
@@ -411,7 +410,7 @@ void SparkEmitter::EmitContinuous(const DirectX::XMFLOAT3& pos, const DirectX::X
     }
 }
 
-// ★ 軌跡型の放出
+//軌跡型の放出
 void SparkEmitter::EmitTrail(const DirectX::XMFLOAT3& pos, const DirectX::XMFLOAT3& dir)
 {
     if (m_particles.size() >= m_maxParticles) return;
@@ -432,56 +431,6 @@ void SparkEmitter::EmitTrail(const DirectX::XMFLOAT3& pos, const DirectX::XMFLOA
 
     m_particles.push_back(p);
 }
-
-//void SparkEmitter::Emit(const DirectX::XMFLOAT3& m_ParticlePos, const DirectX::XMFLOAT3& dir)//ここのpositionはパーティクルを出したい位置を指定
-//{
-//    // ★ 上限チェック：超過している場合は何もしない
-//    if (m_particles.size() >= m_maxParticles)
-//    {
-//        return;  // ← 重要：ここで終了
-//    }
-//
-//    const int sparksToEmit = 100;
-//    for (int i = 0; i < sparksToEmit && m_particles.size() < m_maxParticles; ++i)
-//    {
-//        Particle p;
-//
-//        // 位置のランダム化
-//        p.m_ParticlePos = {
-//            m_ParticlePos.x + (rand() % 100 - 50) * 0.001f,
-//            m_ParticlePos.y + (rand() % 100 - 50) * 0.001f,
-//            m_ParticlePos.z + (rand() % 100 - 50) * 0.001f
-//        };
-//
-//        // 拡散角度に応じた速度を計算
-//        float randomAngle = (rand() % 360) * 3.14159f / 180.0f;
-//        float randomPitch = (rand() % (int)m_SpreadAngle - m_SpreadAngle / 2) * 3.14159f / 180.0f;
-//
-//        // 速度のランダム化
-//        float speed = m_MinSpeed + (rand() % 100) / 100.0f * (m_MaxSpeed - m_MinSpeed);
-//
-//        p.velocity = {
-//            dir.x * speed + cosf(randomAngle) * cosf(randomPitch) * speed,
-//            dir.y * speed + sinf(randomPitch) * speed,
-//            dir.z * speed + sinf(randomAngle) * cosf(randomPitch) * speed
-//        };
-//
-//        // 設定した色の範囲で補間
-//        float t = static_cast<float>(rand() % 100) / 100.0f;
-//        p.color = {
-//            LerpFloat(m_StartColor.x, m_EndColor.x, t),
-//            LerpFloat(m_StartColor.y, m_EndColor.y, t),
-//            LerpFloat(m_StartColor.z, m_EndColor.z, t),
-//            1.0f  // ★ 初期アルファ = 1.0
-//        };
-//
-//        p.life = 0.0f;
-//        p.lifespan = 0.5f + (rand() % 100) / 100.0f * 0.5f;  // 0.5～1.0秒
-//        p.size = m_ParticleSize;
-//
-//        m_particles.push_back(p);
-//    }
-//}
 
 SparkEmitter::~SparkEmitter()
 {

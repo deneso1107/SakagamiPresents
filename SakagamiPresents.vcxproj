@@ -30,6 +30,8 @@
     <ClInclude Include="CarDriveScene.h" />
     <ClInclude Include="CarPhysics.h" />
     <ClInclude Include="ChaseCamera.h" />
+    <ClInclude Include="CountdownEffect.h" />
+    <ClInclude Include="IntroCamera.h" />
     <ClInclude Include="SpringCamera.h" />
     <ClInclude Include="CollisionCameraState.h" />
     <ClInclude Include="CTerrainMesh.h" />
@@ -130,6 +132,8 @@
     <ClCompile Include="CarDriveScene.cpp" />
     <ClCompile Include="CarPhysics.cpp" />
     <ClCompile Include="ChaseCamera.cpp" />
+    <ClCompile Include="CountdownEffect.cpp" />
+    <ClCompile Include="IntroCamera.cpp" />
     <ClCompile Include="SpringCamera.cpp" />
     <ClCompile Include="CTerrainMesh.cpp" />
     <ClCompile Include="Dirt.cpp" />

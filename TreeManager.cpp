@@ -48,14 +48,14 @@ void TreeManager::CalculateTreeTransform(
     int localIndex = index - startIndex;  // このパターン内でのインデックス
 
     // スケールの初期化
-    outScale = Vector3(1.0f, 1.0f, 1.0f);
+    float normalScale = config.minScale + config.maxScale / 2;
+    outScale = Vector3(normalScale, normalScale, normalScale);
     if (config.randomizeScale)
     {
         std::uniform_real_distribution<float> scaleDist(config.minScale, config.maxScale);
         float scale = scaleDist(mt);
         outScale = Vector3(scale, scale, scale);
     }
-
     // 回転の初期化
     outRot = Vector3(0.0f, 0.0f, 0.0f);
     if (config.randomizeRotation)
@@ -65,7 +65,8 @@ void TreeManager::CalculateTreeTransform(
     }
 
 	float Offset_Y = -s_TreeMesh.GetBottomY() * outScale.y; // 底面の位置に合わせてYオフセットを調整
-
+    float adjustedYOffset = config.yOffset - Offset_Y;
+        
     // 位置の計算
     switch (config.formation)
     {
@@ -89,6 +90,23 @@ void TreeManager::CalculateTreeTransform(
         {
             std::uniform_real_distribution<float> offsetDist(-config.spacing * 0.2f, config.spacing * 0.2f);
             outPos.x += offsetDist(mt);
+        }
+        break;
+    }
+
+    case TreeFormation::LINE_X:
+    {
+        // 直線配置（X軸方向に並べる・横）
+        outPos = config.centerPos;
+        outPos.y += adjustedYOffset;  // 調整済みY軸オフセット使用
+        outPos.x += localIndex * config.spacing;
+
+        // 少しランダムなずれを追加（自然な感じに）
+        if (config.randomizeScale)
+        {
+
+            std::uniform_real_distribution<float> offsetDist(-config.spacing * 0.2f, config.spacing * 0.2f);
+            outPos.z += offsetDist(mt);
         }
         break;
     }
@@ -198,7 +216,7 @@ void TreeManager::InitShared()
 void TreeManager::Init(const MultiTreeFormationConfig& config)
 {
     // 共有リソースを初期化（一度だけ実行される）
-    InitializeSharedResources();
+        InitializeSharedResources();
 
     // バリデーションチェック
     if (!config.Validate())

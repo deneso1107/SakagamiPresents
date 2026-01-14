@@ -162,18 +162,23 @@ float4 main(PS_INPUT input) : SV_TARGET
     float2 fromCenter = input.texCoord - center;
     float distance = length(fromCenter);
     float2 dir = normalize(fromCenter);
-    float2 toCenter = -dir;
     
+    // 中心に向かう方向
+    float2 toCenter = -dir;
+    // 中心からの距離を計算
     float edgeFactor = smoothstep(0.0, 0.7, distance);
 
     // === (1) 放射ブラー ===
     float4 blurColor = float4(0, 0, 0, 0);
+    //ブラーサンプル数
     int blurSamples = 10;
     for (int i = 0; i < blurSamples; i++)
     {
         float t = i / float(blurSamples);
+        // 中心に向かってサンプリング（距離を大きく）
         float offset = blurStrength * edgeFactor * t * 0.08;
         float2 sampleUV = input.texCoord + toCenter * offset;
+        
         float chromaOffset = aberrationStrength * edgeFactor * t * 1.5;
         float2 chromaDir = toCenter * chromaOffset;
         
@@ -181,23 +186,26 @@ float4 main(PS_INPUT input) : SV_TARGET
         float g = sceneTexture.Sample(samplerState, sampleUV).g;
         float b = sceneTexture.Sample(samplerState, sampleUV - chromaDir).b;
         
+        // サンプルを加算
         blurColor += float4(r, g, b, 1.0);
     }
     blurColor /= blurSamples;
 
     // === (2) スピードライン（放射状） ===
     float speedline = 0.0;
-
     if (distance > 0.05)//周りの線を短く
     {
         float angle = atan2(fromCenter.y, fromCenter.x);
-        float lineCount = 160.0;
-        float lineIndex = floor(angle / (6.28318 / lineCount));
-        float seed = frac(sin(lineIndex * 12.9898) * 43758.5453);
-        float lineWidth = 0.01 + seed * 0.015;
-        float distanceOffset = seed * 0.7;
+        float lineCount = 320.0;
+        float lineIndex = floor(angle / (6.28318 / lineCount)); 
+        
+        
+        float seed = frac(sin(lineIndex * 12.9898) * 43758.5453); //ランダムシード生成
+        float lineWidth = 0.01 + seed * 0.15; //太さをランダム化
+        float distanceOffset = seed * 0.7; //長さをランダム化
 
-        // 外方向スクロール
+        
+        // 外方向スクロール（流速もランダム化）
         float flow = frac((distance + distanceOffset) * 1.6 + time * speedLineSpeed * (1.2 + seed * 0.8));
         float streak = smoothstep(0.0, 0.05, flow) * (1.0 - smoothstep(0.15, 0.35, flow));
 
@@ -211,9 +219,9 @@ float4 main(PS_INPUT input) : SV_TARGET
 
     // === (3) ショックウェーブ ===
     float shockwave = 0.0;
-{
+    {
         float ringRadius = shockwaveProgress; // C++から渡された進行度
-        float thickness = 0.05;
+        float thickness = 0.05; // リングの厚さ
         float edge = smoothstep(ringRadius - thickness, ringRadius, distance) *
                  (1.0 - smoothstep(ringRadius, ringRadius + thickness, distance));
         shockwave = edge * shockwaveIntensity * (1.0 - distance);

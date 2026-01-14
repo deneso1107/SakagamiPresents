@@ -41,7 +41,7 @@ private:
     float CalculateAccumulatedPosition(int x, int y, Direction direction, float thisSpacing, float, float);
 
 public:
-    RoadManager(float roadSize = 19.0f) : m_roadSize(roadSize), m_gridWidth(0), m_gridHeight(0) {
+    RoadManager(float roadSize = 29.0f) : m_roadSize(roadSize), m_gridWidth(0), m_gridHeight(0) {
         // デフォルト設定を初期化（Z軸回転をデフォルトに）
        //m_modelConfig.SetAnglesForCurrentModel();
     }
@@ -141,14 +141,14 @@ public:
 
     BaseRoad* GetGoalRoad();
 
-    std::optional<Vector3> GetRoadPosition(int x, int y) const;
+    Vector3 GetRoadPosition(int x, int y) const;
     BaseRoad* GetRoad(int x, int y) const;
 
     // 道路タイプで検索
     std::vector<Vector3> GetRoadPositionsByType(RoadType type) const;
     std::vector<BaseRoad*> GetRoadByType(RoadType type) const;
     // 道路の端の位置を取得
-    std::optional<Vector3> GetRoadEdgePosition(int x, int y, float offsetX = 0.0f, float offsetZ = 0.0f) const;
+    Vector3 GetRoadEdgePosition(int x, int y, float offsetX = 0.0f, float offsetZ = 0.0f) const;
 
 
     // プリセットレイアウト生成メソッド
