@@ -65,24 +65,5 @@ public:
         return Vector3(sinf(m_Rotation.y), 0.0f, cosf(m_Rotation.y));
     }
 
-    void DebugObjectSRT()
-    {
-        ImGui::Begin("SRTChamge");
-
-
-        ImGui::SliderFloat3("Position", &m_Position.x, -100.0f, 100.0f);
-        ImGui::SliderFloat3("Rotation", &m_Rotation.x, 0.0f, 6.5f);
-        ImGui::SliderFloat3("Scale", &m_Scale.x, 0.0f, 100.0f);
-
-        //ImGui::Text("Position: %.2f, %.2f, %.2f", m_Position.x, m_Position.y, m_Position.z);
-        //ImGui::Text("Rotation: %.2f, %.2f, %.2f", m_Rotation.x, m_Rotation.y, m_Rotation.z);
-        //ImGui::Text("Scale: %.2f, %.2f, %.2f", m_Scale.x, m_Scale.y, m_Scale.z);        
-        ImGui::End();
-        //// デバッグ用のSRT情報を表示
-        //DebugUI::RedistDebugFunction([this]() {
-        //    ImGui::Text("Position: %.2f, %.2f, %.2f", m_Position.x, m_Position.y, m_Position.z);
-        //    ImGui::Text("Rotation: %.2f, %.2f, %.2f", m_Rotation.x, m_Rotation.y, m_Rotation.z);
-        //    ImGui::Text("Scale: %.2f, %.2f, %.2f", m_Scale.x, m_Scale.y, m_Scale.z);
-        //});
-	}
+ 
 };

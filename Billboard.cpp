@@ -322,6 +322,12 @@ void Billboard::Draw()
     Matrix4x4 worldmtx = srt.GetMatrix();
     Renderer::SetWorldMatrix(&worldmtx);  // GPUにセット
 
+    if (m_blendType == BillboardBlendType::Additive)
+    {
+     
+        Renderer::SetBlendState(BS_ADDITIVE);
+        Renderer::SetDepthTestOnly();
+    }
     // シェーダーを設定
     g_Shader.SetGPU();
 
@@ -348,4 +354,7 @@ void Billboard::Draw()
     Renderer::GetDeviceContext()->IASetInputLayout(g_Shader.GetInputLayout());
     // 描画
     Renderer::GetDeviceContext()->DrawIndexed(6, 0, 0);
+
+    Renderer::SetBlendState(BS_ALPHABLEND);
+    Renderer::SetDepthEnable(true);
 }

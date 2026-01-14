@@ -222,6 +222,7 @@ public:
     static ID3D11Device* GetDevice(void) { return m_Device.Get(); }
     static ID3D11DeviceContext* GetDeviceContext(void) { return m_DeviceContext.Get(); }
     static void SetBlendState(int nBlendState);
+    static void SetDepthTestOnly();
     static IDXGISwapChain* GetSwapChain() { return m_SwapChain.Get(); }
     static void ClearDepthBuffer() 
     {

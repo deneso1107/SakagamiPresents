@@ -218,30 +218,25 @@ void ScreenFixedBillboard::Update()
 
 void ScreenFixedBillboard::Draw()
 {
-    ID3D11ShaderResourceView* currentSRV = nullptr;
-    Renderer::GetDeviceContext()->PSGetShaderResources(0, 1, &currentSRV);
 
-    if (currentSRV) {
-        OutputDebugStringA("SRVはバインドされています\n");
-        currentSRV->Release();
-    }
-    else {
-        OutputDebugStringA("SRVがバインドされていません\n");
-    }
+    //行列保存を追加
+    Matrix4x4 savedWorld, savedView, savedProj;
+    savedWorld = Renderer::GetWorldMatrix(/*&savedWorld*/);
+    savedView = Renderer::GetViewMatrix();
+    savedProj = Renderer::GetProjectionMatrix();
+
     // ワールド行列とビュー行列を単位行列に設定
-    // スクリーン座標系で直接描画するため
     Matrix4x4 identity = DirectX::XMMatrixIdentity();
     Renderer::SetWorldMatrix(&identity);
     Renderer::SetViewMatrix(&identity);
-    // シェーダーとマテリアル設定
-// 注意：位置変換なしのシンプルなシェーダーが必要
-    g_Shader.SetGPU();
-    m_Material.SetGPU();
 
-    // 正射影行列を設定（パースペクティブ無効化）
+    // 正射影行列を設定
     Matrix4x4 orthoMatrix = DirectX::XMMatrixOrthographicLH(2.0f, 2.0f, 0.0f, 1.0f);
     Renderer::SetProjectionMatrix(&orthoMatrix);
 
+    // シェーダーとマテリアル設定
+    g_Shader.SetGPU();
+    m_Material.SetGPU();
 
     if (m_texture) {
         Renderer::GetDeviceContext()->PSSetShaderResources(0, 1, &m_texture);
@@ -272,6 +267,65 @@ void ScreenFixedBillboard::Draw()
 
     // 描画
     Renderer::GetDeviceContext()->DrawIndexed(6, 0, 0);
+
+    //行列保存を復元
+    Renderer::SetWorldMatrix(&savedWorld);
+    Renderer::SetViewMatrix(&savedView);
+    Renderer::SetProjectionMatrix(&savedProj);
+//    ID3D11ShaderResourceView* currentSRV = nullptr;
+//    Renderer::GetDeviceContext()->PSGetShaderResources(0, 1, &currentSRV);
+//
+//    if (currentSRV) {
+//        OutputDebugStringA("SRVはバインドされています\n");
+//        currentSRV->Release();
+//    }
+//    else {
+//        OutputDebugStringA("SRVがバインドされていません\n");
+//    }
+//    // ワールド行列とビュー行列を単位行列に設定
+//    // スクリーン座標系で直接描画するため
+//    Matrix4x4 identity = DirectX::XMMatrixIdentity();
+//    Renderer::SetWorldMatrix(&identity);
+//    Renderer::SetViewMatrix(&identity);
+//    // シェーダーとマテリアル設定
+//// 注意：位置変換なしのシンプルなシェーダーが必要
+//    g_Shader.SetGPU();
+//    m_Material.SetGPU();
+//
+//    // 正射影行列を設定（パースペクティブ無効化）
+//    Matrix4x4 orthoMatrix = DirectX::XMMatrixOrthographicLH(2.0f, 2.0f, 0.0f, 1.0f);
+//    Renderer::SetProjectionMatrix(&orthoMatrix);
+//
+//
+//    if (m_texture) {
+//        Renderer::GetDeviceContext()->PSSetShaderResources(0, 1, &m_texture);
+//
+//        ID3D11SamplerState* samplerState = nullptr;
+//        D3D11_SAMPLER_DESC samplerDesc = {};
+//        samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+//        samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+//        samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+//        samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+//        samplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+//        samplerDesc.MinLOD = 0;
+//        samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+//
+//        HRESULT hr = Renderer::GetDevice()->CreateSamplerState(&samplerDesc, &samplerState);
+//        if (SUCCEEDED(hr)) {
+//            Renderer::GetDeviceContext()->PSSetSamplers(0, 1, &samplerState);
+//            samplerState->Release();
+//        }
+//    }
+//
+//    // 頂点バッファ設定
+//    UINT stride = sizeof(ScreenBillboardVertex);
+//    UINT offset = 0;
+//    Renderer::GetDeviceContext()->IASetVertexBuffers(0, 1, &m_vertexBuffer, &stride, &offset);
+//    Renderer::GetDeviceContext()->IASetIndexBuffer(m_indexBuffer, DXGI_FORMAT_R16_UINT, 0);
+//    Renderer::GetDeviceContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+//
+//    // 描画
+//    Renderer::GetDeviceContext()->DrawIndexed(6, 0, 0);
 }
 
 //動画用

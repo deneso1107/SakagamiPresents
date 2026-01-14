@@ -9,6 +9,7 @@ enum class TreeFormation
 {
     RANDOM,      // ランダム配置
     LINE,        // 直線配置
+    LINE_X,        // 直線配置(X軸方向)
     CIRCLE,      // 円形配置
     GRID,        // グリッド配置
     FOREST,      // 森（ランダムだが密集）
@@ -33,6 +34,9 @@ struct TreeFormationConfig
 
     // 回転のランダム化設定
     bool randomizeRotation = true;   // Y軸回転をランダム化するか
+
+    // Y軸オフセット（地面に埋まらないように調整）
+    float yOffset = 25.0f;            // Y座標に加算する値（モデルの高さの半分程度を推奨）
 
     TreeFormationConfig() = default;
 
@@ -100,6 +104,8 @@ public:
 
     // 初期化（複数パターン）
     void Init(const MultiTreeFormationConfig& config);
+
+    void InitShared();
 
     // 更新
     void Update(float deltaTime);

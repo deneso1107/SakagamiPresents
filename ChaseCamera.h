@@ -28,6 +28,7 @@ private:
     // 速度閾値
     float m_boostSpeedThreshold = 2.0f;   // この速度以上で加速演出開始
     float m_maxBoostSpeed = 3.0f;         // この速度で最大演出
+	float m_cameraLookatSpeed = 3.0f; // 加速時の視野角の移動速度
 
     // カメラの現在状態
     Vector3 m_currentOffset;

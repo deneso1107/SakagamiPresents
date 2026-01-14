@@ -58,7 +58,8 @@ private:
     // 演出パラメータ
     float m_currentBank = 0.0f;
     float m_currentFOV = 45.0f;
-    float m_transitionSpeed = 0.05f;
+    float m_transitionSpeed = 0.08f;
+    float m_MaxBoostingFOV = 60.0f;
 
     // 速度関連
     float m_boostSpeedThreshold = 2.0f;
@@ -98,6 +99,7 @@ public:
 
     void Init() override;
     void Update(float deltaTime);
+    void OnlyPosUpdate(float deltaTime);
     void Draw() override;
 
     // 外部インターフェース
@@ -108,6 +110,17 @@ public:
     // デバッグ用: スプリングパラメータ調整
     void SetPositionSpring(float stiffness, float damping);
     void SetLookAtSpring(float stiffness, float damping);
+
+    // IntroCameraが遷移時にスプリングを引き継げるようにする
+    const Spring& GetPositionSpring() const { return m_positionSpring; }
+    const Spring& GetLookAtSpring() const { return m_lookAtSpring; }
+    float GetCurrentFOV() const { return m_currentFOV; }
+
+    void SetPositionSpring(const Spring& spring) { m_positionSpring = spring; }
+    void SetLookAtSpring(const Spring& spring) { m_lookAtSpring = spring; }
+	void SetCurrentFOV(float fov) { m_currentFOV = fov; }
+	void PlusCurrentFOV() { m_boostParams.fov = m_MaxBoostingFOV; }
+
     //Vector3 GetForward() const
     //{
     //    // カメラのターゲット - カメラ位置

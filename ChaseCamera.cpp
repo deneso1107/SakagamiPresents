@@ -72,7 +72,7 @@ void CheeseCamera::Update(float deltaTime)
     m_currentBank = Lerp(m_currentBank, bankDeg, 0.1f);
 
 
-    // スムーズに追従
+    // Lerpによる追従
     m_position = Lerp3(m_position, targetPos, m_followSpeed);
     m_currentLookAt = Lerp3(m_currentLookAt, targetLookAt, m_lookAtSpeed);
     m_lookat = m_currentLookAt;
@@ -199,7 +199,7 @@ void CheeseCamera::UpdateDynamicCameraParameters()
     float targetDistance = (m_boostDistance - m_normalDistance) * speedRatio;
     float targetFOV = (m_boostFOV - m_normalFOV) * speedRatio;
 
-    // スムーズに遷移
+    // Lerpによる遷移
     m_currentDynamicDistance = Lerp(m_currentDynamicDistance, targetDistance,
         m_cameraTransitionSpeed);
     m_currentDynamicFOV = Lerp(m_currentDynamicFOV, targetFOV,
@@ -215,11 +215,11 @@ Vector3 CheeseCamera::CalculateTargetPosition() const
     // プレイヤーの後ろ方向を計算
     Vector3 backward = Vector3(-sinf(playerRot.y), 0.0f, -cosf(playerRot.y));
 
-    // 速度に応じた先読み距離
+    // 速度に応じた先読みの距離
     float speed = sqrt(playerVel.x * playerVel.x + playerVel.z * playerVel.z);
     float anticipation = std::min(speed * 0.3f, 3.0f);
 
-    // 基本距離 + 動的距離 + 先読み距離
+    // 基本距離+動的距離+先読み距離でトータルの距離を計算
     float totalDistance = m_normalDistance + m_currentDynamicDistance + anticipation;
 
     Vector3 targetOffset = backward * totalDistance;
@@ -243,7 +243,7 @@ Vector3 CheeseCamera::CalculateTargetLookAt() const
         // 加速時はさらに前方を注視
         float lookAheadDistance = std::min(speed * 0.5f, 5.0f);
         float speedRatio = CalculateSpeedRatio();
-        lookAheadDistance += speedRatio * 3.0f; // 加速時は最大3.0単位追加
+        lookAheadDistance += speedRatio * m_cameraLookatSpeed; // 加速時は最大3単位を追加
 
         lookAtPos += velocityDir * lookAheadDistance;
     }

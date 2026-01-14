@@ -24,16 +24,6 @@ void Road::Init()
         "shader/vertexLightingVS.hlsl",         // 頂点シェーダー
         "shader/vertexLightingPS.hlsl");        // ピクセルシェーダー
 
-    DebugUI::RedistDebugFunction([this]()
-        {
-            DebugObjectSRT();
-        });
-    // デバッグ用の空間分割情報表示を追加
-   /* DebugUI::RedistDebugFunction([this]()
-        {
-            DebugSpatialGrid();
-        });*/
-
     m_Position = Vector3{ 200.0f,1.0f,1.0f };
     m_Rotation = Vector3{ 0.0f,0.0f,3.0f };
     m_Scale = Vector3{ 18.0f,1.0f,18.0f };

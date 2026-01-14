@@ -25,8 +25,8 @@ PS_INPUT main(VS_INPUT input)
     
     // 画像を適切なサイズにスケーリング
     // ロケット牛は画面の1/3くらいのサイズが良いかも
-    float imageWidth = 0.4f * imageScale; // 画面幅の40%
-    float imageHeight = 0.3f * imageScale; // 画面高さの30%
+    float imageWidth = 0.6f * imageScale; // 画面幅の40%
+    float imageHeight = 0.6f * imageScale; // 画面高さの30%
     
     // 頂点位置を調整
     float4 position = float4(input.pos.xy, input.pos.z, 1.0f);

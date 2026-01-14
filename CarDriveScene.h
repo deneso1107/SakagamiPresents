@@ -30,6 +30,7 @@
 
 #include"SimpleCamera.h"
 #include"ChaseCamera.h"
+#include"IntroCamera.h"
 class CarDriveScene : public IScene
 {
 public:
@@ -38,6 +39,7 @@ public:
 	//void update(float deltatime) override;//継承！継承
 	void draw(uint64_t deltatime) override;
 	void init() override;
+	void loadAsync() override;
 	void dispose() override;
 
 	//IMGUIデバッグ形
@@ -60,6 +62,7 @@ public:
 	}
 
 	void SetupEnemiesOnRoad();
+	void SetupTreeOnRoad();
 
 	bool m_enableMotionBlur = true;
 	bool m_enableChromaticAberration = false;
@@ -134,5 +137,6 @@ private:
 	CameraManager m_CameraManager;
 
 	Camera* m_currentCamera;
+	IntroCamera* m_introCamera = nullptr;  // ★IntroCamera専用ポインタ
 };
 //このカメラにビルボードを対応させよう

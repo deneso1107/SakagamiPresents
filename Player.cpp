@@ -55,7 +55,7 @@ void Player::StartRaceSequence(const Vector3& startPosition)
 	m_spiralStartPos = startPosition;
 	m_spiralStartPos.y += m_spiralHeight;
 
-	// ★★★ 実際の地形高度を取得して、正確な降下距離を計算 ★★★
+	//実際の地形高度を取得して、正確な降下距離を計算
 	if (m_roadManager) {
 		float terrainHeight;
 		Vector3 terrainNormal;
@@ -67,7 +67,7 @@ void Player::StartRaceSequence(const Vector3& startPosition)
 		}
 	}
 
-	// ★★★ 螺旋の長さから最適な時間を自動計算 ★★★
+	//螺旋の長さから最適な時間を自動計算
 	float verticalDistance = m_spiralHeight;
 	float spiralCircumference = 2.0f * PI * m_spiralRadius;
 	float horizontalDistance = spiralCircumference * m_spiralRotations;
@@ -93,11 +93,6 @@ void Player::StartRaceSequence(const Vector3& startPosition)
 	m_IsBoosting = false;
 	m_IsDrifting = false;
 	m_BoostGauge = 0.0f;
-
-	printf("=== Race Sequence Started ===\n");
-	printf("Initial Yaw: %.2f degrees\n", m_spiralInitialYaw * 180.0f / PI);
-	printf("Spiral: Height=%.1f, Distance=%.1f, Duration=%.2fs\n",
-		m_spiralHeight, totalDistance, m_spiralDuration);
 }
 
 
@@ -111,7 +106,7 @@ void Player::UpdateStartSequence(float deltatime)
 		// 進行度を計算（0.0 ～ 1.0）
 		float progress = m_spiralTime / m_spiralDuration;
 
-		// ★★★ 地面との衝突チェック ★★★
+		//地面との衝突チェック
 		bool shouldLand = false;
 
 		if (progress >= 1.0f)
@@ -135,7 +130,6 @@ void Player::UpdateStartSequence(float deltatime)
 				if (distanceToGround <= 0.5f)
 				{
 					shouldLand = true;
-					printf("Early landing detected! Distance: %.2f\n", distanceToGround);
 				}
 			}
 		}
@@ -152,22 +146,17 @@ void Player::UpdateStartSequence(float deltatime)
 			m_countdownTime = 0.0f;
 			m_countdownNumber = 3;
 
-			// ★★★ 着地時は現在の回転をそのまま使う（補間済み）★★★
+			// 着地時は現在の回転をそのまま使う（補間済み）
 			// すでに徐々に正面を向いているので、強制的に変更しない
 			m_Rotation.x = 0.0f;  // ピッチだけ水平に
 			//m_Rotation.y =Lerp(m_Rotation.y, m_spiralInitialYaw, 1.0f);
 			m_Rotation.y = m_spiralInitialYaw;
 			// m_Rotation.y はそのまま（既に補間で正面に近づいている）
 			m_Rotation.z = 0.0f;  // ロールだけ水平に
-
-			printf("=== Countdown Started ===\n");
-			printf("Landing Yaw: %.2f degrees (Target: %.2f)\n",
-				m_Rotation.y * 180.0f / PI,
-				m_spiralInitialYaw * 180.0f / PI);
 		}
 		else
 		{
-			// ★★★ 有機的な動きのための複数のイージング ★★★
+			//有機的な動きのための複数のイージング
 
 			// 1. 高さ: 最初ゆっくり、途中加速、最後減速（S字カーブ）
 			float heightEase;
@@ -284,24 +273,25 @@ void Player::UpdateStartSequence(float deltatime)
 	// カウントダウン中
 	else if (m_stateManager.IsCountdown())
 	{
-		m_countdownTime += deltatime;
-
-		// 1秒ごとにカウントダウン
-		if (m_countdownTime >= 1.0f)
+		//カウントダウンエフェクトを最初の1回だけ開始
+		if (!m_countdownStarted)
 		{
-			m_countdownTime = 0.0f;
-			m_countdownNumber--;
+			m_countdown->Start();
+			m_countdownStarted = true;
+			printf("=== Countdown Effect Started! ===\n");
+		}
 
-			printf("Countdown: %d\n", m_countdownNumber);
+		// カウントダウンエフェクトの更新
+		m_countdown->Update(deltatime);
 
-			if (m_countdownNumber < 0)
-			{
-				// カウントダウン終了、レース開始
-				m_stateManager.RemoveState(PlayerStateManager::State::Countdown);
-				m_stateManager.AddState(PlayerStateManager::State::RaceReady);
+		if (m_countdown->IsFinished())
+		{
+			// カウントダウン終了、レース開始
+			m_stateManager.RemoveState(PlayerStateManager::State::Countdown);
+			m_stateManager.AddState(PlayerStateManager::State::RaceReady);
 
-				printf("=== START! ===\n");
-			}
+			// フラグをリセット（次回のレースのため）
+			m_countdownStarted = false;
 		}
 
 		// カウントダウン中は静止
@@ -356,21 +346,7 @@ void Player::Init()
 		"shader/ShadowMapPS.hlsl");
 
 
-	DebugUI::RedistDebugFunction(DebugPlayerMoveParameter);
 
-	//m_physics.SetPosition(m_Position);
-	//m_physics.SetRotation(m_Rotation);
-	DebugUI::RedistDebugFunction([this]() {
-		m_physics.Init();
-		});
-
-	//DebugUI::RedistDebugFunction([this]()
-	//	{
-	//		DebugPlayerMoveParameter_();
-	//	});
-	//DebugUI::RedistDebugFunction([this]() {
-	//	DebugTerrainRotation_();
-	//	});
 
 	if (!m_sparkEmitter.Init(Renderer::GetDevice()))
 	{
@@ -380,12 +356,23 @@ void Player::Init()
 
 	m_stateManager.ClearAllStates();
 	m_stateManager.AddState(PlayerStateManager::State::OnGround);
+
+	// カウントダウンエフェクトの初期化
+	m_countdown = new CountdownEffect();
+	m_countdown->Initialize(
+		Vector2(0.5f, 0.4f),   // 数字位置（中央の白枠）
+		Vector2(0.25f, 0.5f),  // GO位置（左の白枠）
+		0.15f,                 // 数字サイズ
+		0.12f,                 // GOサイズ
+		0.25f                  // 背景サイズ
+	);
+	m_countdownStarted = false;
 }
 //まだちょいがたつく
 void Player::Update(float deltatime)
 {
 
-	// ★スタートシーケンス中は専用の処理
+	// スタートシーケンス中は専用の処理
 	if (m_stateManager.IsInStartSequence())
 	{
 		UpdateStartSequence(deltatime);
@@ -410,7 +397,7 @@ void Player::Update(float deltatime)
 		return; // 通常のUpdate処理をスキップ
 	}
 
-	// ★通常のゲームプレイ時は状態を更新
+	// 通常のゲームプレイ時は状態を更新
 	if (!m_stateManager.IsInStartSequence())
 	{
 		// 地面との接触状態を更新
@@ -488,7 +475,7 @@ void Player::Update(float deltatime)
 	// ブースト状態の更新
 	UpdateBoostSystem(boostInput, deltatime);
 
-	// ★★★ ハイブリッド速度システムの更新 ★★★
+	//速度システムの更新
 	UpdateSpeedBonusSystem(deltatime);
 
 	if (CDirectInput::GetInstance().CheckKeyBuffer(DIK_O))
@@ -556,7 +543,7 @@ void Player::Update(float deltatime)
 		UpdateNormalMovement(throttle, steering, forwardDir, rightDir, speedFactor);
 	}
 
-	// ★修正：高速移動時の安全な位置更新★
+	// 高速移動時の位置更新
 	UpdatePositionWithCollisionCheck(timeScale);
 
 
@@ -585,7 +572,7 @@ void Player::Update(float deltatime)
 		m_IsDrifting = false;
 		m_IsBoosting = false; // ブースト状態もリセット
 
-		// ★★★ ハイブリッド速度システムもリセット ★★★
+		// ハイブリッド速度システムもリセット
 		m_PermanentSpeedBonus = 1.0f;
 		m_TemporarySpeedBonus = 1.0f;
 		m_SpeedBoostTimer = 0.0f;
@@ -611,12 +598,12 @@ void Player::UpdateBoostSystem(bool boostInput, float deltaSeconds)
 	if (boostInput && m_BoostGauge > 0.0f)
 
 	{
-		//m_PostProcessSetter(true, 0.02f);
 		// ブースト使用中
 		m_IsBoosting = true;
 		m_BoostGauge -= m_BoostConsumption * deltaSeconds;
 		// ゲージが0以下になったら停止
-		if (m_BoostGauge <= 0.0f) {
+		if (m_BoostGauge <= 0.0f) 
+		{
 			m_BoostGauge = 0.0f;
 			m_IsBoosting = false;
 		}
@@ -625,6 +612,7 @@ void Player::UpdateBoostSystem(bool boostInput, float deltaSeconds)
 		// ブースト未使用
 		m_IsBoosting = false;
 		m_PostProcessSetter(false, 0.0f);
+		m_IsMaxSpeed = false;
 	}
 }
 
@@ -661,16 +649,20 @@ void Player::UpdateSpeedBonusSystem(float deltatime)
 		// 速度倍率が1.5倍以上の時はモーションブラーを強化
 		float blurIntensity = std::min((currentMultiplier - 1.0f) * 0.02f, 0.05f);
 		m_PostProcessSetter(true, blurIntensity);
+		m_IsMaxSpeed = true;
+
+		//SpringCamera::Instance().PlusCurrentFOV();
 	}
 	else if (!m_IsBoosting)
 	{
 		// ブーストもしていない、速度倍率も低い場合は無効化
 		m_PostProcessSetter(false, 0.0f);
+		m_IsMaxSpeed = false;
 	}
 }
 
 
-// ★★★ 新規メソッド: 現在の速度倍率を取得 ★★★
+//現在の速度倍率を取得
 float Player::GetCurrentSpeedMultiplier() const
 {
 	return m_PermanentSpeedBonus * m_TemporarySpeedBonus;
@@ -709,7 +701,7 @@ void Player::UpdateSmoothTerrainFollowing(uint64_t deltatime)
 				float horizontalSpeedForLerp = horizontalVelocity.Length();
 				bool isNearlyStationary = horizontalSpeedForLerp < 0.05f;
 
-				// ★★★ 下り坂判定の追加 ★★★
+				//下り坂判定の追加
 				bool isMovingDownhill = false;
 				if (horizontalSpeedForLerp > 0.1f) 
 				{
@@ -761,7 +753,7 @@ void Player::UpdateSmoothTerrainFollowing(uint64_t deltatime)
 					}
 				}
 
-				// ★★★ 地面接触時は垂直速度をリセット ★★★
+				//地面接触時は垂直速度をリセット
 				m_verticalVelocity = 0.0f;
 
 				// 地形法線の更新
@@ -826,7 +818,7 @@ void Player::UpdateSmoothTerrainFollowing(uint64_t deltatime)
 		UpdateCarRotationFromTerrain(m_terrainNormal);
 	}
 
-	// ★★★ 前フレームの状態を保存 ★★★
+	//前フレームの状態を保存
 	m_wasGroundedLastFrame = m_isGrounded;
 	m_previousTerrainNormal = m_terrainNormal;
 }
@@ -951,7 +943,7 @@ void Player::UpdateNormalMovement(float throttle, float steering, Vector3 forwar
 	float decelerationMultiplier = m_IsBoosting ? 0.998f : m_Deceleration;
 	m_Velocity *= pow(decelerationMultiplier, timeScale);
 
-	// ★★★ 速度制限にハイブリッド速度倍率を適用 ★★★
+	//  速度制限にハイブリッド速度倍率を適用
 	float speedMultiplier = GetCurrentSpeedMultiplier();
 	float maxSpeed = m_MaxSpeed * speedMultiplier;
 
@@ -971,53 +963,6 @@ void Player::UpdateNormalMovement(float throttle, float steering, Vector3 forwar
 	dustPos.y += 2.0f;
 
 	m_sparkEmitter.Emit(dustPos, Vector3(0.0f, 1.0f, 0.0f));
-	//float timeScale = GameManager::Instance().GetTimeScale();
-	//// 通常のステアリング（速度に応じて回転量を調整）
-	//m_Rotation.y += steering * m_TurnSpeed * speedFactor * timeScale;
-	//// 角度の正規化
-	//if (m_Rotation.y > PI) m_Rotation.y -= 2.0f * PI;
-	//if (m_Rotation.y < -PI) m_Rotation.y += 2.0f * PI;
-
-	//// ブースト時の加速力調整
-	//float accelerationMultiplier = m_IsBoosting ? m_BoostPower : 1.0f;
-	//// 前進方向の力を加える
-	//Vector3 forceDir = forwardDir * throttle * m_Acceleration * accelerationMultiplier * timeScale;
-	//m_Velocity += forceDir;
-
-	//// 通常のグリップ効果を適用
-	//speed = sqrt(m_Velocity.x * m_Velocity.x + m_Velocity.z * m_Velocity.z);
-	//Vector3 velocityDir = Vector3(0.0f, 0.0f, 0.0f);
-	//if (speed > 0.01f) {
-	//	velocityDir = m_Velocity * (1.0f / speed); // 正規化
-	//}
-	//float alignment = forwardDir.x * velocityDir.x + forwardDir.z * velocityDir.z;
-	//Vector3 targetVelocity = forwardDir * speed * alignment;
-	//// グリップの補間（タイムスケールに応じて調整）
-	//float adjustedGrip = 1.0f - pow(1.0f - m_GripFactor, timeScale);
-	//m_Velocity = m_Velocity * (1.0f - adjustedGrip) + targetVelocity * adjustedGrip;
-
-	//// 減速処理（ブースト時は減速を軽減）
-	//float decelerationMultiplier = m_IsBoosting ? 0.998f : m_Deceleration;
-	//m_Velocity *= pow(decelerationMultiplier, timeScale);
-
-	//// ★速度制限を最後に移動★
-	//float maxSpeed = m_IsBoosting ? m_MaxSpeed * m_BoostRatio : m_MaxSpeed;
-	//speed = sqrt(m_Velocity.x * m_Velocity.x + m_Velocity.z * m_Velocity.z);
-	//if (speed > maxSpeed) {
-	//	m_Velocity = m_Velocity * (maxSpeed / speed);
-	//	//最大速度を固定値にするならここで
-	//	//speed = maxSpeed;  // ★制限後の速度を反映★
-	//}
-
-	//Vector3 backmovement = Vector3(-velocityDir.x, 0.0f, velocityDir.z);
-	//Vector3 dustPos = m_Position;
-	//dustPos.x += 1.0f;
-	//dustPos.y += 2.0f;
-
-	////printf("MangerEmit: m_ParticlePos=(%f, %f, %f)\n", dustPos.x, dustPos.y, dustPos.z);
-
-	//// プリセットから砂煙を生成
-	//m_sparkEmitter.Emit(dustPos, Vector3(0.0f, 1.0f, 0.0f));
 }
 
 // ドリフト移動処理にもブーストを適用
@@ -1115,6 +1060,11 @@ void Player::Draw()
 		}
 
 		m_meshrenderer.Draw();
+	}
+
+	// カウントダウン中の場合、エフェクトを描画
+	if (m_stateManager.IsCountdown() && m_countdown) {
+		m_countdown->Draw();
 	}
 
 	// デバッグ用
