@@ -13,10 +13,11 @@ public:
         Drifting,
         Running,
 
-        // ★新規追加：スタートシーケンス用の状態
+        //新規追加：スタートシーケンス用の状態
         SpiralDescending,  // 螺旋降下中
         Countdown,         // カウントダウン中
         RaceReady,         // レース準備完了（カウント0の瞬間）
+        GoalSequence,  //ゴールしたとき
 
         // 将来的に追加予定の状態をここに追加
         // Jumping,
@@ -91,6 +92,11 @@ public:
     bool IsInStartSequence() const 
     {
         return HasAnyState({ State::SpiralDescending, State::Countdown, State::RaceReady });
+    }
+
+    bool IsGoalSequence() const 
+    {
+        return HasState(State::GoalSequence);
     }
 
 

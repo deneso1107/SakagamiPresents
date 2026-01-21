@@ -21,10 +21,12 @@ private:
     // テクスチャ
     ID3D11ShaderResourceView* m_frameTexture;    // 外枠
     ID3D11ShaderResourceView* m_fillTexture;     // 内容
+    ID3D11ShaderResourceView* m_textTexture;     // バーの上の文字
 
     // バッファ
     ID3D11Buffer* m_frameVertexBuffer;
     ID3D11Buffer* m_fillVertexBuffer;
+    ID3D11Buffer* m_textVertexBuffer;
     ID3D11Buffer* m_indexBuffer;
 
     // ゲージ制御
@@ -65,6 +67,7 @@ public:
 private:
     void CreateBuffers();
     void UpdateFrameVertexBuffer();
+    void UpdateTextVertexBuffer();
     void UpdateFillVertexBuffer();
     void SetupRenderState();
     void CleanupRenderState();

@@ -14,6 +14,7 @@ ScreenFixedBillboard::ScreenFixedBillboard(const Vector2& screenPos, float width
     , m_texture(nullptr)
     , m_vertexBuffer(nullptr)
     , m_indexBuffer(nullptr)
+    , m_alpha(1.0f)  //デフォルトは完全不透明
 {
 
     // テクスチャの読み込み
@@ -34,15 +35,15 @@ ScreenFixedBillboard::ScreenFixedBillboard(const Vector2& screenPos, float width
 
 
     // マテリアル設定
-    MATERIAL materialData = {};
-    materialData.Diffuse = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
-    materialData.Ambient = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
-    materialData.Specular = Vector4(0.0f, 0.0f, 0.0f, 0.0f);
-    materialData.Emission = Vector4(0.0f, 0.0f, 0.0f, 0.0f);
-    materialData.Shiness = 0.0f;
-    materialData.TextureEnable = 1.0f;
-
-    m_Material.Create(materialData);
+    //MATERIAL materialData = {};
+    m_materialData.Diffuse = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+    m_materialData.Ambient = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+    m_materialData.Specular = Vector4(0.0f, 0.0f, 0.0f, 0.0f);
+    m_materialData.Emission = Vector4(0.0f, 0.0f, 0.0f, 0.0f);
+    m_materialData.Shiness = 0.0f;
+    m_materialData.TextureEnable = 1.0f;
+ 
+    m_Material.Create(m_materialData);
     CreateBuffers();
 }
 
@@ -216,6 +217,19 @@ void ScreenFixedBillboard::Update()
     UpdateVertexBuffer();
 }
 
+void ScreenFixedBillboard::SetAlpha(float alpha)
+{
+    // アルファ値をクランプ（0.0～1.0）
+    m_alpha = std::max(0.0f, std::min(1.0f, alpha));
+
+    // マテリアルのDiffuse.wにアルファ値を設定
+    m_materialData.Diffuse.w = m_alpha;
+
+    // マテリアルを更新
+    m_Material.SetDiffuse(m_materialData.Diffuse);
+    m_Material.Update();
+}
+
 void ScreenFixedBillboard::Draw()
 {
 
@@ -371,6 +385,33 @@ void ScreenFixedBillboard::SetLooping(bool loop)
 {
     if (m_videoPlayer) {
         m_videoPlayer->SetLooping(loop);
+    }
+} 
+void ScreenFixedBillboard::SetSize(float width, float height)
+{
+    m_width = width; 
+    m_height = height; 
+    UpdateVertexBuffer();
+}
+
+void ScreenFixedBillboard::Dispose()
+{
+    if (m_texture) {
+        m_texture->Release();
+        m_texture = nullptr;
+    }
+    if (m_vertexBuffer) {
+        m_vertexBuffer->Release();
+        m_vertexBuffer = nullptr;
+    }
+    if (m_indexBuffer) {
+        m_indexBuffer->Release();
+        m_indexBuffer = nullptr;
+    }
+    //m_Material.Dispose();
+    if (m_isOwningVideoPlayer && m_videoPlayer) {
+        delete m_videoPlayer;
+        m_videoPlayer = nullptr;
     }
 }
 

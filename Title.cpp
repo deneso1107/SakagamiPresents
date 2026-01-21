@@ -1,6 +1,8 @@
 #include "Title.h"
 #include "system/CDirectInput.h"
 
+#include"TitleCamera.h"
+
 void Title::init()
 {
     // スプライトの初期化
@@ -9,35 +11,73 @@ void Title::init()
     // タイトルは画面外上部から開始
     m_TitleBillboard = new ScreenFixedBillboard(Vector2(0.5f, 0.3f), 0.6f, 0.6f, L"assets/texture/タイトル.png");
 
-    m_VideoBB = ScreenFixedBillboard::CreateFromVideo(
-        Vector2(0.5f, 0.5f),
-        1.0f, 1.0f,
-        L"assets/video/画面録画 2025-12-18 173922.mp4"
-    );
+    //m_VideoBB = ScreenFixedBillboard::CreateFromVideo(
+    //    Vector2(0.5f, 0.5f),
+    //    1.0f, 1.0f,
+    //    L"assets/video/画面録画 2025-12-18 173922.mp4"
+    //);
 
-    if (m_VideoBB == nullptr) {
-        MessageBoxA(nullptr, "動画の読み込みに失敗しました", "Error", MB_OK);
+    //if (m_VideoBB == nullptr) {
+    //    MessageBoxA(nullptr, "動画の読み込みに失敗しました", "Error", MB_OK);
+    //}
+    //else {
+    //    // 動画情報を確認
+    //    VideoPlayer* player = m_VideoBB->GetVideoPlayer();
+    //    if (player) {
+    //        char msg[256];
+    //        printf("動画サイズ: %dx%d\n長さ: %.2f秒",
+    //            player->GetWidth(),
+    //            player->GetHeight(),
+    //            player->GetDurationSeconds());
+    //        //MessageBoxA(nullptr, "Video Info", "OK", MB_OK);
+    //    }
+    //}
+    //m_VideoBB->SetLooping(true);
+    //m_VideoBB->PlayVideo();
+
+	// プレイヤーの初期化
+    m_player = std::make_unique<Player>();
+    m_player->Init();
+
+	m_sparkEmitter = std::make_unique<SparkEmitter>();
+    if (!m_sparkEmitter->Init(Renderer::GetDevice()))
+    {
+        OutputDebugStringA("サンプラーステート作成失敗\n");
     }
-    else {
-        // 動画情報を確認
-        VideoPlayer* player = m_VideoBB->GetVideoPlayer();
-        if (player) {
-            char msg[256];
-            printf("動画サイズ: %dx%d\n長さ: %.2f秒",
-                player->GetWidth(),
-                player->GetHeight(),
-                player->GetDurationSeconds());
-            //MessageBoxA(nullptr, "Video Info", "OK", MB_OK);
-        }
-    }
-    m_VideoBB->SetLooping(true);
-    m_VideoBB->PlayVideo();
+
+	// 螺旋エフェクトの初期化
+    m_spiralEffect = std::make_unique < TitleSpiralEffect>();
+    m_spiralEffect->Initialize(m_player->GetPosition(), m_player->GetRotation(), m_player->GetForwardVector());
+
+     m_spiralEffect->SetSpiralHeight(1600.0f);
+     m_spiralEffect->SetSpiralDistance(30.0f);
+     m_spiralEffect->SetSpiralRadius(6.0f);
+     m_spiralEffect->SetSpiralRotations(5.0f);   // たくさん回転
+     m_spiralEffect->SetDuration(3.0f);          // 速い
+     m_spiralEffect->SetInfiniteMode(true);   // 無限上昇ON
+     m_spiralEffect->SetLooping(true);        // ループは不要
+
+    m_spiralEffect->Start();
+    ///カメラの初期化
+    TitleCamera& titleCam = TitleCamera::Instance();
+    titleCam.Init();
+    titleCam.SetTargetPlayer(m_player.get());
+
+    // カメラオフセットをカスタマイズ（オプション）
+    titleCam.SetCameraOffset(Vector3(8.0f, 0.0f, -30.0f));  // より後ろから
+    ///titleCam.SetLookAtOffset(Vector3(0.0f, 10.0f, 15.0f));   // より上を見る
+
+    titleCam.SetFixedMode(false);  // 固定モード
 
     // アニメーション用の変数初期化
     m_titlePosY = -0.3f;          // 開始位置（画面外上部）
     m_targetPosY = 0.3f;          // 目標位置
     m_titleVelocityY = 0.0f;      // 初期速度
     m_isAnimating = true;         // アニメーション中フラグ
+
+	m_skydome = std::make_unique<Skydome>();
+	m_skydome->Init();
+
 }
 
 void Title::update(float deltatime)
@@ -47,12 +87,28 @@ void Title::update(float deltatime)
         SceneManager::ChangeScene("CarDriveScene", true);
     }
 
-    m_VideoBB->Update();
-    if (m_VideoBB && m_VideoBB->GetVideoPlayer()) {
-        if (!m_VideoBB->GetVideoPlayer()->IsValid()) {
-            OutputDebugStringA("VideoPlayer が無効です\n");
-        }
+    m_spiralEffect->Update(deltatime);
+
+    // ★★★ プレイヤーの位置と回転をエフェクトから取得 ★★★
+    if (m_spiralEffect->IsActive())
+    {
+        Vector3 pos = m_spiralEffect->GetCurrentPosition();
+        Vector3 rot = m_spiralEffect->GetCurrentRotation();
+        Vector3 vel = m_spiralEffect->GetCurrentVelocity();
+
+        // プレイヤーに適用
+        m_player->SetPosition(pos);
+        m_player->SetRotation(rot);
+        m_player->SetVelocity(vel);  // 炎エフェクト用
     }
+
+
+    //m_VideoBB->Update();
+    //if (m_VideoBB && m_VideoBB->GetVideoPlayer()) {
+    //    if (!m_VideoBB->GetVideoPlayer()->IsValid()) {
+    //        OutputDebugStringA("VideoPlayer が無効です\n");
+    //    }
+    //}  　　
 
     // タイトルの落下アニメーション
     if (m_isAnimating)
@@ -84,16 +140,35 @@ void Title::update(float deltatime)
         // ビルボードの位置を更新
         if (m_TitleBillboard)
         {
-            m_TitleBillboard->SetScreenPosition(Vector2(0.5f, 0.1));
+            m_TitleBillboard->SetScreenPosition(Vector2(0.5f, m_titlePosY));
         }
+        m_TitleBillboard->Update();
     }
+
+	TitleCamera::Instance().Update(deltatime);
+
+    DirectX::XMFLOAT3 pos = m_player.get()->GetPosition();
+    //pos.x += m_ParticlePos.x;x	
+    pos.y -= 5.0f;
+    //pos.z += m_ParticlePos.z;
+    DirectX::XMFLOAT3 dir = DirectX::XMFLOAT3(0.0f, 1.0f, 0.0f);
+    m_sparkEmitter->Emit(pos, dir);
+    m_sparkEmitter->Update(deltatime);
+
+	m_skydome->Update(TitleCamera::Instance().GetPosition());
 }
 
 void Title::draw(uint64_t deltatime)
 {
-    m_VideoBB->Draw();
+    // ★★★ カメラのビュー行列を設定 ★★★
+    TitleCamera::Instance().Draw();
+    m_player->Draw();
+ 
+    m_skydome->Draw(deltatime);
+    m_sparkEmitter->Render(Renderer::GetDeviceContext(), DirectX::XMMatrixIdentity());
     m_screenBillboard->Draw();
     m_TitleBillboard->Draw();
+
 }
 
 void Title::loadAsync()
@@ -113,6 +188,6 @@ void Title::dispose()
         delete m_TitleBillboard;
         m_TitleBillboard = nullptr;
     }
-
+    m_player->Dispose();
     changepic = false;
 }

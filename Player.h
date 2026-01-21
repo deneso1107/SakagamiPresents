@@ -11,6 +11,7 @@
 #include"RoadManager.h"
 #include"GameManager.h"
 #include"CountdownEffect.h"
+#include"GoalEffect.h"
 class Player:public ObjectBase 
 {
 	PlayerStateManager m_stateManager;
@@ -57,8 +58,25 @@ class Player:public ObjectBase
 	float m_spiralDesiredSpeed = 25.0f; // ★降下速度（調整可能）
 
 
-	CountdownEffect* m_countdown;
+	std::unique_ptr<CountdownEffect> m_countdown;
 	bool m_countdownStarted;  // カウントダウンが開始されたかのフラグ
+
+	//ゴール演出用
+	std::unique_ptr<GoalEffect> m_goalEffect;
+	bool m_hasGoaled;
+	bool m_goalEffectStarted;
+	// ゴールジャンプパラメータ
+	float m_goalJumpTime;
+	float m_goalJumpDuration;
+	Vector3 m_goalStartPos;
+	Vector3 m_goalStartRotation;
+	Vector3 m_goalDirection;
+	float m_goalJumpHeight;      // 最大高度
+	float m_goalJumpDistance;    // 前方距離
+	float m_goalRotationSpeed;   // 回転速度
+	float m_goalAcceleration;    // 加速度（空へ飛んでいく）
+
+
 
 
 	// 重力関連の変数
@@ -165,12 +183,15 @@ class Player:public ObjectBase
 	//当たり判定の半径
 	float m_CollisionRadius = 0.5f;
 
+	bool m_isResultMode = false;
+
 
 
 public:
 	void Init() override;
 	void Update(float) override;
 	void Draw() override;
+	void SetResultMode(bool isResultMode) { m_isResultMode = isResultMode; }
 	void Dispose() override;
 
 	void PlayerDriftUpdate(uint64_t deltatime) {
@@ -183,6 +204,9 @@ public:
 	//最初の演出
 	void StartRaceSequence(const Vector3& startPosition);
 	void UpdateStartSequence(float deltatime);
+
+	//最後の演出
+	void UpdateGoalSequence(float deltatime);
 
 	const CStaticMesh& GetMesh() 
 	{
@@ -207,7 +231,7 @@ public:
 	bool IsGrounded() const { return m_isGrounded; }
 	void ResetVerticalVelocity() { m_verticalVelocity = 0.0f; }
 	float GetVerticalVelocity() const { return m_verticalVelocity; }
-	void UpdateSmoothTerrainFollowing(uint64_t deltatime);
+	void UpdateSmoothTerrainFollowing(float deltatime);
 	bool IsOnSlope() const;
 
 	// 路面効果を適用する関数（のちのち追加するならここから追加してください）
@@ -233,6 +257,10 @@ public:
 	void SetVelocity(Vector3 num) { m_Velocity = num; }
 	void ApplyHitStop(float,float);
 
+	//ゴール関連のメソッドを追加
+	void OnGoal();                      // ゴール時に呼ばれる
+
+
 	float GetGroundSlope() const;
 
 	// 車の物理パラメータを取得
@@ -250,6 +278,12 @@ public:
 			a.z + (b.z - a.z) * t
 		);
 	}
+
+	float EaseInOutCubic(float t)
+	{
+           return t < 0.5f ? 4.0f * t * t * t : 1.0f - pow(-2.0f * t + 2.0f, 3.0f) / 2.0f;
+	};
+
 	float GetSpeed() { return speed; }
 	float GetMaxSpeed() { return m_MaxSpeed * m_BoostRatio; }
 	float GetNormalSpeed() { return m_MaxSpeed; }
@@ -266,6 +300,8 @@ public:
 	{
 		m_PostProcessSetter = setter;
 	}
+
+	bool GetOnGoal() { return m_hasGoaled; }
 
 	void DebugGravitySystem_()
 	{

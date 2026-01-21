@@ -22,7 +22,7 @@ class Skydome {
 	Billboard			m_SunBillboard;	// ビルボード
 public:
 	void Init();
-	void Update();
+	void Update(Vector3);
 	void Draw(bool);
 	void Dispose();
 };

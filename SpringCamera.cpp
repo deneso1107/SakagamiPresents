@@ -52,7 +52,7 @@ SpringCamera::SpringCamera()
     // 加速パラメータ
     m_boostParams.distance = 55.0f;
     m_boostParams.height = 8.0f;
-    m_boostParams.fov = 45.0f;
+    m_boostParams.fov = 55.0f;
     m_boostParams.anticipation = 0.5f;
     m_boostParams.lookAheadDist = 0.8f;
     m_boostParams.positionStiffness = 5.0f;// 少し柔らかく(値が小さければ小さいほど距離が広くなる)

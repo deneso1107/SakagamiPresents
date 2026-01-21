@@ -39,18 +39,18 @@ void Skydome::Init()
 	Vector3 camPos = IntroCamera::Instance().GetPosition();
 }
 
-void Skydome::Update()
+void Skydome::Update(Vector3 camepos)
 {
 	// 現在のカメラ位置を取得
-	Vector3 camPos = SpringCamera::Instance().GetPosition();
+	//Vector3 camPos = SpringCamera::Instance().GetPosition();
 	// スカイドームを常にカメラ中心に置く
-	m_Position = camPos;
+	m_Position = camepos;
 	m_Position.y -= 600.0f;//下が見えてしまうので下にoffset
 
 	Vector3 sunDir = Vector3(0.0f, 0.15f, 1.0f);
 	sunDir.Normalize();
 	float sunDistance = 200.0f; // スカイドーム半径より小さめ
-	Vector3 sunPos = camPos + sunDir * sunDistance;
+	Vector3 sunPos = camepos + sunDir * sunDistance;
 
 	m_SunBillboard.SetPosition(sunPos);
 }
