@@ -63,6 +63,9 @@ public:
     // 色の範囲を設定できるようにする
     void SetColorRange(DirectX::XMFLOAT3 startColor, DirectX::XMFLOAT3 endColor) { m_StartColor = startColor; m_EndColor = endColor; };
 
+
+    void SetSparkleMode(bool isGold, float area = 50.0f);
+
     // 速度の範囲を設定
     void SetSpeedRange(float minSpeed, float maxSpeed) { m_MinSpeed = minSpeed; m_MaxSpeed = maxSpeed; };
 
@@ -127,6 +130,14 @@ private:
     void EmitBurst(const DirectX::XMFLOAT3& pos, const DirectX::XMFLOAT3& dir, int count);
     void EmitContinuous(const DirectX::XMFLOAT3& pos, const DirectX::XMFLOAT3& dir);
     void EmitTrail(const DirectX::XMFLOAT3& pos, const DirectX::XMFLOAT3& dir);
+
+
+    void UpdateSparkle(Particle& p, float deltaTime);
+    void EmitSparkle(const DirectX::XMFLOAT3& centerPos, const DirectX::XMFLOAT3& dir);
+
+    // キラキラ設定
+    bool m_isGoldSparkle = false;  // 金色かどうか
+    float m_sparkleArea = 1280.0f;   // 発生範囲
 
     std::vector<Particle> m_particles;
     ComPtr<ID3D11ShaderResourceView> m_texture;

@@ -1,6 +1,7 @@
 #pragma once
 #include"BaseRoad.h"
-class RightTurnRoad : public BaseRoad {
+class RightTurnRoad : public BaseRoad 
+{
 protected:
     std::string GetModelFileName() const override
     {

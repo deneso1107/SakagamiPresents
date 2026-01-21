@@ -31,6 +31,7 @@
 #include"SimpleCamera.h"
 #include"ChaseCamera.h"
 #include"IntroCamera.h"
+#include"GoalCamera.h"
 class CarDriveScene : public IScene
 {
 public:
@@ -122,7 +123,7 @@ private:
 	ScreenGaugeBillboard* m_Gauge;
 	std::array<std::unique_ptr<::Segment>, 3> m_segments;			// ローカル軸表示用線分
 	std::unique_ptr<Field> m_field;								// フィールド
-	std::unique_ptr<Player> m_player;							// フィールド
+	std::unique_ptr<Player> m_player;							// プレイヤー
 	std::unique_ptr<Skydome> m_skydome;							// スカイドーム
 	std::unique_ptr<Start> m_start;							// スタート
 	std::unique_ptr<Goal> m_goal;							//　ゴール

@@ -31,6 +31,9 @@ private:
     VideoPlayer* m_videoPlayer;
     bool m_isOwningVideoPlayer;  // VideoPlayerの所有権 
 
+    float m_alpha;
+    MATERIAL m_materialData;
+
 
 public:
     // コピー/ムーブを禁止
@@ -51,14 +54,14 @@ public:
         const Vector2& uvOffset = Vector2(0.0f, 0.0f),
         const Vector2& uvSize = Vector2(1.0f, 1.0f));*/
     //~ScreenFixedBillboard();
-
     void Init(const Vector2& screenPos, float width, float height, const wchar_t* texturePath);
     void Dispose();
     void Update();  // ビューマトリックス不要
     void Draw();
 
-    void SetScreenPosition(const Vector2& pos) { m_screenPosition = pos; }
-    void SetSize(float width, float height) { m_width = width; m_height = height; }
+    void SetScreenPosition(const Vector2& pos) { m_screenPosition = pos;UpdateVertexBuffer();
+    }
+    void SetSize(float width, float height);
     void SetAngle(float angle) { m_angle = angle; } 
     void SetUVRange(float u1, float v1, float u2, float v2);
     void SetUVOffset(const Vector2& offset) { m_uvOffset = offset; }
@@ -75,6 +78,9 @@ public:
     float GetCurrentTime() const;
     float GetDuration() const;
     VideoPlayer* GetVideoPlayer() { return m_videoPlayer; }
+
+    void SetAlpha(float alpha);
+    float GetAlpha() const { return m_alpha; }
 
 private:
     void CreateBuffers();

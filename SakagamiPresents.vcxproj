@@ -31,7 +31,10 @@
     <ClInclude Include="CarPhysics.h" />
     <ClInclude Include="ChaseCamera.h" />
     <ClInclude Include="CountdownEffect.h" />
+    <ClInclude Include="GoalCamera.h" />
+    <ClInclude Include="GoalEffect.h" />
     <ClInclude Include="IntroCamera.h" />
+    <ClInclude Include="ResultCamera.h" />
     <ClInclude Include="SpringCamera.h" />
     <ClInclude Include="CollisionCameraState.h" />
     <ClInclude Include="CTerrainMesh.h" />
@@ -116,6 +119,8 @@
     <ClInclude Include="system\transform.h" />
     <ClInclude Include="TextureCache.h" />
     <ClInclude Include="Title.h" />
+    <ClInclude Include="TitleCamera.h" />
+    <ClInclude Include="TitleMove.h" />
     <ClInclude Include="Tree.h" />
     <ClInclude Include="TreeManager.h" />
     <ClInclude Include="VideoBllBoard.h" />
@@ -133,7 +138,10 @@
     <ClCompile Include="CarPhysics.cpp" />
     <ClCompile Include="ChaseCamera.cpp" />
     <ClCompile Include="CountdownEffect.cpp" />
+    <ClCompile Include="GoalCamera.cpp" />
+    <ClCompile Include="GoalEffect.cpp" />
     <ClCompile Include="IntroCamera.cpp" />
+    <ClCompile Include="ResultCamera.cpp" />
     <ClCompile Include="SpringCamera.cpp" />
     <ClCompile Include="CTerrainMesh.cpp" />
     <ClCompile Include="Dirt.cpp" />
@@ -197,6 +205,8 @@
     <ClCompile Include="system\SphereDrawer.cpp" />
     <ClCompile Include="system\stb.cpp" />
     <ClCompile Include="Title.cpp" />
+    <ClCompile Include="TitleCamera.cpp" />
+    <ClCompile Include="TitleMove.cpp" />
     <ClCompile Include="Tree.cpp" />
     <ClCompile Include="TreeManager.cpp" />
     <ClCompile Include="VideoBllBoard.cpp" />

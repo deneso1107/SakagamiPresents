@@ -50,6 +50,9 @@ void SparkEmitter::Update(float deltaTime)
         case ParticleBehaviorType::Trail:
             UpdateTrail(p, deltaTime);
             break;
+        case ParticleBehaviorType::Sparkle:  // ★追加★
+            UpdateSparkle(p, deltaTime);
+            break;
         }
     }
 
@@ -101,6 +104,31 @@ void SparkEmitter::UpdateContinuous(Particle& p, float deltaTime)
     p.color.w = fadeT;
 }
 
+void SparkEmitter::SetSparkleMode(bool isGold, float area)
+{
+    m_isGoldSparkle = isGold;
+    m_sparkleArea = area;
+    m_BehaviorType = ParticleBehaviorType::Sparkle;
+
+    // キラキラ用の色設定
+    if (isGold) {
+        // 金色
+        m_StartColor = DirectX::XMFLOAT3(1.0f, 0.9f, 0.3f);  // 明るい金色
+        m_EndColor = DirectX::XMFLOAT3(1.0f, 0.7f, 0.0f);    // オレンジ寄りの金色
+        m_ParticleSize = 8.0f;  // やや大きめ
+    }
+    else {
+        // 白色
+        m_StartColor = DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f);
+        m_EndColor = DirectX::XMFLOAT3(0.8f, 0.8f, 1.0f);    // 少し青みがかった白
+        m_ParticleSize = 5.0f;  // 控えめ
+    }
+
+    m_MinSpeed = 2.0f;
+    m_MaxSpeed = 5.0f;
+    m_Gravity = -0.5f;  // ゆっくり落ちる
+}
+
 //軌跡型の更新
 void SparkEmitter::UpdateTrail(Particle& p, float deltaTime)
 {
@@ -114,6 +142,40 @@ void SparkEmitter::UpdateTrail(Particle& p, float deltaTime)
 
     float fadeT = 1.0f - (p.life / p.lifespan);
     p.color.w = fadeT;
+}
+
+void SparkEmitter::UpdateSparkle(Particle& p, float deltaTime)
+{
+    // ゆらゆらと漂いながら落ちる
+    p.velocity.x += (rand() % 100 - 50) * 0.002f;  // 横方向にゆらぐ
+    p.velocity.z += (rand() % 100 - 50) * 0.002f;
+
+    // ゆるい重力
+    p.velocity.y += m_Gravity * deltaTime;
+
+    // 空気抵抗
+    p.velocity.x *= 0.99f;
+    p.velocity.z *= 0.99f;
+
+    // 位置更新
+    p.pos.x += p.velocity.x * deltaTime;
+    p.pos.y += p.velocity.y * deltaTime;
+    p.pos.z += p.velocity.z * deltaTime;
+
+    // ★キラキラ感：サイズを脈動させる★
+    float pulse = sin(p.life * 10.0f) * 0.3f + 0.7f;  // 0.4～1.0
+    p.size = m_ParticleSize * pulse;
+
+    // フェードアウト
+    float t = p.life / p.lifespan;
+    if (t > 0.7f) {
+        // 後半30%で急激にフェード
+        float fadeT = (t - 0.7f) / 0.3f;
+        p.color.w = 1.0f - fadeT;
+    }
+    else {
+        p.color.w = 1.0f;
+    }
 }
 
 
@@ -328,6 +390,9 @@ void SparkEmitter::Emit(const DirectX::XMFLOAT3& pos, const DirectX::XMFLOAT3& d
     case ParticleBehaviorType::Trail:
         EmitTrail(pos, dir);
         break;
+    case ParticleBehaviorType::Sparkle:  // ★追加★
+        EmitSparkle(pos, dir);
+        break;
     }
 }
 void SparkEmitter::EmitBurst(const DirectX::XMFLOAT3& pos, const DirectX::XMFLOAT3& dir, int count)
@@ -430,6 +495,48 @@ void SparkEmitter::EmitTrail(const DirectX::XMFLOAT3& pos, const DirectX::XMFLOA
     p.size = m_ParticleSize;
 
     m_particles.push_back(p);
+}
+void SparkEmitter::EmitSparkle(const DirectX::XMFLOAT3& centerPos, const DirectX::XMFLOAT3& dir)
+{
+    if (m_particles.size() >= m_maxParticles) return;
+
+    // 毎フレーム2～5個のキラキラを生成
+    int count = 2 + (rand() % 4);
+
+    for (int i = 0; i < count && m_particles.size() < m_maxParticles; ++i)
+    {
+        Particle p;
+
+        // ★広範囲にランダム配置★
+        p.pos = {
+            centerPos.x + (rand() % 200 - 100) * 0.01f * m_sparkleArea / 50.0f,
+            centerPos.y + (rand() % 150) * 0.01f * m_sparkleArea / 50.0f,  // 上方向
+            centerPos.z + (rand() % 200 - 100) * 0.01f * m_sparkleArea / 50.0f
+        };
+
+        // ★初速：ゆっくり上昇、横にゆらぐ★
+        float horizontalSpeed = (rand() % 100 - 50) * 0.01f;
+        p.velocity = {
+            horizontalSpeed,
+            1.0f + (rand() % 100) * 0.02f,  // 上昇速度 1.0～3.0
+            horizontalSpeed
+        };
+
+        // ★色のバリエーション★
+        float t = static_cast<float>(rand() % 100) / 100.0f;
+        p.color = {
+            LerpFloat(m_StartColor.x, m_EndColor.x, t),
+            LerpFloat(m_StartColor.y, m_EndColor.y, t),
+            LerpFloat(m_StartColor.z, m_EndColor.z, t),
+            1.0f
+        };
+
+        p.life = 0.0f;
+        p.lifespan = 2.0f + (rand() % 100) / 100.0f * 1.0f;  // 2～3秒
+        p.size = m_ParticleSize + (rand() % 100) * 0.03f;
+
+        m_particles.push_back(p);
+    }
 }
 
 SparkEmitter::~SparkEmitter()

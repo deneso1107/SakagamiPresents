@@ -9,7 +9,7 @@
 #include "ChaseCamera.h"
 #include "EffeectManager.h"
 #include "SpringCamera.h"
-
+#include"GoalCamera.h"
 
 
 float VALUE_MOVE_MODEL = 2.0f;						// キー入力時の移動量
@@ -47,7 +47,7 @@ void Player::StartRaceSequence(const Vector3& startPosition)
 
 	m_spiralTime = 0.0f;
 
-	// ★現在の向き（正面方向）を保存
+	//現在の向き（正面方向）を保存
 	m_spiralInitialYaw = m_Rotation.y;
 
 	// 開始位置を設定（スタート地点の上空）
@@ -308,6 +308,165 @@ void Player::UpdateStartSequence(float deltatime)
 	}
 }
 
+void Player::OnGoal()
+{
+	m_PostProcessSetter(false, 0.0f);
+	m_hasGoaled = true;
+	m_goalEffectStarted = false;
+
+	// ゴール状態に遷移
+	m_stateManager.ClearAllStates();
+	m_stateManager.AddState(PlayerStateManager::State::GoalSequence);
+	m_stateManager.AddState(PlayerStateManager::State::OnGround);
+
+	// ゴールジャンプの初期化
+	m_goalJumpTime = 0.0f;
+	m_goalStartPos = m_Position;
+	m_goalStartRotation = m_Rotation;
+
+	// 進行方向を取得
+	m_goalDirection = Vector3(sin(m_Rotation.y), 0.0f, cos(m_Rotation.y));
+	m_goalDirection.Normalize();
+	GoalCamera& cam = GoalCamera::Instance();
+	cam.StartGoalSequence();
+}
+void Player::UpdateGoalSequence(float deltatime)
+{
+	// UI演出を最初の1回だけ開始
+	if (!m_goalEffectStarted)
+	{
+		m_goalEffect->Start();
+		m_goalEffectStarted = true;
+		printf("=== Goal Effect Started! ===\n");
+	}
+
+	// UI演出の更新
+	m_goalEffect->Update(deltatime);
+
+	// ★★★ プレイヤーのロケット飛行アニメーション（螺旋上昇） ★★★
+	m_goalJumpTime += deltatime;
+	float t = m_goalJumpTime / m_goalJumpDuration;
+
+	if (t <= 1.0f)
+	{
+		float forward, height;
+		float spiralRadius = 5.0f;  // 螺旋の半径
+		float spiralRotations = 3.0f;  // 螺旋の回転数
+
+		if (t < 0.4f) {
+			// ★★★ フェーズ1 (0~0.4秒): ゆっくり上昇 ★★★
+			float t1 = t / 0.4f;
+
+			// 緩やかな二次曲線
+			forward = m_goalJumpDistance * 0.2f * t1 * t1;
+			height = m_goalJumpHeight * 0.15f * t1 * t1;
+
+			// 螺旋回転（ゆっくり）
+			float spiralAngle = t1 * 3.14159f * 2.0f * spiralRotations * 0.3f;  // 前半は少しだけ回転
+			spiralRadius *= t1;  // 徐々に半径を広げる
+
+			// 螺旋オフセットを計算
+			Vector3 rightDir = Vector3(-m_goalDirection.z, 0, m_goalDirection.x);
+			rightDir.Normalize();
+			Vector3 spiralOffset = rightDir * (cosf(spiralAngle) * spiralRadius);
+			spiralOffset += m_goalDirection * (sinf(spiralAngle) * spiralRadius * 0.5f);  // 前後にも少し揺れる
+
+			// 位置を計算
+			Vector3 forwardOffset = m_goalDirection * forward;
+			Vector3 upOffset = Vector3(0, height, 0);
+			m_Position = m_goalStartPos + forwardOffset + upOffset + spiralOffset;
+
+			// ★★★ プレイヤーの向き：徐々に上を向く ★★★
+			m_Rotation.y = m_goalStartRotation.y + spiralAngle;
+			m_Rotation.x = -0.3f * t1;  // 徐々に上を向き始める（最大約-17度）
+
+			// 速度も遅め
+			float speed = (m_goalJumpDistance / m_goalJumpDuration) * 0.5f;
+			m_Velocity = m_goalDirection * speed;
+			m_Velocity.y = speed * 0.3f;
+
+		}
+		else {
+			// ★★★ フェーズ2 (0.4~1.0秒): 急加速 + 激しい螺旋！ ★★★
+			float t2 = (t - 0.4f) / 0.6f;
+
+			// 三次関数で急加速
+			float accel = t2 * t2 * t2;
+
+			forward = m_goalJumpDistance * 0.2f +
+				m_goalJumpDistance * 0.8f * accel;
+			height = m_goalJumpHeight * 0.15f +
+				m_goalJumpHeight * 0.85f * accel;
+
+			// 螺旋回転（速く）
+			float spiralAngle = (0.3f + t2 * 0.7f) * 3.14159f * 2.0f * spiralRotations;  // 後半で激しく回転
+
+			// 螺旋オフセットを計算
+			Vector3 rightDir = Vector3(-m_goalDirection.z, 0, m_goalDirection.x);
+			rightDir.Normalize();
+			Vector3 spiralOffset = rightDir * (cosf(spiralAngle) * spiralRadius);
+			spiralOffset += m_goalDirection * (sinf(spiralAngle) * spiralRadius * 0.5f);
+
+			// 位置を計算
+			Vector3 forwardOffset = m_goalDirection * forward;
+			Vector3 upOffset = Vector3(0, height, 0);
+			m_Position = m_goalStartPos + forwardOffset + upOffset + spiralOffset;
+
+			// ★★★ プレイヤーの向き：上向き（ロケットのように） ★★★
+			m_Rotation.y = m_goalStartRotation.y + spiralAngle;
+			m_Rotation.x = Lerp(-0.3f, -1.4f, t2);  // -17度 → -80度（ほぼ真上）
+
+			// ロール（螺旋の傾き）
+			m_Rotation.z = sinf(spiralAngle) * 0.3f * t2;
+
+			// 速度も急加速（最大4倍）
+			float speedMult = 1.0f + t2 * 3.0f;
+			float speed = (m_goalJumpDistance / m_goalJumpDuration) * speedMult;
+			m_Velocity = m_goalDirection * speed;
+			m_Velocity.y = speed * 1.5f * speedMult;  // 上昇速度も加速
+		}
+	}
+	else
+	{
+		// ジャンプ終了後もさらに加速して飛び続ける
+		float overTime = m_goalJumpTime - m_goalJumpDuration;
+
+		// 螺旋は継続（徐々に半径が小さくなる）
+		float spiralAngle = 3.14159f * 2.0f * 3.0f + overTime * 3.0f;  // 回転継続
+		float spiralRadius = 5.0f * (1.0f - overTime * 0.5f);  // 徐々に縮小
+		spiralRadius = std::max(spiralRadius, 1.0f);  // 最小1m
+
+		Vector3 rightDir = Vector3(-m_goalDirection.z, 0, m_goalDirection.x);
+		rightDir.Normalize();
+		Vector3 spiralOffset = rightDir * (cosf(spiralAngle) * spiralRadius);
+
+		// どんどん加速
+		float extraHeight = m_goalJumpHeight * 3.0f * overTime;
+		float extraDistance = m_goalJumpDistance * 2.0f * overTime;
+
+		Vector3 forwardOffset = m_goalDirection * (m_goalJumpDistance + extraDistance);
+		Vector3 upOffset = Vector3(0, m_goalJumpHeight + extraHeight, 0);
+
+		m_Position = m_goalStartPos + forwardOffset + upOffset + spiralOffset;
+
+		// ★★★ 回転は継続、上向き維持 ★★★
+		m_Rotation.y = m_goalStartRotation.y + spiralAngle;
+		m_Rotation.x = -1.4f;  // ほぼ真上を向く（約-80度）
+		m_Rotation.z = sinf(spiralAngle) * 0.2f;
+
+		// 速度も最大
+		m_Velocity = m_goalDirection * (m_goalJumpDistance / m_goalJumpDuration) * 5.0f;
+		m_Velocity.y = m_goalJumpHeight * 3.0f;
+	}
+
+	// UI演出が完全に終了したらリザルトへ
+	if (m_goalEffect->IsFinished() && t > 1.0f)
+	{
+		// リザルト画面へ遷移
+		SceneManager::ChangeScene("Ending");// ゴールに到達したらResultSceneへ遷移
+	}
+}
+
 
 void Player::Init()
 {
@@ -358,7 +517,7 @@ void Player::Init()
 	m_stateManager.AddState(PlayerStateManager::State::OnGround);
 
 	// カウントダウンエフェクトの初期化
-	m_countdown = new CountdownEffect();
+	m_countdown = std::make_unique <CountdownEffect>();
 	m_countdown->Initialize(
 		Vector2(0.5f, 0.4f),   // 数字位置（中央の白枠）
 		Vector2(0.25f, 0.5f),  // GO位置（左の白枠）
@@ -367,10 +526,42 @@ void Player::Init()
 		0.25f                  // 背景サイズ
 	);
 	m_countdownStarted = false;
+
+	//ゴール演出の初期化
+	// ゴール演出の初期化
+	m_goalEffect=std::make_unique <GoalEffect>();
+	m_goalEffect->Initialize();
+	m_hasGoaled = false;
+	m_goalEffectStarted = false;
+
+	// ゴールジャンプパラメータ
+	m_goalJumpDuration = 3.0f;        // 3秒間飛び続ける
+	m_goalJumpHeight = 500.0f;         // 最終的に50m上昇
+	m_goalJumpDistance = 70.0f;       // 前方に30m進む
+	m_goalRotationSpeed = 720.0f;     // 1回転
+	m_goalAcceleration = 5.0f;        // 加速倍率
 }
 //まだちょいがたつく
 void Player::Update(float deltatime)
 {
+
+	if (m_stateManager.IsGoalSequence())
+	{
+		UpdateGoalSequence(deltatime);
+		// 地形追従は行う
+		UpdateSmoothTerrainFollowing(deltatime);
+		// バウンディングスフィアの更新
+		float bottomOffsetY = m_mesh.GetBottomY();
+		m_BoundingSphere = {
+			Vector3(
+				m_Position.x,
+				m_Position.y + (bottomOffsetY * m_Scale.y) + (m_BoundingSphere.radius * 0.5f),
+				m_Position.z
+			),
+			0.5f,
+		};
+		return; // 通常のUpdate処理をスキップ
+	}
 
 	// スタートシーケンス中は専用の処理
 	if (m_stateManager.IsInStartSequence())
@@ -668,7 +859,7 @@ float Player::GetCurrentSpeedMultiplier() const
 	return m_PermanentSpeedBonus * m_TemporarySpeedBonus;
 }
 
-void Player::UpdateSmoothTerrainFollowing(uint64_t deltatime)
+void Player::UpdateSmoothTerrainFollowing(float deltatime)
 {
 	bool onRoad = false;
 
@@ -1026,6 +1217,11 @@ void Player::Draw()
 	Matrix4x4 worldmtx;
 	worldmtx = srt.GetMatrix();
 	Matrix rotationMatrix = Matrix::CreateRotationY(DirectX::XMConvertToRadians(90.0f)); // または -90.0f
+	if (m_isResultMode)
+	{
+		rotationMatrix = Matrix::CreateRotationY(DirectX::XMConvertToRadians(145.0f));
+		worldmtx = rotationMatrix * worldmtx;
+	}
 	worldmtx = rotationMatrix * worldmtx;
 	Renderer::SetWorldMatrix(&worldmtx);
 
@@ -1067,13 +1263,18 @@ void Player::Draw()
 		m_countdown->Draw();
 	}
 
+	if (m_stateManager.IsGoalSequence() && m_goalEffect)
+	{
+		m_goalEffect->Draw();
+	}
+
 	// デバッグ用
 	g_position = m_Position;
 	g_rotation = m_Rotation;
 	g_scale = m_Scale;
 
 	Color bscolor(1, 1, 1, 0.5f);
-	SphereDrawerDraw(m_BoundingSphere.radius, bscolor, m_BoundingSphere.center.x, m_BoundingSphere.center.y, m_BoundingSphere.center.z);
+	//SphereDrawerDraw(m_BoundingSphere.radius, bscolor, m_BoundingSphere.center.x, m_BoundingSphere.center.y, m_BoundingSphere.center.z);
 	if (m_roadManager) {
 		float terrainHeight;
 		Vector3 terrainNormal;
@@ -1087,7 +1288,6 @@ void Player::Draw()
 
 void Player::Dispose()
 {
-
 }
 
 // 敵との衝突時の処理

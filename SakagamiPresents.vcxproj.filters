@@ -61,6 +61,15 @@
     <Filter Include="ヘッダー ファイル\Camera">
       <UniqueIdentifier>{174b6864-502b-447f-a617-42151b450c57}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ソース ファイル\Efffect]">
+      <UniqueIdentifier>{8177d815-8a2e-4d80-b4e9-4c73ace50c7d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\BillBoard">
+      <UniqueIdentifier>{88325954-b11b-4054-90a2-590aa0b8107a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ヘッダー ファイル\BillBoard">
+      <UniqueIdentifier>{0ba49123-18e9-465c-9422-8cf275ccae3e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Application.h">
@@ -246,23 +255,11 @@
     <ClInclude Include="scenemanager.h">
       <Filter>ヘッダー ファイル\Scene</Filter>
     </ClInclude>
-    <ClInclude Include="Billboard.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="ScreenFixedBillboard.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="ScreenGaugeBillboard.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="BoostItem.h">
       <Filter>ヘッダー ファイル\Object</Filter>
     </ClInclude>
     <ClInclude Include="SpeedMator.h">
       <Filter>ヘッダー ファイル\Object</Filter>
-    </ClInclude>
-    <ClInclude Include="NumberRenderer.h">
-      <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="Title.h">
       <Filter>ヘッダー ファイル\Scene</Filter>
@@ -365,6 +362,33 @@
     </ClInclude>
     <ClInclude Include="IntroCamera.h">
       <Filter>ヘッダー ファイル\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="GoalEffect.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="GoalCamera.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="TitleMove.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="TitleCamera.h">
+      <Filter>ヘッダー ファイル\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="ResultCamera.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="NumberRenderer.h">
+      <Filter>ヘッダー ファイル\BillBoard</Filter>
+    </ClInclude>
+    <ClInclude Include="ScreenFixedBillboard.h">
+      <Filter>ヘッダー ファイル\BillBoard</Filter>
+    </ClInclude>
+    <ClInclude Include="ScreenGaugeBillboard.h">
+      <Filter>ヘッダー ファイル\BillBoard</Filter>
+    </ClInclude>
+    <ClInclude Include="Billboard.h">
+      <Filter>ヘッダー ファイル\BillBoard</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -509,22 +533,10 @@
     <ClCompile Include="scenemanager.cpp">
       <Filter>ソース ファイル\Scene</Filter>
     </ClCompile>
-    <ClCompile Include="Billboard.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="ScreenFixedBillboard.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="ScreenGaugeBillboard.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="BoostItem.cpp">
       <Filter>ソース ファイル\Object</Filter>
     </ClCompile>
     <ClCompile Include="SpeedMator.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="NumberRenderer.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="Title.cpp">
@@ -599,11 +611,38 @@
     <ClCompile Include="CTerrainMesh.cpp">
       <Filter>ソース ファイル\Object\Road</Filter>
     </ClCompile>
-    <ClCompile Include="CountdownEffect.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="IntroCamera.cpp">
       <Filter>ソース ファイル\Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="GoalCamera.cpp">
+      <Filter>ソース ファイル\Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="CountdownEffect.cpp">
+      <Filter>ソース ファイル\Efffect]</Filter>
+    </ClCompile>
+    <ClCompile Include="GoalEffect.cpp">
+      <Filter>ソース ファイル\Efffect]</Filter>
+    </ClCompile>
+    <ClCompile Include="TitleMove.cpp">
+      <Filter>ソース ファイル\Efffect]</Filter>
+    </ClCompile>
+    <ClCompile Include="TitleCamera.cpp">
+      <Filter>ソース ファイル\Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="ResultCamera.cpp">
+      <Filter>ソース ファイル\Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="Billboard.cpp">
+      <Filter>ソース ファイル\BillBoard</Filter>
+    </ClCompile>
+    <ClCompile Include="NumberRenderer.cpp">
+      <Filter>ソース ファイル\BillBoard</Filter>
+    </ClCompile>
+    <ClCompile Include="ScreenFixedBillboard.cpp">
+      <Filter>ソース ファイル\BillBoard</Filter>
+    </ClCompile>
+    <ClCompile Include="ScreenGaugeBillboard.cpp">
+      <Filter>ソース ファイル\BillBoard</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

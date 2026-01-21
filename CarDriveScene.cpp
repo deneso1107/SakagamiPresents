@@ -79,24 +79,6 @@ void CarDriveScene::debugDirectionalLight()
 	}
 
 	ImGui::End();
-	//static Vector4 direction = Vector4(0.0f, 0.0f,  1.0f, 0.0f); // Z軸+方向に光を当てる	
-	//ImGui::Begin("debug Directional Light");
-
-	//ImGui::SliderFloat3("direction ",&direction.x, -1, 1);
-	//direction.Normalize();										// 正規化
-
-	//LIGHT light{};
-	//light.Enable = true;
-	//light.Direction = direction;
-
-	//light.Direction.Normalize();
-	//light.Ambient = Color(0.2f, 0.2f, 0.2f, 1.0f);
-	//light.Diffuse = Color(1.0f, 1.0f, 1.0f, 1.0f);
-
-	//Vector4 Direction = Vector4(direction.x, direction.y,direction.z, 0.0f);
-	//Renderer::SetLight(light);
-
-	//ImGui::End();
 }
 
 // デバッグフリーカメラ
@@ -187,7 +169,7 @@ void CarDriveScene::init()
 	m_timeRenderer.Init(Vector2(0.93f, 0.1f), 0.04f, 0.06f, 0.01f, true);
 	m_scoreRenderer.Init(Vector2(0.93f, 0.2f), 0.04f, 0.06f, 0.01f, true);
 	m_RemainingTime = 30.0f;
-	m_timeRenderer.Update();  //数値が変化したらUpdateを呼ぶ
+	//m_timeRenderer.Update();  //数値が変化したらUpdateを呼ぶ
 	// 画面左上に配置（位置: 0.1, 0.1、サイズ: 0.15 x 0.15）
 	//m_BillboardLoad->Init(Vector2(0.1f, 0.1f), 0.15f, 0.15f, L"assets/texture/haikei.jpg");
 
@@ -199,8 +181,8 @@ void CarDriveScene::init()
 	bool success = m_Gauge->Init(
 		Vector2(0.75f, 0.15f),  // 画面位置 (x=15%, y=10%)
 		0.2f, 0.05f,           // サイズ (幅20%, 高さ5%)
-		L"assets/texture/wall000.jpg", // 外枠画像
-		L"assets/texture/field004.jpg",  // 内容画像（赤いバーなど）
+		L"assets/texture/BackGround.png", // 外枠画像
+		L"assets/texture/Bar.png",  // 内容画像（赤いバーなど）
 		Vector2(0.02f, 0.01f)  // 内容の余白
 	);
 
@@ -241,6 +223,8 @@ void CarDriveScene::init()
 	CheeseCamera::Instance().Init();
 	IntroCamera::Instance().SetTargetPlayer(m_player.get());
 	IntroCamera::Instance().Init();
+	GoalCamera::Instance().SetTargetPlayer(m_player.get());
+	GoalCamera::Instance().Init();
 	m_introCamera = &IntroCamera::Instance();
 
 	m_currentCamera = &IntroCamera::Instance();
@@ -587,8 +571,12 @@ void CarDriveScene::update(float deltatime)//uint64_tとfloatの衝突　圧倒的衝突
      		break;
         case EdgeType::BACK:
         	printf("後ろ\n");//Scene変更完了！
-			//SceneManager::SetTransitionSpeed(2.5f);
-        	SceneManager::ChangeScene("Ending",true);
+			if (!m_player->GetOnGoal())
+			{
+				m_player->OnGoal();
+				m_currentCamera = &GoalCamera::Instance();
+
+			}
         	// より強い減速
         	break;
         case EdgeType::FRONT:
@@ -700,6 +688,7 @@ void CarDriveScene::update(float deltatime)//uint64_tとfloatの衝突　圧倒的衝突
 
 	m_player->Update(deltatime);	// プレイヤの更新
 	m_speedMator->SetSpeed(m_player->GetSpeed());
+	printf("%f\n", m_player->GetSpeed());
 	m_speedMator->Update(deltatime);
 	// カメラの更新を先に行う
 
@@ -725,8 +714,8 @@ void CarDriveScene::update(float deltatime)//uint64_tとfloatの衝突　圧倒的衝突
 	m_timeRenderer.SetNumber(static_cast<int>(m_RemainingTime));
 	m_scoreRenderer.SetNumber(static_cast<int>(m_gameScore));
 
-	m_timeRenderer.Update();//吹っ飛ばした時のスコアってSceneを作ってフェードアウトさせたら終わり///////////////////
-	m_scoreRenderer.Update();
+	m_timeRenderer.Update(deltatime);//吹っ飛ばした時のスコアってSceneを作ってフェードアウトさせたら終わり///////////////////
+	m_scoreRenderer.Update(deltatime);
 
 	// プレイヤーの体力に基づいてゲージ値を設定
 	float boostGauge = m_player->GetBoostGauge();
@@ -773,7 +762,7 @@ void CarDriveScene::update(float deltatime)//uint64_tとfloatの衝突　圧倒的衝突
     m_sparkEmitter.Emit(pos, dir);
 	m_sparkEmitter.Update(deltatime);
 	EffectManager::Instance().Update(deltatime);
-	m_skydome->Update();
+	m_skydome->Update(m_currentCamera->GetPosition());
 }
 
 void CarDriveScene::draw(uint64_t deltatime)
@@ -887,8 +876,8 @@ void CarDriveScene::draw(uint64_t deltatime)
 	m_screenBillboard->Draw();
 	m_speedMator->Draw();
 	m_Gauge->Draw();
-	m_timeRenderer.Draw();
-	m_scoreRenderer.Draw();
+	m_timeRenderer.Draw(true);
+	m_scoreRenderer.Draw(true,false);
 
 	// 【重要】2D描画後、明示的に深度テストを再度有効化
 	if (m_defaultDepthState) {
