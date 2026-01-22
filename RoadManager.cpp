@@ -281,7 +281,7 @@ void RoadManager::SetRoadRotation(int x, int y, const Vector3& rotation) {
     }
 }
 
-void RoadManager::UpdateAll(uint64_t deltatime) {
+void RoadManager::UpdateAll(float deltatime) {
     for (auto& row : m_roadGrid) {
         for (auto& road : row) {
             if (road) {

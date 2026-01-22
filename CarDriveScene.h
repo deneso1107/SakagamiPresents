@@ -35,10 +35,10 @@
 class CarDriveScene : public IScene
 {
 public:
-	explicit CarDriveScene();
+	explicit CarDriveScene()=default;
 	void update(float deltatime) override;//åpè≥ÅIåpè≥
 	//void update(float deltatime) override;//åpè≥ÅIåpè≥
-	void draw(uint64_t deltatime) override;
+	void draw(float deltatime) override;
 	void init() override;
 	void loadAsync() override;
 	void dispose() override;

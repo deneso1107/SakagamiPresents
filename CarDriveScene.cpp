@@ -148,9 +148,6 @@ void CarDriveScene::debugParticlePos()
 	ImGui::Text("Particle Position Z: %.2f", m_ParticlePos.z);
 	ImGui::End();
 }
-CarDriveScene::CarDriveScene()
-{
-}
 
 void CarDriveScene::init()
 {
@@ -501,11 +498,6 @@ bool m_isInSlowMotion = false;
 void CarDriveScene::update(float deltatime)//uint64_tとfloatの衝突　圧倒的衝突
 {
 
-	// デバッグ: Rキーでレースシーケンスを再スタート
-	if (CDirectInput::GetInstance().CheckKeyBuffer(DIK_R))
-	{
-		m_player->StartRaceSequence(Vector3(0.0f, 0.0f, 0.0f));
-	}
 	// キーで切り替え
 	if (CDirectInput::GetInstance().CheckKeyBuffer(DIK_2)) {
 		m_currentCamera = &SimpleFollowCamera::Instance();
@@ -688,7 +680,6 @@ void CarDriveScene::update(float deltatime)//uint64_tとfloatの衝突　圧倒的衝突
 
 	m_player->Update(deltatime);	// プレイヤの更新
 	m_speedMator->SetSpeed(m_player->GetSpeed());
-	printf("%f\n", m_player->GetSpeed());
 	m_speedMator->Update(deltatime);
 	// カメラの更新を先に行う
 
@@ -765,7 +756,7 @@ void CarDriveScene::update(float deltatime)//uint64_tとfloatの衝突　圧倒的衝突
 	m_skydome->Update(m_currentCamera->GetPosition());
 }
 
-void CarDriveScene::draw(uint64_t deltatime)
+void CarDriveScene::draw(float deltatime)
 {
 	ID3D11DeviceContext* context = Renderer::GetDeviceContext();
 

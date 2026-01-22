@@ -60,7 +60,7 @@ public:
     void ResizeGrid(int width, int height);
 
     // ‘S“¹˜H‚ğXV
-    void UpdateAll(uint64_t deltatime);
+    void UpdateAll(float deltatime);
 
     // ‘S“¹˜H‚ğ•`‰æ
     void DrawAll();

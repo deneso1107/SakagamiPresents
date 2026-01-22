@@ -158,7 +158,7 @@ void Title::update(float deltatime)
 	m_skydome->Update(TitleCamera::Instance().GetPosition());
 }
 
-void Title::draw(uint64_t deltatime)
+void Title::draw(float deltatime)
 {
     // ★★★ カメラのビュー行列を設定 ★★★
     TitleCamera::Instance().Draw();

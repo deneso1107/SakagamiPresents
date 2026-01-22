@@ -12,8 +12,10 @@
 #include"GameManager.h"
 #include"CountdownEffect.h"
 #include"GoalEffect.h"
+#include <deque>
 class Player:public ObjectBase 
 {
+private:
 	PlayerStateManager m_stateManager;
 
 	// 描画の為の情報（メッシュに関わる情報）
@@ -149,6 +151,9 @@ class Player:public ObjectBase
 	void UpdateBoostSystem(bool boostInput, float deltaSeconds);
 	void UpdatePositionWithCollisionCheck(float deltaSeconds);
 
+	void UpdateAfterImage(float deltatime);
+	void DrawAfterImage();
+
 	//速度システム用
 	void UpdateSpeedBonusSystem(float deltatime);  // 速度ボーナスシステムの更新
 	float GetCurrentSpeedMultiplier() const;        // 現在の速度倍率を取得
@@ -185,6 +190,18 @@ class Player:public ObjectBase
 
 	bool m_isResultMode = false;
 
+	//残像処理用
+	struct GhostData {
+		Matrix4x4 worldMatrix;
+		float alpha;
+		float lifetime;
+	};
+	std::deque<GhostData> m_ghostTrail;
+	float m_ghostSpawnTimer = 0.0f;
+	const float GHOST_SPAWN_INTERVAL = 0.005f; // 50msごとに残像生成
+	const int MAX_GHOST_COUNT = 10; // 最大残像数
+
+	bool m_afterImageEnabled = false;
 
 
 public:
@@ -194,7 +211,7 @@ public:
 	void SetResultMode(bool isResultMode) { m_isResultMode = isResultMode; }
 	void Dispose() override;
 
-	void PlayerDriftUpdate(uint64_t deltatime) {
+	void PlayerDriftUpdate(float deltatime) {
 		m_physics.Update(deltatime);
 		m_Position = m_physics.GetPosition();
 		m_Rotation = m_physics.GetRotation();
@@ -303,28 +320,5 @@ public:
 
 	bool GetOnGoal() { return m_hasGoaled; }
 
-	void DebugGravitySystem_()
-	{
-		if (ImGui::TreeNode("Gravity System")) {
-			ImGui::SliderFloat("Gravity", &m_gravity, -2.0f, 0.0f);
-			ImGui::Text("Vertical Velocity: %.3f", m_verticalVelocity);
-			ImGui::Text("Is Grounded: %s", m_isGrounded ? "Yes" : "No");
-			ImGui::Text("Position Y: %.3f", m_Position.y);
-
-			if (ImGui::Button("Reset Position")) {
-				m_Position = Vector3(0.0f, 10.0f, 0.0f); // 空中に配置
-				m_verticalVelocity = 0.0f;
-				m_isGrounded = false;
-			}
-
-			if (ImGui::Button("Jump")) {
-				if (m_isGrounded) {	
-					m_verticalVelocity = 3.0f; // ジャンプ力
-					m_isGrounded = false;
-				}
-			}
-
-			ImGui::TreePop();
-		}
-	}
+	void EnableAfterImage(bool enable) { m_afterImageEnabled = enable; }
 };	
