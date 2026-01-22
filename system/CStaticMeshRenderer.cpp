@@ -54,7 +54,7 @@ void CStaticMeshRenderer::Draw()
 	}
 }
 
-void CStaticMeshRenderer::DrawWithCustomMaterial(const MATERIAL& customMat)
+void CStaticMeshRenderer::DrawWithCustomMaterial(const MATERIAL& customMat)// カスタムマテリアルで描画
 {
 	BeforeDraw();
 
