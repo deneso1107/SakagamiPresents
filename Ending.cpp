@@ -252,7 +252,7 @@ void Ending::UpdateWaitInput(float deltatime)
     }
 }
 
-void Ending::draw(uint64_t deltatime)//文字動かないンゴゴゴ あとメモリリークヤバイ
+void Ending::draw(float deltatime)//文字動かないンゴゴゴ あとメモリリークヤバイ
 {
     if (m_currentScoreUI)
         m_skydome->Draw(false);

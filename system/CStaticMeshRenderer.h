@@ -14,4 +14,5 @@ class CStaticMeshRenderer : public CMeshRenderer
 public:	
 	void Init(CStaticMesh& mesh);
 	void Draw();
+	void DrawWithCustomMaterial(const MATERIAL& customMat);
 };

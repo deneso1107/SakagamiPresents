@@ -228,7 +228,7 @@ float4 main(PS_INPUT input) : SV_TARGET
     }
 
     // === (4) ホワイトアウト（中心の発光） ===
-    float whiteCore = pow(saturate(1.0 - distance * 8.0), 5.0) * (blurStrength + shockwaveIntensity * 2.0); //ここを変更すると強さが変わる
+    //float whiteCore = pow(saturate(1.0 - distance * 8.0), 5.0) * (blurStrength + shockwaveIntensity * 2.0); //ここを変更すると強さが変わる
 
     // === 合成 ===
     float4 sceneColor = sceneTexture.Sample(samplerState, input.texCoord);
@@ -243,7 +243,7 @@ float4 main(PS_INPUT input) : SV_TARGET
     finalColor += float3(0.3, 0.6, 1.0) * shockwave * 3.0;
 
     // 中心のホワイトアウト
-    finalColor += float3(1.0, 1.0, 1.0) * whiteCore;
+    ///finalColor += float3(1.0, 1.0, 1.0) * whiteCore;
 
     return float4(saturate(finalColor), 1.0);
 }

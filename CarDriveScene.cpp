@@ -148,9 +148,6 @@ void CarDriveScene::debugParticlePos()
 	ImGui::Text("Particle Position Z: %.2f", m_ParticlePos.z);
 	ImGui::End();
 }
-CarDriveScene::CarDriveScene()
-{
-}
 
 void CarDriveScene::init()
 {
@@ -166,8 +163,8 @@ void CarDriveScene::init()
 	// スクリーン固定ビルボードの初期化
 	m_screenBillboard = new ScreenFixedBillboard(Vector2(0.1f, 0.1f), 0.15f, 0.15f, L"assets/texture/haikei.jpg");
 	EffectManager::Instance().Initialize();
-	m_timeRenderer.Init(Vector2(0.93f, 0.1f), 0.04f, 0.06f, 0.01f, true);
-	m_scoreRenderer.Init(Vector2(0.93f, 0.2f), 0.04f, 0.06f, 0.01f, true);
+	m_timeRenderer. Init(Vector2(0.95f, 0.15f),0.035f, 0.055f, 0.01f, true);
+	m_scoreRenderer.Init(Vector2(0.95f, 0.3f), 0.035f, 0.055f, 0.01f, true);
 	m_RemainingTime = 30.0f;
 	//m_timeRenderer.Update();  //数値が変化したらUpdateを呼ぶ
 	// 画面左上に配置（位置: 0.1, 0.1、サイズ: 0.15 x 0.15）
@@ -179,8 +176,8 @@ void CarDriveScene::init()
 	m_Gauge = new ScreenGaugeBillboard();
 	// ゲージを初期化（画面左上に配置）
 	bool success = m_Gauge->Init(
-		Vector2(0.75f, 0.15f),  // 画面位置 (x=15%, y=10%)
-		0.2f, 0.05f,           // サイズ (幅20%, 高さ5%)
+		Vector2(0.10f, 0.35f),  // 画面位置 (x=15%, y=10%)
+		0.2f, 0.075f,           // サイズ (幅20%, 高さ5%)
 		L"assets/texture/BackGround.png", // 外枠画像
 		L"assets/texture/Bar.png",  // 内容画像（赤いバーなど）
 		Vector2(0.02f, 0.01f)  // 内容の余白
@@ -501,11 +498,6 @@ bool m_isInSlowMotion = false;
 void CarDriveScene::update(float deltatime)//uint64_tとfloatの衝突　圧倒的衝突
 {
 
-	// デバッグ: Rキーでレースシーケンスを再スタート
-	if (CDirectInput::GetInstance().CheckKeyBuffer(DIK_R))
-	{
-		m_player->StartRaceSequence(Vector3(0.0f, 0.0f, 0.0f));
-	}
 	// キーで切り替え
 	if (CDirectInput::GetInstance().CheckKeyBuffer(DIK_2)) {
 		m_currentCamera = &SimpleFollowCamera::Instance();
@@ -688,7 +680,6 @@ void CarDriveScene::update(float deltatime)//uint64_tとfloatの衝突　圧倒的衝突
 
 	m_player->Update(deltatime);	// プレイヤの更新
 	m_speedMator->SetSpeed(m_player->GetSpeed());
-	printf("%f\n", m_player->GetSpeed());
 	m_speedMator->Update(deltatime);
 	// カメラの更新を先に行う
 
@@ -765,7 +756,7 @@ void CarDriveScene::update(float deltatime)//uint64_tとfloatの衝突　圧倒的衝突
 	m_skydome->Update(m_currentCamera->GetPosition());
 }
 
-void CarDriveScene::draw(uint64_t deltatime)
+void CarDriveScene::draw(float deltatime)
 {
 	ID3D11DeviceContext* context = Renderer::GetDeviceContext();
 

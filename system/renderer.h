@@ -218,6 +218,7 @@ public:
 	static  Matrix4x4& GetViewMatrix() { return m_CurrentView; }
 	static  Matrix4x4& GetProjectionMatrix() { return m_CurrentProjection; }
     static void SetMaterial(MATERIAL Material);
+    static void SetMaterial_(MATERIAL Material);
     static void SetLight(LIGHT Light);
     static ID3D11Device* GetDevice(void) { return m_Device.Get(); }
     static ID3D11DeviceContext* GetDeviceContext(void) { return m_DeviceContext.Get(); }

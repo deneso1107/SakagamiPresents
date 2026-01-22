@@ -22,22 +22,6 @@ static Vector3 g_rotation = Vector3(0.0f, 0.0f, 0.0f);
 static Vector3 g_position = Vector3(0.0f, 0.0f, 0.0f);
 static Vector3 g_scale = Vector3(1.0f, 1.0f, 1.0f);
 
-static void DebugPlayerMoveParameter() {
-
-	ImGui::Begin("Debug Player Move Parameter");
-
-	ImGui::SliderFloat("VALUE_MOVE_MODEL", &VALUE_MOVE_MODEL, 0.01f, 3.0f);
-	ImGui::SliderFloat("VALUE_ROTATE_MODEL", &VALUE_ROTATE_MODEL, 0.01f, PI / 4.0f);
-	ImGui::SliderFloat("RATE_ROTATE_MODEL", &RATE_ROTATE_MODEL, 0.0f, 1.0f);
-	ImGui::SliderFloat("RATE_MOVE_MODEL", &RATE_MOVE_MODEL, 0.0f, 1.0f);
-
-	ImGui::Text("ROTATION %f %f %f", g_rotation.x, g_rotation.y, g_rotation.z);
-	ImGui::Text("POSITION %f %f %f", g_position.x, g_position.y, g_position.z);
-	ImGui::Text("SCALE %f %f %f", g_scale.x, g_scale.y, g_scale.z);
-
-	ImGui::End();
-}
-
 //最初の演出
 void Player::StartRaceSequence(const Vector3& startPosition)
 {
@@ -278,7 +262,6 @@ void Player::UpdateStartSequence(float deltatime)
 		{
 			m_countdown->Start();
 			m_countdownStarted = true;
-			printf("=== Countdown Effect Started! ===\n");
 		}
 
 		// カウントダウンエフェクトの更新
@@ -337,7 +320,6 @@ void Player::UpdateGoalSequence(float deltatime)
 	{
 		m_goalEffect->Start();
 		m_goalEffectStarted = true;
-		printf("=== Goal Effect Started! ===\n");
 	}
 
 	// UI演出の更新
@@ -544,7 +526,6 @@ void Player::Init()
 //まだちょいがたつく
 void Player::Update(float deltatime)
 {
-
 	if (m_stateManager.IsGoalSequence())
 	{
 		UpdateGoalSequence(deltatime);
@@ -782,7 +763,55 @@ void Player::Update(float deltatime)
 	}
 
 	m_sparkEmitter.Update(scaledDeltaTime);
+
+	// 最高速度の時だけアフターイメージ
+	if (m_IsMaxSpeed)
+	{
+		UpdateAfterImage(deltatime); // deltaTimeは既存のものを使用
+	}
 }
+
+void Player::UpdateAfterImage(float deltaTime)
+{
+	m_ghostSpawnTimer += deltaTime;
+
+	if (m_ghostSpawnTimer >= GHOST_SPAWN_INTERVAL) {
+		// 現在のワールド行列を計算
+		SRT srt;
+		srt.pos = m_Position;
+		srt.rot = m_Rotation;
+		srt.scale = m_Scale;
+		Matrix4x4 worldmtx = srt.GetMatrix();
+		Matrix rotationMatrix = Matrix::CreateRotationY(DirectX::XMConvertToRadians(90.0f));
+		worldmtx = rotationMatrix * worldmtx;
+
+		GhostData ghost;
+		ghost.worldMatrix = worldmtx;	
+		ghost.alpha = 1.0f; // 濃いめの初期アルファ値
+		ghost.lifetime = 0.0f;
+
+		m_ghostTrail.push_back(ghost);
+		m_ghostSpawnTimer = 0.0f;
+
+		if (m_ghostTrail.size() > MAX_GHOST_COUNT) {
+			m_ghostTrail.pop_front();
+		}
+	}
+
+	// 既存の残像を更新
+	for (auto& ghost : m_ghostTrail) {
+		ghost.lifetime += deltaTime;
+		ghost.alpha -= deltaTime * 5.5f; // フェードアウト速度
+	}
+
+	m_ghostTrail.erase(
+		std::remove_if(m_ghostTrail.begin(), m_ghostTrail.end(),
+			[](const GhostData& g) { return g.alpha <= 0.0f; }),
+		m_ghostTrail.end()
+	);
+}
+
+
 // ブーストシステムの更新処理
 void Player::UpdateBoostSystem(bool boostInput, float deltaSeconds)
 {
@@ -1209,6 +1238,8 @@ void Player::UpdateDriftMovement(float throttle, float steering, Vector3 forward
 
 void Player::Draw()
 {
+
+	auto mode = Renderer::GetRenderMode();
 	// SRT情報作成
 	SRT srt;
 	srt.pos = m_Position;
@@ -1228,7 +1259,6 @@ void Player::Draw()
 	Matrix4x4 worldMatrix = DirectX::XMMatrixIdentity();
 
 	//m_sparkEmitter.Render(Renderer::GetDeviceContext(), worldMatrix);
-	auto mode = Renderer::GetRenderMode();
 
 	if (mode == Renderer::RenderMode::SHADOW_MAP)
 	{
@@ -1243,7 +1273,6 @@ void Player::Draw()
 	}
 	else
 	{
-		OutputDebugStringA("\n=== Player::Draw NORMAL mode ===\n");
 
 		// 通常描画
 		if (Renderer::IsShadowMapEnabled())
@@ -1268,13 +1297,14 @@ void Player::Draw()
 		m_goalEffect->Draw();
 	}
 
+
+
 	// デバッグ用
 	g_position = m_Position;
 	g_rotation = m_Rotation;
 	g_scale = m_Scale;
 
-	Color bscolor(1, 1, 1, 0.5f);
-	//SphereDrawerDraw(m_BoundingSphere.radius, bscolor, m_BoundingSphere.center.x, m_BoundingSphere.center.y, m_BoundingSphere.center.z);
+
 	if (m_roadManager) {
 		float terrainHeight;
 		Vector3 terrainNormal;
@@ -1283,7 +1313,62 @@ void Player::Draw()
 			SphereDrawerDraw(0.3f, terrainColor, m_Position.x, terrainHeight, m_Position.z);
 		}
 	}
-	//m_sparkEmitter.Render(Renderer::GetDeviceContext(), viewmtx);//ここのViewMatrixが違う説を提唱します
+
+	// 通常描画モードのみアフターイメージを描画
+	if (mode != Renderer::RenderMode::SHADOW_MAP &&m_IsMaxSpeed)
+	{
+		DrawAfterImage();
+	}
+}
+
+void Player::DrawAfterImage()
+{
+	// ブレンドステートを半透明に設定
+	Renderer::SetBlendState(EBlendState::BS_ADDITIVE);
+
+	// デプステストは有効、デプス書き込みは無効
+	Renderer::SetDepthEnable(true);   // 深度テストON
+
+
+	// シェーダー設定
+	m_shader.SetGPU();
+	const float AFTER_IMAGE_OPACITY = 0.8f; // ここで透明度を調整
+	int index = 0;
+	int totalGhosts = m_ghostTrail.size();
+	// 残像を古い順に描画
+	for (const auto& ghost : m_ghostTrail) {
+		// ワールド行列設定
+		Renderer::SetWorldMatrix(const_cast<Matrix4x4*>(&ghost.worldMatrix));
+
+		// マテリアルのアルファを変更
+		std::vector<MATERIAL>material = m_mesh.GetMaterials(); // これは既存のマテリアル取得方法に合わせてください
+		for(auto& mat : material)
+		{
+			// グラデーション
+			float fadeRatio = (float)index / (float)totalGhosts;
+			float displayAlpha = ghost.alpha * AFTER_IMAGE_OPACITY * (1.0f - fadeRatio * 0.6f);
+			float intensity = displayAlpha * 2.0f;
+
+			mat.Diffuse.x = 0.2f * displayAlpha;
+			mat.Diffuse.y = 0.8f * displayAlpha;
+			mat.Diffuse.z = 1.0f * displayAlpha;
+			mat.Diffuse.w = displayAlpha;
+
+			mat.Emission.x = 0.3f * intensity;
+			mat.Emission.y = 1.0f * intensity;
+			mat.Emission.z = 1.5f * intensity;
+			mat.TextureEnable = FALSE; // ★テクスチャを無効化★
+			m_meshrenderer.DrawWithCustomMaterial(mat);
+
+			index++;
+
+		}
+	}
+
+
+	// ブレンドステートを元に戻す
+	Renderer::SetBlendState(EBlendState::BS_ALPHABLEND);
+
 }
 
 void Player::Dispose()
@@ -1322,15 +1407,15 @@ void Player::OnCollisionWithEnemy(Enemy& enemy)
 
 
 	// ノックバック力を適用
-	float knockbackForce = speed*50.0f; // 力を強くして確実に飛ぶようにする
-	m_gameScore += knockbackForce;
+	int  knockbackForce = (int)speed*50.0f; // 力を強くして確実に飛ぶようにする
+	m_gameScore += knockbackForce/10;
 
 	if (timeScale != 1.0f)
 	{
 		knockbackForce *=(1 / timeScale);//スローモーションでも同じ力で吹っ飛ぶように
 	}
 
-	// ★★★ ハイブリッド速度システムの適用 ★★★
+	//ハイブリッド速度システムの適用
 	m_ConsecutiveHits++;
 
 	// 【永続ボーナス】マイルストーン達成チェック

@@ -634,6 +634,17 @@ void Renderer::SetMaterial(MATERIAL Material)
     m_DeviceContext->UpdateSubresource(m_MaterialBuffer.Get(), 0, nullptr, &Material, 0, 0);
 }
 
+//違うスロットにバインド（既存のものと併用）
+void Renderer::SetMaterial_(MATERIAL Material)
+{
+    m_DeviceContext->UpdateSubresource(m_MaterialBuffer.Get(), 0, nullptr, &Material, 0, 0);
+    // スロット3にバインド（register(b3)に対応）
+    m_DeviceContext->VSSetConstantBuffers(3, 1, m_MaterialBuffer.GetAddressOf());
+    m_DeviceContext->PSSetConstantBuffers(3, 1, m_MaterialBuffer.GetAddressOf());
+}
+
+
+
 /**
  * @brief ライト（光源）情報をセットします。
  * @param Light ライト情報

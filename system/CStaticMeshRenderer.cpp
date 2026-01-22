@@ -37,6 +37,7 @@ void CStaticMeshRenderer::Draw()
 	// マテリアル数分ループ 
 	for (int i = 0; i < m_Subsets.size(); i++)
 	{
+
 		// マテリアルをセット(サブセット情報の中にあるマテリアルインデックを使用する)
 		m_Materiales[m_Subsets[i].MaterialIdx]->SetGPU();
 
@@ -50,5 +51,26 @@ void CStaticMeshRenderer::Draw()
 			m_Subsets[i].IndexNum,							// 描画するインデックス数
 			m_Subsets[i].IndexBase,							// 最初のインデックスバッファの位置	
 			m_Subsets[i].VertexBase);						// 頂点バッファの最初から使用
+	}
+}
+
+void CStaticMeshRenderer::DrawWithCustomMaterial(const MATERIAL& customMat)// カスタムマテリアルで描画
+{
+	BeforeDraw();
+
+	for (int i = 0; i < m_Subsets.size(); i++)
+	{
+		// カスタムマテリアルを使用（内部マテリアルは使わない）
+		Renderer::SetMaterial_(customMat);
+
+		if (customMat.TextureEnable)
+		{
+			m_DiffuseTextures[m_Subsets[i].MaterialIdx]->SetGPU();
+		}
+
+		DrawSubset(
+			m_Subsets[i].IndexNum,
+			m_Subsets[i].IndexBase,
+			m_Subsets[i].VertexBase);
 	}
 }

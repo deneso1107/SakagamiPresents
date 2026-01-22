@@ -198,7 +198,7 @@ void SceneManager::Draw(float deltaTime)
 
     // トランジション描画（最前面）
     if (m_transitionState != TransitionState::None) {
-        // ★1. まず黒背景フェード
+        // 1. まず黒背景フェード
         if (m_fadeAlpha > 0.0f)
         {
             DrawBlackFade();
