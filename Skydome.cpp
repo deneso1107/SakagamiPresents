@@ -36,7 +36,6 @@ void Skydome::Init()
 	);
 
 	m_SunBillboard.m_blendType = BillboardBlendType::Additive;
-	Vector3 camPos = IntroCamera::Instance().GetPosition();
 }
 
 void Skydome::Update(Vector3 camepos)

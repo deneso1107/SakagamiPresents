@@ -14,6 +14,7 @@ enum class RoadType {
     START_LINE,  // スタートライン
     GOAL_LINE,  // スタートライン
     DIRT,  // ダート
+    TURNING,  //分かれ道
     CHECKPOINT,  // チェックポイント
     BRIDGE,      // 橋
     TUNNEL       // トンネル

@@ -84,7 +84,7 @@ void Title::update(float deltatime)
 {
     if (CDirectInput::GetInstance().CheckKeyBuffer(DIK_RETURN))
     {
-        SceneManager::ChangeScene("CarDriveScene", true);
+        SceneManager::ChangeScene("CarDriveScene",true);
     }
 
     m_spiralEffect->Update(deltatime);

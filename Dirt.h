@@ -4,7 +4,7 @@ class Dirt : public BaseRoad {
 protected:
     std::string GetModelFileName() const override
     {
-        return "assets/model/Road/road.fbx";
+        return "assets/model/Road/dirt.fbx";
     }
 public:
    Dirt(Direction dir = Direction::NORTH/*ƒeƒXƒg*/) : BaseRoad(RoadType::DIRT, dir) {}

@@ -8,6 +8,8 @@ bool NumberRenderer::s_isInitialized = false;
 
 NumberRenderer::NumberRenderer()
     : m_basePosition(0.5f, 0.1f)
+    , m_lastBasePosition(0.5f, 0.1f)
+    , m_currentPosition(0.5f, 0.1f)
     , m_digitWidth(0.05f)
     , m_digitHeight(0.08f)
     , m_digitSpacing(0.01f)
@@ -34,6 +36,8 @@ void NumberRenderer::Init(const Vector2& basePos, float digitWidth, float digitH
     float spacing, bool rightAlign)
 {
     m_basePosition = basePos;
+    m_lastBasePosition = basePos;
+    m_currentPosition = m_basePosition;
     m_digitWidth = digitWidth;
     m_digitHeight = digitHeight;
     m_digitSpacing = spacing;
@@ -45,6 +49,7 @@ void NumberRenderer::Init(const Vector2& basePos, float digitWidth, float digitH
     backpos.y -= 0.05f;
     backpos.x -= 0.05f;
     m_BackGroundScoreBillBoard= std::make_unique<ScreenFixedBillboard>(backpos, digitWidth*4, digitHeight*3, L"assets/texture/text/Score.png");
+    m_BackGroundTimeBillBoard= std::make_unique<ScreenFixedBillboard>(backpos, digitWidth*4, digitHeight*3, L"assets/texture/text/Time.png");
     m_BackGroundTimeBillBoard= std::make_unique<ScreenFixedBillboard>(backpos, digitWidth*4, digitHeight*3, L"assets/texture/text/Time.png");
 }
 
@@ -127,10 +132,12 @@ void NumberRenderer::Update(float deltaTime)
         UpdateAnimation(deltaTime);
     }
 
-    // 数値が変更された場合のみ更新
-    if (s_displayNumber != m_lastDisplayNumber) {
+    // 数値が変更された場合,または場所が更新されたときのみ更新
+    if ((s_displayNumber != m_lastDisplayNumber)|| (m_basePosition != m_lastBasePosition)) {
         UpdateDigitBillboardsOptimized();
         m_lastDisplayNumber = s_displayNumber;
+		m_lastBasePosition = m_basePosition;
+        printf("%f\n", m_basePosition.x);
     }
 
     for (auto& billboard : m_digitBillboards) {
@@ -138,8 +145,6 @@ void NumberRenderer::Update(float deltaTime)
             billboard->Update();
         }
     }
-
-    m_BackGroundScoreBillBoard->Update();
 }
 
 void NumberRenderer::UpdateAnimation(float deltaTime)
@@ -233,7 +238,7 @@ void NumberRenderer::UpdateDigitBillboardsOptimized()
         if (i >= m_lastDigits.size() || m_lastDigits[i] != digits[i]) {
             Vector2 digitPos;
 
-            // ★アニメーション中はスケールを考慮★
+            //アニメーション中はスケールを考慮
             float effectiveWidth = m_digitWidth * m_currentScale;
             float effectiveSpacing = m_digitSpacing * m_currentScale;
 

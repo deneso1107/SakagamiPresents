@@ -10,6 +10,8 @@ private:
     int s_displayNumber;
     static bool s_isInitialized;
     int m_lastDisplayNumber;
+    Vector2 m_currentPosition;
+    Vector2 m_lastBasePosition;
     std::vector<int> m_lastDigits;
 
     Vector2 m_basePosition;
@@ -26,6 +28,7 @@ private:
     std::vector<std::unique_ptr<ScreenFixedBillboard>> m_digitBillboards;
     std::unique_ptr<ScreenFixedBillboard>  m_BackGroundScoreBillBoard;
     std::unique_ptr<ScreenFixedBillboard>  m_BackGroundTimeBillBoard;
+    std::unique_ptr<ScreenFixedBillboard>  m_BackGroundBillBoard;
 
     // ★アニメーション用メンバ変数★
     bool m_isAnimating;              // アニメーション中かどうか
@@ -59,6 +62,8 @@ public:
     void AddToNumber(int value) { s_displayNumber += value; }
 
     void SetPosition(const Vector2& pos) { m_basePosition = pos; }
+    void SetPositionBack(const Vector2& pos) { m_BackGroundBillBoard->SetScreenPosition(pos); }
+    Vector2 GetPosition() { return  m_basePosition; }
     void SetDigitSize(float width, float height) { m_digitWidth = width; m_digitHeight = height; }
     void SetSpacing(float spacing) { m_digitSpacing = spacing; }
     void SetAlignment(bool rightAlign) { m_rightAlign = rightAlign; }
@@ -67,6 +72,7 @@ public:
     void StartAnimation(AnimationType type = AnimationType::ScaleBounce, float duration = 0.5f);
     void StopAnimation();
     bool IsAnimating() const { return m_isAnimating; }
+
 
     void Update(float deltaTime);
     void Draw(bool,bool time=true);
@@ -87,4 +93,5 @@ private:
     float EaseOutElastic(float t);
     float EaseOutBack(float t);
     float EaseInOutCubic(float t);
+
 };

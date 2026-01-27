@@ -18,7 +18,7 @@ void IntroCamera::Init() {
     m_shakeOffset = Vector3(0.0f, 0.0f, 0.0f);
 
     // 初期カメラ位置（適当な位置、Updateで上書きされる）
-    m_position = Vector3(0.0f, 50.0f, -30.0f);
+    m_position = Vector3(0.0f, 0.0f, -30.0f);
     m_lookat = Vector3(0.0f, 0.0f, 0.0f);
 
     // フェーズ遷移の閾値を設定
@@ -105,8 +105,8 @@ void IntroCamera::UpdateHighAngleCamera(float deltaTime) {
 
     // 高い位置から斜め下を見下ろす
     m_position = playerPos;
-    m_position.y += 30.0f;  // プレイヤーより30m上
-    m_position.z -= 20.0f;  // 少し後ろ
+    m_position.y -= 10.0f;  // プレイヤーより30m上
+    m_position.z -= 60.0f;  // 少し後ろ
     m_position.x += 10.0f;  // 少し横
 
     // プレイヤーの少し先を見る
@@ -125,8 +125,8 @@ void IntroCamera::UpdateDescentCamera(float deltaTime) {
     float heightRatio = Lerp(1.0f, 0.3f, (progress - 0.3f) / 0.4f);
 
     m_position = playerPos;
-    m_position.y += 30.0f * heightRatio;
-    m_position.z -= 15.0f + (5.0f * (1.0f - heightRatio));
+    m_position.y -= 1.0f * heightRatio;
+    m_position.z -= 60.0f + (5.0f * (1.0f - heightRatio));
     m_position.x += 5.0f * heightRatio;
 
     m_lookat = playerPos;

@@ -133,11 +133,11 @@ private:
 	NumberRenderer m_timeRenderer;
 	NumberRenderer m_scoreRenderer;
 	SparkEmitter m_sparkEmitter;
-	RoadManager roadManager; // 道路サイズを18に設定
+	std::unique_ptr<SparkEmitter> m_WindEmitter;
+	RoadManager roadManager; // 道路サイズはコンストラクタで指定
 	TreeManager m_TreeManager;
 	CameraManager m_CameraManager;
 
 	Camera* m_currentCamera;
-	IntroCamera* m_introCamera = nullptr;  // ★IntroCamera専用ポインタ
+	IntroCamera* m_introCamera = nullptr;  //IntroCamera専用ポインタ
 };
-//このカメラにビルボードを対応させよう

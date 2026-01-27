@@ -9,6 +9,7 @@
 #include"Start.h"
 #include"Goal.h"
 #include"Dirt.h"
+#include"TurningRoad.h"
 class RoadManager 
 {
 private:    
@@ -19,8 +20,8 @@ private:
     int m_gridHeight;
     float m_roadSize;  // 道路1つ分のサイズ
 
-    float m_gridSpacingX;  // グリッドのX方向の間隔
-    float m_gridSpacingZ;  // グリッドのZ方向の間隔
+    float m_gridSpacingX=0.0f;  // グリッドのX方向の間隔
+    float m_gridSpacingZ=0.0f;  // グリッドのZ方向の間隔
 
 	float m_RoadLength=0.0f; // 道路の長さ（デフォルト値）
 	float startHeight = 0.0f; // 道路の開始高さ
@@ -41,9 +42,9 @@ private:
     float CalculateAccumulatedPosition(int x, int y, Direction direction, float thisSpacing, float, float);
 
 public:
-    RoadManager(float roadSize = 29.0f) : m_roadSize(roadSize), m_gridWidth(0), m_gridHeight(0) {
+    RoadManager(float roadSize = 32.0f) : m_roadSize(roadSize), m_gridWidth(0), m_gridHeight(0) {
         // デフォルト設定を初期化（Z軸回転をデフォルトに）
-       //m_modelConfig.SetAnglesForCurrentModel();
+
     }
     ~RoadManager() = default;
 
