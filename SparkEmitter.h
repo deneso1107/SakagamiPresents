@@ -39,6 +39,14 @@ class SparkEmitter
     {
         DirectX::XMMATRIX viewProj;
     };
+    struct WindTrail
+    {
+        std::vector<DirectX::XMFLOAT3> points;  // トレイルの点列
+        DirectX::XMFLOAT3 direction;            // 放射方向
+        float life;
+        float lifespan;
+        DirectX::XMFLOAT4 color;
+    };
 
 public:
     ~SparkEmitter(); // ★ デストラクタを追加
@@ -96,7 +104,10 @@ public:
         XMStoreFloat4x4(&m_WorldMatrix, DirectX::XMMatrixTranslation(pos.x, pos.y, pos.z));
     }
     Vector3 GetPosition() const { return m_Position; }
+
+    void SetRadialWindMode(int rayCount, float speed, const DirectX::XMFLOAT3& color);
     ///Particle GetParticle();
+    void EmitWindTrail(const DirectX::XMFLOAT3& centerPos, float playerSpeed);
 
 private:
     struct Vertex;
@@ -126,11 +137,13 @@ private:
     void UpdateBurst(Particle& p, float deltaTime);
     void UpdateContinuous(Particle& p, float deltaTime);
     void UpdateTrail(Particle& p, float deltaTime);
+    void UpdateRadialWind(Particle& p, float deltaTime);
 
     void EmitBurst(const DirectX::XMFLOAT3& pos, const DirectX::XMFLOAT3& dir, int count);
     void EmitContinuous(const DirectX::XMFLOAT3& pos, const DirectX::XMFLOAT3& dir);
     void EmitTrail(const DirectX::XMFLOAT3& pos, const DirectX::XMFLOAT3& dir);
-
+    void UpdateWindTrails(float deltaTime);
+    void RenderWindTrails(ID3D11DeviceContext* context, const DirectX::XMMATRIX& viewProj);
 
     void UpdateSparkle(Particle& p, float deltaTime);
     void EmitSparkle(const DirectX::XMFLOAT3& centerPos, const DirectX::XMFLOAT3& dir);
@@ -139,8 +152,16 @@ private:
     bool m_isGoldSparkle = false;  // 金色かどうか
     float m_sparkleArea = 1280.0f;   // 発生範囲
 
+    //風
+    int m_radialRayCount = 12;        // 放射線の本数
+    float m_radialSpeed = 1.0f;       // 放射速度
+    float m_radialSpreadAngle = 0.0f; // 現在の角度オフセット（回転用
+    int m_maxTrails = 50;
+
     std::vector<Particle> m_particles;
+    std::vector<WindTrail> m_windTrails;
     ComPtr<ID3D11ShaderResourceView> m_texture;
+    ComPtr<ID3D11ShaderResourceView> m_windStreakTexture;
     ComPtr<ID3D11VertexShader> m_vertexShader;
     ComPtr<ID3D11PixelShader> m_pixelShader;
     ComPtr<ID3D11Buffer> m_vertexBuffer;

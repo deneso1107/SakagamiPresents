@@ -123,6 +123,7 @@
     <ClInclude Include="TitleMove.h" />
     <ClInclude Include="Tree.h" />
     <ClInclude Include="TreeManager.h" />
+    <ClInclude Include="TurningRoad.h" />
     <ClInclude Include="VideoBllBoard.h" />
     <ClInclude Include="VideoPlayer.h" />
   </ItemGroup>

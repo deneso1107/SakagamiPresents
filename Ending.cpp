@@ -34,8 +34,8 @@ void Ending::init()
     //ResultCamera::Instance().SetCameraState(ResultCamera::CameraState::WideShot);
 
     // スコア情報
-    m_currentScore = 12345;
-    m_bestScore = 100000;
+    m_currentScore = 123;
+    m_bestScore = 100;
     m_isNewRecord = (m_currentScore > m_bestScore);
     m_displayScore = 0;
 
@@ -55,14 +55,24 @@ void Ending::init()
 
 	m_currentScoreUI = new NumberRenderer();
 	m_bestScoreUI = new NumberRenderer();
-	m_currentScoreUI->Init(Vector2(0.75f, 0.3f), 0.04f, 0.06f, 0.01f, true);
-    m_bestScoreUI->Init(Vector2(0.75f, 0.5f), 0.04f, 0.02f,0.01f, true);
+    m_currentScoreTargetPos = Vector2(0.55f, 0.3f);  // 画面右側
+    m_bestScoreTargetPos = Vector2(0.55f, 0.5f);
+    m_currentScoreUI->Init(Vector2(2.5f, 0.3f), 0.04f, 0.06f, 0.01f, true);  // X=1.3で画面外
+    m_bestScoreUI->Init(Vector2(2.5f, 0.5f), 0.04f, 0.04f, 0.01f, true);
     m_currentScoreUI->SetNumber(static_cast<int>(m_currentScore));
     m_bestScoreUI->SetNumber(static_cast<int>(m_bestScore));
+
+    //スコアの背景を表示
+    m_BestGroundBillBoard = std::make_unique<ScreenFixedBillboard>(Vector2(0.75f, 0.265f), 0.04f*4, 0.06f * 3, L"assets/texture/text/Best.png");
+    m_ScoreGroundBillBoard = std::make_unique<ScreenFixedBillboard>(Vector2(0.75f, 0.46f), 0.04f*4, 0.06f * 3, L"assets/texture/text/Score.png");
 
     // ★一度Updateを呼んでビルボードを作成★
     m_currentScoreUI->Update(0.0f);
     m_bestScoreUI->Update(0.0f);
+
+    // スライド進捗初期化
+    m_currentScoreSlideProgress = 0.0f;
+    m_bestScoreSlideProgress = 0.0f;
 
     // ★テスト★
     m_sparkEmitter = std::make_unique<SparkEmitter>();
@@ -114,7 +124,10 @@ void Ending::update(float deltatime)
 
     m_currentScoreUI->Update(deltatime);
     m_bestScoreUI->Update(deltatime);
-	m_skydome->Update(ResultCamera::Instance().GetPosition());
+	Vector3 camPos = ResultCamera::Instance().GetPosition();
+	camPos.y -= 350.0f; //スカイドームを下にオフセット（下が見えるから）
+	m_skydome->Update(camPos);
+
 
     DirectX::XMFLOAT3 pos = m_player.get()->GetPosition();
     //pos.x += m_ParticlePos.x;x	
@@ -220,27 +233,58 @@ void Ending::UpdateShowResultText(float deltatime)
         m_stateTimer = 0.0f;
     }
 }
-
 void Ending::UpdateShowScore(float deltatime)
 {
-    const float SCORE_SLIDE_DURATION = 0.5f;
-    const float SCORE_COUNT_DURATION = 1.0f;
+    const float SCORE_SLIDE_DURATION = 0.5f;      // スライドイン時間
+    const float SCORE_DELAY = 0.2f;               // ハイスコアの遅延
+    const float SCORE_COUNT_DURATION = 1.0f;      // カウントアップ時間
 
+    // ★今回のスコアをスライドイン★
     if (m_stateTimer < SCORE_SLIDE_DURATION)
     {
-        m_scoreSlideProgress = m_stateTimer / SCORE_SLIDE_DURATION;
-        m_scoreSlideProgress = EaseOutCubic(m_scoreSlideProgress);
+        m_currentScoreSlideProgress = m_stateTimer / SCORE_SLIDE_DURATION;
+        m_currentScoreSlideProgress = EaseOutCubic(m_currentScoreSlideProgress);
+
+        // 画面外(X=1.3)から目標位置(X=0.85)へ
+        float currentX = Lerp(m_currentScoreUI->GetPosition().x, m_currentScoreTargetPos.x, m_currentScoreSlideProgress);
+        m_currentScoreUI->SetPosition(Vector2(currentX, m_currentScoreTargetPos.y));
+        m_currentScoreUI->SetNumber(static_cast<int>(m_currentScore));
     }
-    else if (m_stateTimer < SCORE_SLIDE_DURATION + SCORE_COUNT_DURATION)
+
+    // ★ハイスコアをスライドイン（少し遅れて）★
+    if (m_stateTimer > SCORE_DELAY && m_stateTimer < SCORE_DELAY + SCORE_SLIDE_DURATION)
     {
-        float countProgress = (m_stateTimer - SCORE_SLIDE_DURATION) / SCORE_COUNT_DURATION;
-        m_displayScore = (int)(m_currentScore * countProgress);
+        m_bestScoreSlideProgress = (m_stateTimer - SCORE_DELAY) / SCORE_SLIDE_DURATION;
+        m_bestScoreSlideProgress = EaseOutCubic(m_bestScoreSlideProgress);
+
+        float bestX = Lerp(m_bestScoreUI->GetPosition().x, m_bestScoreTargetPos.x, m_bestScoreSlideProgress);
+        m_bestScoreUI->SetPosition(Vector2(bestX, m_bestScoreTargetPos.y));
     }
-    else
+
+    // ★スコアのカウントアップ（スライド完了後）★
+    if (m_stateTimer > SCORE_SLIDE_DURATION + SCORE_DELAY)
     {
-        m_displayScore = m_currentScore;
-        m_currentState = ResultState::WaitInput;
-        m_stateTimer = 0.0f;
+        float countStartTime = SCORE_SLIDE_DURATION + SCORE_DELAY;
+        float countProgress = (m_stateTimer - countStartTime) / SCORE_COUNT_DURATION;
+
+        if (countProgress < 1.0f)
+        {
+            // 0から最終スコアまでカウントアップ
+            int displayScore = (int)(m_currentScore * countProgress);
+            m_currentScoreUI->SetNumber(m_currentScore);
+
+        }
+        else
+        {
+            m_currentScoreUI->SetNumber(m_currentScore);
+
+            // カウントアップ完了
+            if (m_stateTimer > countStartTime + SCORE_COUNT_DURATION + 0.5f)
+            {
+                m_currentState = ResultState::WaitInput;
+                m_stateTimer = 0.0f;
+            }
+        }
     }
 }
 
@@ -250,26 +294,30 @@ void Ending::UpdateWaitInput(float deltatime)
     {
         SceneManager::ChangeScene("Title");
     }
+
 }
 
 void Ending::draw(float deltatime)//文字動かないンゴゴゴ あとメモリリークヤバイ
 {
+    ResultCamera::Instance().Draw();
+
     if (m_currentScoreUI)
-        m_skydome->Draw(false);
+     m_skydome->Draw(false);
     if (m_bestScoreUI)
         m_skydome->Draw(true);
     m_player->Draw();
     m_sparkEmitter->Render(Renderer::GetDeviceContext(), DirectX::XMMatrixIdentity());
     m_sparkleEmitter->Render(Renderer::GetDeviceContext(), DirectX::XMMatrixIdentity());
-	ResultCamera::Instance().Draw();
     if (m_currentState >= ResultState::ShowResultText)
     {
+        m_BestGroundBillBoard->Draw();
         if (m_newRecordText)
             m_newRecordText->Draw();
     }
 
     if (m_currentState >= ResultState::ShowScore)
     {
+        m_ScoreGroundBillBoard->Draw();
         if (m_currentScoreUI)
             m_currentScoreUI->Draw(false);
         if (m_bestScoreUI)
@@ -284,6 +332,7 @@ void Ending::loadAsync()
 void Ending::dispose()
 {
     delete m_TitleBillboard;
+    delete m_screenBillboard;
     delete m_newRecordText;
     delete m_currentScoreUI;
     delete m_bestScoreUI;

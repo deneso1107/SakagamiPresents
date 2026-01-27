@@ -52,12 +52,20 @@ private:
     int m_displayScore;
     float m_scoreSlideProgress;
 
+    // スコアアニメーション用
+    float m_currentScoreSlideProgress;   // 今回のスコアのスライド進捗
+    float m_bestScoreSlideProgress;      // ハイスコアのスライド進捗
+    Vector2 m_currentScoreTargetPos;     // 最終位置
+    Vector2 m_bestScoreTargetPos;        // 最終位置
+
     // UI要素
     ScreenFixedBillboard* m_screenBillboard;
     ScreenFixedBillboard* m_TitleBillboard;
     ScreenFixedBillboard* m_newRecordText;
     NumberRenderer* m_currentScoreUI;
     NumberRenderer* m_bestScoreUI;
+    std::unique_ptr<ScreenFixedBillboard>  m_BestGroundBillBoard;
+    std::unique_ptr<ScreenFixedBillboard>  m_ScoreGroundBillBoard;
 
 
     std::unique_ptr<Player> m_player;

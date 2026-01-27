@@ -7,7 +7,8 @@ enum class ParticleBehaviorType
     Burst,        // 一度に大量放出（爆発など）
     Continuous,   // 連続的に少量放出（砂煙、炎など）
     Trail,         // 軌跡（剣の軌跡など）
-    Sparkle      // キラキラ
+    Sparkle,      // キラキラ
+    Wind      // キラキラ
 };
 
 // ★ パーティクルエミッターの設定構造体

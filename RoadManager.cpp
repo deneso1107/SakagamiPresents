@@ -18,6 +18,8 @@ std::unique_ptr<BaseRoad> RoadManager::CreateRoad(RoadType type, Direction direc
         return std::make_unique<StraightRoad>(direction);
     case RoadType::DIRT:
         return std::make_unique<Dirt>(direction);
+    case RoadType::TURNING:
+        return std::make_unique<TurningRoad>(direction);
     case RoadType::NONE:
         return nullptr;  // “¹˜H‚È‚µ‚Ìê‡‚Ínullptr‚ð•Ô‚·
     default:
@@ -129,7 +131,15 @@ void RoadManager::SetRoad(int x, int y, RoadType type, Direction direction) {
 
     auto road = CreateRoad(type, direction);
     if (road) {
-        road->SetScale(Vector3(m_roadSize, 1.0f, m_roadSize));
+        if (type == RoadType::DIRT)
+        {
+            float dirtsize = m_roadSize * 1.75f;//”Ž–î‚Åƒ_[ƒg‚¾‚¯‘å‚«‚ß‚É
+            road->SetScale(Vector3(m_roadSize, 1.0f, dirtsize));
+        }
+        else
+        {
+            road->SetScale(Vector3(m_roadSize, 1.0f, m_roadSize));
+        }
         road->Init();
 
         Vector3 actualSize = road->GetActualModelSize();
