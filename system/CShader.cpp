@@ -101,7 +101,7 @@ bool CShader::CreateParticleBillboard(const char* vsPath, const char* psPath)
 		return false;
 	}
 
-	// ★ インプットレイアウトの定義（インスタンシング対応）
+	//インプットレイアウトの定義（インスタンシング対応）
 	D3D11_INPUT_ELEMENT_DESC layout[] = {
 		// 頂点バッファ（スロット0）
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
@@ -124,7 +124,7 @@ bool CShader::CreateParticleBillboard(const char* vsPath, const char* psPath)
 		m_pVertexLayout.GetAddressOf()
 	);
 
-	// ★ pVSBlobを解放（ここで1回だけ）
+	// pVSBlobを解放（ここで1回だけ）
 	pVSBlob->Release();
 
 	if (FAILED(hr))

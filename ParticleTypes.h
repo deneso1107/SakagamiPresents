@@ -1,7 +1,7 @@
 #pragma once
 #include <DirectXMath.h>
 
-// ★ パーティクルの動作タイプ（どこからでも参照可能）
+//  パーティクルの動作タイプ（どこからでも参照可能）
 enum class ParticleBehaviorType
 {
     Burst,        // 一度に大量放出（爆発など）
@@ -11,7 +11,7 @@ enum class ParticleBehaviorType
     Wind      // キラキラ
 };
 
-// ★ パーティクルエミッターの設定構造体
+// パーティクルエミッターの設定構造体
 struct ParticleEmitterGroup
 {
     DirectX::XMFLOAT3 startColor;

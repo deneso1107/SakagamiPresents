@@ -30,11 +30,11 @@ void GoalCamera::StartGoalSequence()
 {
     if (!m_targetPlayer) return;
 
-    // ★★★ 現在のプレイヤー状態を保存 ★★★
+    //現在のプレイヤー状態を保存
     Vector3 playerPos = m_targetPlayer->GetPosition();
     Vector3 playerDir = m_targetPlayer->GetForwardVector();
 
-    // ★★★ カメラ位置を固定（ゴール時点の位置から変えない） ★★★
+    //カメラ位置を固定（ゴール時点の位置から変えない
     m_initialPosition = playerPos - playerDir * 12.0f;  // プレイヤーの後ろ12m
     m_initialPosition.y = playerPos.y + 5.0f;           // 5m上
 
@@ -43,7 +43,7 @@ void GoalCamera::StartGoalSequence()
     rightDir.Normalize();
     m_initialPosition += rightDir * 3.0f;  // 右に3m
 
-    // ★★★ この位置に固定！ ★★★
+    //この位置に固定！
     m_position = m_initialPosition;
 
     // 初期注視点
@@ -136,9 +136,9 @@ void GoalCamera::UpdatePhase(float deltaTime)
 
 void GoalCamera::UpdateFollowClose(float deltaTime)
 {
-    // ★★★ フェーズ1: カメラ位置は固定、プレイヤーを追う ★★★
+    //フェーズ1: カメラ位置は固定、プレイヤーを追う
 
-    // ★位置は完全に固定★
+    //位置は完全に固定
     m_position = m_initialPosition;
 
     // プレイヤーの現在位置を見る
@@ -157,11 +157,11 @@ void GoalCamera::UpdateFollowClose(float deltaTime)
 
 void GoalCamera::UpdatePullBackSlow(float deltaTime)
 {
-    // ★★★ フェーズ2: 位置固定、FOVをゆっくり広げる ★★★
+    //フェーズ2: 位置固定、FOVをゆっくり広げる
     float t = m_phaseTimer / m_pullBackSlowDuration;
     t = EaseOutQuad(t);
 
-    // ★位置は完全に固定★
+    // 位置は完全に固定
     m_position = m_initialPosition;
 
     // プレイヤーを追い続ける
@@ -180,11 +180,11 @@ void GoalCamera::UpdatePullBackSlow(float deltaTime)
 
 void GoalCamera::UpdatePullBackFast(float deltaTime)
 {
-    // ★★★ フェーズ3: 位置固定、FOVを急速に広げる ★★★
+    //フェーズ3: 位置固定、FOVを急速に広げる
     float t = m_phaseTimer / m_pullBackFastDuration;
     t = EaseInOutQuad(t);
 
-    // ★位置は完全に固定★
+    // 位置は完全に固定
     m_position = m_initialPosition;
 
     // プレイヤーを追い続ける
@@ -203,9 +203,9 @@ void GoalCamera::UpdatePullBackFast(float deltaTime)
 
 void GoalCamera::UpdateWideView(float deltaTime)
 {
-    // ★★★ フェーズ4: 位置固定、最大FOVで全体を見せる ★★★
+    //フェーズ4: 位置固定、最大FOVで全体を見せる
 
-    // ★位置は完全に固定★
+    // 位置は完全に固定
     m_position = m_initialPosition;
 
     // プレイヤーを追い続ける

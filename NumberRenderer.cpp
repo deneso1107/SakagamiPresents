@@ -200,7 +200,7 @@ void NumberRenderer::ApplyAnimationToDigits()
     for (size_t i = 0; i < digits.size() && i < m_digitBillboards.size(); ++i) {
         if (!m_digitBillboards[i]) continue;
 
-        // ★スケールを適用した位置とサイズを計算★
+        // スケールを適用した位置とサイズを計算
         Vector2 digitPos;
         float scaledWidth = m_digitWidth * m_currentScale;
         float scaledHeight = m_digitHeight * m_currentScale;
@@ -283,7 +283,7 @@ void NumberRenderer::UpdateSingleDigit(size_t index, int digit, const Vector2& p
 
     m_digitBillboards[index]->SetScreenPosition(position);
 
-    // ★アニメーション中はサイズも更新★
+    // アニメーション中はサイズも更新
     if (m_isAnimating) {
         float scaledWidth = m_digitWidth * m_currentScale;
         float scaledHeight = m_digitHeight * m_currentScale;
@@ -347,7 +347,7 @@ std::vector<int> NumberRenderer::NumberToDigits(int number)
     return digits;
 }
 
-// ★イージング関数★
+// イージング関数
 float NumberRenderer::EaseOutElastic(float t)
 {
     const float c4 = (2.0f * 3.14159f) / 3.0f;

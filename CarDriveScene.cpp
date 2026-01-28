@@ -165,7 +165,7 @@ void CarDriveScene::init()
 	EffectManager::Instance().Initialize();
 	m_timeRenderer. Init(Vector2(0.95f, 0.15f),0.035f, 0.055f, 0.01f, true);
 	m_scoreRenderer.Init(Vector2(0.95f, 0.3f), 0.035f, 0.055f, 0.01f, true);
-	m_RemainingTime = 30.0f;
+	m_RemainingTime = 150.0f;
 	//m_timeRenderer.Update();  //数値が変化したらUpdateを呼ぶ
 	// 画面左上に配置（位置: 0.1, 0.1、サイズ: 0.15 x 0.15）
 	//m_BillboardLoad->Init(Vector2(0.1f, 0.1f), 0.15f, 0.15f, L"assets/texture/haikei.jpg");
@@ -281,10 +281,10 @@ void CarDriveScene::loadAsync()
 	roadManager.SetRoad(0, 2, RoadType::STRAIGHT, Direction::NORTH);
 	roadManager.SetRoad(0, 3, RoadType::STRAIGHT, Direction::NORTH);//北↑
 	roadManager.SetRoad(0, 4, RoadType::SLOPE_UP, Direction::NORTH);
-	roadManager.SetRoad(0, 5, RoadType::STRAIGHT, Direction::NORTH);
-	roadManager.SetRoad(0, 6, RoadType::SLOPE_UP, Direction::NORTH);
+	roadManager.SetRoad(0, 5, RoadType::STRAIGHT, Direction::SOUTH);
+	roadManager.SetRoad(0, 6, RoadType::STRAIGHT, Direction::SOUTH);
 	roadManager.SetRoad(0, 7, RoadType::SLOPE_DOWN, Direction::NORTH);
-	roadManager.SetRoad(0, 8, RoadType::SLOPE_DOWN, Direction::NORTH);
+	roadManager.SetRoad(0, 8, RoadType::STRAIGHT, Direction::NORTH);
 	roadManager.SetRoad(0, 9, RoadType::STRAIGHT, Direction::NORTH);
 	//Curveダート地帯
 	roadManager.SetRoad(0, 10, RoadType::TURN_LEFT, Direction::NORTH);//東に向いてほしい
@@ -531,6 +531,9 @@ void CarDriveScene::SetupTreeOnRoad()
 	//config.AddFormation(random);
 
 	m_TreeManager.Init(config);
+
+	//スコアをリセット
+	m_gameScore = 0;
 }
 
 float m_slowMotionStartTime = -1.0f;
@@ -607,6 +610,7 @@ void CarDriveScene::update(float deltatime)//uint64_tとfloatの衝突　圧倒的衝突
 			if (!m_player->GetOnGoal())
 			{
 				m_player->OnGoal();
+				m_gameScore += m_RemainingTime;
 				m_currentCamera = &GoalCamera::Instance();
 
 			}
@@ -627,11 +631,6 @@ void CarDriveScene::update(float deltatime)//uint64_tとfloatの衝突　圧倒的衝突
 		pos_.y += 2.0f;
 		EffectManager::Instance().SpawnEffect("SparkleParticle", pos_/*m_ParticlePos*/);//一旦諦めます！
 	}
-
-	if (CDirectInput::GetInstance().CheckKeyBuffer(DIK_2))
-	{
-	}
-
 
 	if (CDirectInput::GetInstance().CheckKeyBuffer(DIK_M))
 	{
@@ -702,18 +701,6 @@ void CarDriveScene::update(float deltatime)//uint64_tとfloatの衝突　圧倒的衝突
     }
 
 
-	//if (GM31::GE::Collision::CollisionSphere(m_player->GetCollision(), m_goal->GetCollision()))
-	//{
-
-	//	ChangeScene("CarDriveScene");	// ゴールに到達したらResultSceneへ遷移
-	//}m_time<=0
-
-	if (m_RemainingTime <= 0&&m_Debug)
-	{
-		SceneManager::ChangeScene("Ending");// ゴールに到達したらResultSceneへ遷移
-	}
-
-
 	if (GM31::GE::Collision::CollisionSphere(m_player->GetCollision(), m_item->GetCollision()))
 	{
 		m_item->PlayerBoostGauge(m_player.get());//アイテム取得
@@ -724,17 +711,9 @@ void CarDriveScene::update(float deltatime)//uint64_tとfloatの衝突　圧倒的衝突
 	m_speedMator->Update(deltatime);
 	// カメラの更新を先に行う
 
-	if (m_NowCamera)
-	{
-		m_currentCamera->Update(deltatime);
-	}
-	else
-	{
-		//m_FreeCamera.Update();
-	}
-	//m_CameraManager.Update(deltatime);
 
-	// カメラ更新後にビルボードを更新（正しいビューマトリックスを使用）
+	m_currentCamera->Update(deltatime);
+
 	m_screenBillboard->Update();
 
 	m_road->Update((deltatime)); // ミリ秒に変換
@@ -742,7 +721,7 @@ void CarDriveScene::update(float deltatime)//uint64_tとfloatの衝突　圧倒的衝突
 	// ゲージを更新（deltaTimeを渡す）
 	m_Gauge->Update(deltatime);
 
-	m_RemainingTime -= (deltatime /*/ 1000000.0f*/); // 経過時間を秒単位で減少
+	m_RemainingTime -= deltatime;
 	m_timeRenderer.SetNumber(static_cast<int>(m_RemainingTime));
 	m_scoreRenderer.SetNumber(static_cast<int>(m_gameScore));
 
@@ -801,7 +780,7 @@ void CarDriveScene::draw(float deltatime)
 {
 	ID3D11DeviceContext* context = Renderer::GetDeviceContext();
 
-	// ★ PostProcessが実際に必要か判定
+	//PostProcessが実際に必要か判定
 	bool needsPostProcess = m_usePostProcess &&
 		((m_enableMotionBlur && m_blurStrength > 0.01f) ||
 			(m_enableChromaticAberration && m_aberrationStrength > 0.0f) ||
@@ -1073,12 +1052,12 @@ void CarDriveScene::ApplyPostProcess()
 	ID3D11ShaderResourceView* currentInput = m_sceneSRV;
 	ID3D11RenderTargetView* currentOutput = nullptr;
 
-	// ★ どのエフェクトが有効か事前に判定
+	//どのエフェクトが有効か事前に判定
 	bool hasMotionBlur = m_enableMotionBlur && m_blurStrength > 0.01f;
 	bool hasChromatic = m_enableChromaticAberration && m_aberrationStrength > 0.001f;
 	bool hasShockwave = m_enableShockwave && m_shockwaveIntensity > 0.01f;
 
-	// ★ パス1: Motion Blur
+	//パス1: Motion Blur
 	if (hasMotionBlur)
 	{
 		// 次のパスがあるか確認
@@ -1096,7 +1075,7 @@ void CarDriveScene::ApplyPostProcess()
 		}
 	}
 
-	// ★ パス2: Chromatic Aberration
+	//パス2: Chromatic Aberration
 	if (hasChromatic)
 	{
 		// 次のパスがあるか確認
@@ -1111,8 +1090,6 @@ void CarDriveScene::ApplyPostProcess()
 			currentInput = m_intermediateSRV;
 		}
 	}
-
-	// ★ パス3: Shockwave（常に最終パス）
 
 	// ステート復元
 	context->OMSetDepthStencilState(originalDepthState, originalStencilRef);//え？同時にできるんですか？

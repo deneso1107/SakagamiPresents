@@ -186,7 +186,7 @@
 //    ID3D11ShaderResourceView* currentInput = m_sceneSRV.Get();
 //    ID3D11RenderTargetView* currentOutput = nullptr;
 //
-//    // ★ パス1: Motion Blur
+//    //パス1: Motion Blur
 //    if (m_motionBlur.enabled && m_motionBlur.strength > 0.0f)
 //    {
 //        currentOutput = (m_chromatic.enabled || m_shockwave.enabled) ? m_intermediateRTV.Get() : backBuffer;
@@ -195,7 +195,7 @@
 //        currentInput = m_intermediateSRV.Get();
 //    }
 //
-//    // ★ パス2: Chromatic Aberration
+//    //パス2: Chromatic Aberration
 //    if (m_chromatic.enabled && m_chromatic.strength > 0.0f)
 //    {
 //        currentOutput = m_shockwave.enabled ? m_intermediateRTV.Get() : backBuffer;
@@ -204,7 +204,7 @@
 //        currentInput = m_intermediateSRV.Get();
 //    }
 //
-//    // ★ パス3: Shockwave
+//    //パス3: Shockwave
 //    if (m_shockwave.enabled && m_shockwave.intensity > 0.0f)
 //    {
 //        ApplyShockwave(context, currentInput, backBuffer);

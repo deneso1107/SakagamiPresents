@@ -59,10 +59,10 @@ void Skydome::Draw(bool isboost)
     // シェーダのセット
     m_shader.SetGPU();
 
-    // ★ 上半球を描画
+    //上半球を描画
     DrawUpperHemisphere(isboost);
 
-    // ★ 下半球を描画
+    //下半球を描画
     DrawLowerHemisphere(isboost);
 
     // 太陽を描画
@@ -94,11 +94,8 @@ void Skydome::DrawLowerHemisphere(bool isboost)
     SRT srt;
     srt.pos = m_Position;
 
-    // ★ X軸で180度回転（上下反転）
+    //X軸で180度回転（上下反転）
     srt.rot = Vector3(DirectX::XM_PI, 0.0f, 0.0f);
-
-    // ★ スケールも反転（Y軸を負にして反転）
-    srt.scale = Vector3(m_Scale.x, m_Scale.y, m_Scale.z);
 
     Matrix4x4 worldmtx = srt.GetMatrix();
     Renderer::SetWorldMatrix(&worldmtx);

@@ -340,7 +340,7 @@ bool RoadManager::GetTerrainHeight(const Vector3& position, float& height, Vecto
                 Vector3 candidateNormal;
 
                 if (road->GetTerrainHeight(position, candidateHeight, candidateNormal)) {
-                    // ★重要な変更：プレイヤーより上の道路は無視★
+                    //プレイヤーより上の道路は無視
                     if (candidateHeight >= position.y+ LANDING_THRESHOLD) {
                         continue;  // 上の道路はスキップ
                     }
@@ -578,7 +578,7 @@ bool RoadManager::GetSafePositionOnRoad(BaseRoad* road,//向きは要検討
         // 道路の中心にリスポーン
         outPosition = Vector3(roadPos.x, terrainHeight + 2.5f, roadPos.z);
 
-        // ★ 道路の向き（Y軸回転）をそのまま使用
+        //道路の向き（Y軸回転）をそのまま使用
        outRotation = roadRot;
 
         return true;
@@ -612,7 +612,7 @@ BaseRoad* RoadManager::FindNearestStraightRoad(BaseRoad* fromRoad)
             if (m_roadGrid[y][x] && m_roadLayout[y][x].HasRoad()) {
                 RoadType type = m_roadLayout[y][x].type;
 
-                // ★ STRAIGHTタイプのみ対象
+                //STRAIGHTタイプのみ対象
                 if (type == RoadType::STRAIGHT) {
                     Vector3 roadPos = m_roadGrid[y][x]->GetPosition();
 

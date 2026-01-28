@@ -14,7 +14,7 @@ private:
 
     Phase m_currentPhase = Phase::HighAngle;
     Player* m_targetPlayer = nullptr;
-    bool m_isIntroFinished = false;  // ★演出終了フラグを追加
+    bool m_isIntroFinished = false;  // 演出終了フラグを追加
 
     float m_transitionProgress;
     // カメラ設定
@@ -30,7 +30,7 @@ public:
     void Init() override;
     void SetTargetPlayer(Player* player) { m_targetPlayer = player; }
     void Update(float deltaTime) override;
-    bool IsIntroFinished() const { return m_isIntroFinished; }  // ★終了判定用
+    bool IsIntroFinished() const { return m_isIntroFinished; }  // 終了判定用
     void ResetIntro() { m_isIntroFinished = false; m_currentPhase = Phase::HighAngle; }
 
 private:

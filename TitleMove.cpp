@@ -77,14 +77,14 @@ void TitleSpiralEffect::Update(float deltaTime)
             angularVel
         );
 
-        // ★ 螺旋が終わった瞬間
+        //螺旋が終わった瞬間
         if (t >= 1.0f)
         {
             m_hasFinishedSpiral = true;
 
             // フェーズ2の「最後の速度」を保存
             m_linearVelocity = m_currentVelocity;
-            m_angularVelocity = angularVel; // ★ 追加
+            m_angularVelocity = angularVel; //追加
         }
 
         return;
@@ -100,7 +100,7 @@ void TitleSpiralEffect::Update(float deltaTime)
 
 void TitleSpiralEffect::CalculateSpiralPosition(float t, Vector3& outPos, Vector3& outRot, Vector3& outVel,Vector3& outAngularVel)
 {
-    // ★★★ ゴール演出と同じ螺旋計算 ★★★
+    //ゴール演出と同じ螺旋計算
 
     float forward, height;
     float spiralRadius = m_spiralRadius;

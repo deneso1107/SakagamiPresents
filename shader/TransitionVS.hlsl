@@ -4,7 +4,7 @@ cbuffer TransitionBuffer : register(b0)
     float imageScale; // スケール
     float imageYPosition; // Y位置（揺れ用）
     float padding;
-    //float imageAlpha; // ★画像のアルファ値    
+    //float imageAlpha; // 画像のアルファ値    
 };
 
 struct VS_INPUT

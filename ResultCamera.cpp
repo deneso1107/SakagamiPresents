@@ -50,13 +50,13 @@ void ResultCamera::Update(float deltaTime)
 
     if (m_useFixedCamera)
     {
-        // ★固定カメラモード：プレイヤーを追従しない★
+        // 固定カメラモード：プレイヤーを追従しない
         m_position = m_fixedCameraPos;
         m_lookat = m_fixedLookAt;
     }
     else
     {
-        // ★通常モード：プレイヤーを追従★
+        // 通常モード：プレイヤーを追従
         Vector3 playerPos = m_targetPlayer->GetPosition();
 
         CameraParams targetParams;

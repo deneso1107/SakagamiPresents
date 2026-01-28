@@ -29,7 +29,7 @@ void TitleCamera::Update(float deltaTime)
 
     if (m_isFixedMode)
     {
-        // ★★★ 固定モード：プレイヤーの初期位置を基準に固定 ★★★
+        //固定モード：プレイヤーの初期位置を基準に固定
 
         // 最初の1回だけ固定位置を計算
         static bool initialized = false;
@@ -50,7 +50,7 @@ void TitleCamera::Update(float deltaTime)
     }
     else
     {
-        // ★★★ 追従モード：プレイヤーを常に捉え続ける ★★★
+        //追従モード：プレイヤーを常に捉え続ける
 
         // プレイヤーの現在位置からオフセット
         m_position = playerPos + m_cameraOffset;

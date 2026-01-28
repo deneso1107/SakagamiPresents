@@ -40,12 +40,12 @@ private:
     float m_width;
     float m_height;
 
-    // ★ ComPtr に変更
+    // ComPtr に変更
     ComPtr<ID3D11ShaderResourceView> m_texture;
     ComPtr<ID3D11Buffer> m_vertexBuffer;
     ComPtr<ID3D11Buffer> m_indexBuffer;
 
-    //CShader m_shader;  // ★ シェーダーメンバを追加
+    //CShader m_shader;  // シェーダーメンバを追加
 
     struct BillboardVertex
     {
@@ -56,8 +56,8 @@ private:
     };
 
     CMaterial m_Material;
-    bool m_IsInitialized = false;  // ★ 初期化済みフラグ
-    bool m_NeedsUpdate = true;     // ★ 更新が必要か
+    bool m_IsInitialized = false;  //初期化済みフラグ
+    bool m_NeedsUpdate = true;     //更新が必要か
 
 public:
     Billboard();
@@ -78,7 +78,7 @@ public:
             m_position.z != position.z)
         {
             m_position = position;
-            m_NeedsUpdate = true;  // ★ 位置が変わったら更新フラグON
+            m_NeedsUpdate = true;  //位置が変わったら更新フラグON
         }
     }
 
@@ -88,7 +88,7 @@ public:
         {
             m_width = width;
             m_height = height;
-            m_NeedsUpdate = true;  // ★ サイズが変わったら更新フラグON
+            m_NeedsUpdate = true;  //サイズが変わったら更新フラグON
         }
     }
 

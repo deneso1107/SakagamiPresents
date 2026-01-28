@@ -1,6 +1,6 @@
 #include "PlayerStateManager.h"
 
-// ★.cppファイルで定義（1回だけ）
+// .cppファイルで定義（1回だけ）
 const std::unordered_map<PlayerStateManager::State, std::set<PlayerStateManager::State>>
 PlayerStateManager::s_conflictingStates = {
     {PlayerStateManager::State::SpiralDescending, {

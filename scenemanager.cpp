@@ -95,7 +95,7 @@ void SceneManager::InitTransitionResources()
         printf("ERROR: Failed to create transition constant buffer!\n");
     }
 
-    // ★深度ステンシルステートの作成（キャッシュ）
+    //深度ステンシルステートの作成（キャッシュ）
     D3D11_DEPTH_STENCIL_DESC depthDesc = {};
     depthDesc.DepthEnable = FALSE;
     depthDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
@@ -107,7 +107,7 @@ void SceneManager::InitTransitionResources()
         printf("ERROR: Failed to create transition depth state!\n");
     }
 
-    // ★ブレンドステートの作成（キャッシュ）
+    //ブレンドステートの作成（キャッシュ）
     D3D11_BLEND_DESC blendDesc = {};
     blendDesc.RenderTarget[0].BlendEnable = TRUE;
     blendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
@@ -123,7 +123,7 @@ void SceneManager::InitTransitionResources()
         printf("ERROR: Failed to create transition blend state!\n");
     }
 
-    // ★サンプラーステートの作成（キャッシュ）
+    //サンプラーステートの作成（キャッシュ）
     D3D11_SAMPLER_DESC samplerDesc = {};
     samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
     samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
@@ -226,7 +226,7 @@ void SceneManager::UpdateTransition(float deltaTime)
         // 右から中央へ (1.5 → 0.0)
         m_slideOffset -= m_transitionSpeed * dt;
 
-        // ★背景フェードイン (0.0 → 1.0)
+        // 背景フェードイン (0.0 → 1.0)
         m_fadeAlpha += m_transitionSpeed * dt;
         if (m_fadeAlpha > 1.0f) m_fadeAlpha = 1.0f;
 
@@ -253,7 +253,7 @@ void SceneManager::UpdateTransition(float deltaTime)
         // 非同期ロード完了チェック
         if (m_asyncFinished)
         {
-            // ★ GPU生成はメインスレッド
+            //GPU生成はメインスレッド
             m_currentSceneName = m_nextSceneName;
             m_scenes[m_currentSceneName]->init();
 
@@ -288,7 +288,7 @@ void SceneManager::LoadNextSceneAsync()
 
     std::string next = m_nextSceneName;
 
-    // ★ ワーカースレッド起動
+    //ワーカースレッド起動
     m_loadingThread = std::thread([next]() {
         m_scenes[next]->loadAsync();  // ← CPUロードだけ
         m_asyncFinished = true;
@@ -496,11 +496,9 @@ void SceneManager::DrawTransitionOverlay()
 
     ID3D11DeviceContext* context = Renderer::GetDeviceContext();
 
-    //
     // ============================
-    // ★ ステートの完全保存
+    // ステートの完全保存
     // ============================
-    //
 
     // --- DepthStencil ---
     ID3D11DepthStencilState* prevDepthState = nullptr;
@@ -539,12 +537,9 @@ void SceneManager::DrawTransitionOverlay()
     D3D11_PRIMITIVE_TOPOLOGY prevTopology;
     context->IAGetPrimitiveTopology(&prevTopology);
 
-
-    //
     // ============================
-    // ★ トランジション用ステート設定
+    //トランジション用ステート設定
     // ============================
-    //
 
     // Depth
     if (m_transitionDepthState)
@@ -610,12 +605,9 @@ void SceneManager::DrawTransitionOverlay()
     // 描画
     context->Draw(4, 0);
 
-
-    //
     // ============================
-    // ★ ステート復元（最重要）
+    //ステート復元（最重要）
     // ============================
-    //
 
     // Depth
     if (prevDepthState)

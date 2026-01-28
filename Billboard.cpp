@@ -8,7 +8,7 @@ static CShader g_Shader{};
 
 ComPtr<ID3D11ShaderResourceView> TextureCache:: GetTexture(ID3D11Device* device, const wchar_t* path)
 {
-    // ★ キャッシュを確認
+    //  キャッシュを確認
     auto it = m_Cache.find(path);
     if (it != m_Cache.end(  ))
     {
@@ -54,7 +54,7 @@ void Billboard::Init(const Vector3& position, float width, float height, const w
 {
     if (m_IsInitialized)
     {
-        Dispose();  // ★ 既に初期化されていたら一度クリア
+        Dispose();  // 既に初期化されていたら一度クリア
     }
     m_position = position;
     m_width = width;
@@ -86,7 +86,7 @@ void Billboard::Init(const Vector3& position, float width, float height, const w
     materialData.Shiness = 0.0f;
     materialData.TextureEnable = 1.0f;  // テクスチャ有効
 
-    if (!m_Material.Create(materialData))  // ★ ここで初期化
+    if (!m_Material.Create(materialData))  // ここで初期化
     {
         OutputDebugStringA("マテリアル初期化失敗\n");
     }

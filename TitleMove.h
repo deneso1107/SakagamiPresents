@@ -77,7 +77,7 @@ public:
     void SetSpiralRotations(float rotations) { m_spiralRotations = rotations; }
     void SetDuration(float duration) { m_spiralDuration = duration; }
     void SetLooping(bool loop) { m_isLooping = loop; }
-    void SetInfiniteMode(bool infinite) { m_isInfiniteMode = infinite; }  // š’Ç‰Á
+    void SetInfiniteMode(bool infinite) { m_isInfiniteMode = infinite; }  // ’Ç‰Á
 
     // ó‘Ôæ“¾
     bool IsActive() const { return m_isActive; }

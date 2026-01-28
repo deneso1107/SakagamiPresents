@@ -30,7 +30,7 @@ private:
     std::unique_ptr<ScreenFixedBillboard>  m_BackGroundTimeBillBoard;
     std::unique_ptr<ScreenFixedBillboard>  m_BackGroundBillBoard;
 
-    // ★アニメーション用メンバ変数★
+    // アニメーション用メンバ変数
     bool m_isAnimating;              // アニメーション中かどうか
     float m_animationTime;           // アニメーション経過時間
     float m_animationDuration;       // アニメーション総時間
@@ -68,7 +68,7 @@ public:
     void SetSpacing(float spacing) { m_digitSpacing = spacing; }
     void SetAlignment(bool rightAlign) { m_rightAlign = rightAlign; }
 	void TestAnimation();
-    // ★アニメーション制御★
+    // アニメーション制御
     void StartAnimation(AnimationType type = AnimationType::ScaleBounce, float duration = 0.5f);
     void StopAnimation();
     bool IsAnimating() const { return m_isAnimating; }
@@ -85,11 +85,11 @@ private:
     Vector2 CalculateDigitUV(int digit);
     std::vector<int> NumberToDigits(int number);
 
-    // ★アニメーション更新★
+    // アニメーション更新
     void UpdateAnimation(float deltaTime);
     void ApplyAnimationToDigits();
 
-    // ★イージング関数★
+    // イージング関数
     float EaseOutElastic(float t);
     float EaseOutBack(float t);
     float EaseInOutCubic(float t);

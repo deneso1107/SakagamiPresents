@@ -196,7 +196,7 @@ void IntroCamera::UpdateTransitionCamera(float deltaTime)
     SpringCamera& springCam = SpringCamera::Instance();
     springCam.Update(deltaTime);
 
-    // ★★★ SpringCameraのスプリング状態を取得 ★★★
+    // SpringCameraのスプリング状態を取得
     const Spring& posSpring = springCam.GetPositionSpring();
     const Spring& lookSpring = springCam.GetLookAtSpring();
 
@@ -210,7 +210,7 @@ void IntroCamera::UpdateTransitionCamera(float deltaTime)
     float t = m_transitionProgress;
     float easedProgress = t * t * (3.0f - 2.0f * t);
 
-    // ★★★ SpringCameraの実際の位置（スプリング適用済み）に向かって補間 ★★★
+    // SpringCameraの実際の位置（スプリング適用済み）に向かって補間 
     m_position = Lerp3(m_position, springActualPos, easedProgress);
     m_lookat = Lerp3(m_lookat, lookSpring.position, easedProgress);
 

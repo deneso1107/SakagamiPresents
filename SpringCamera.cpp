@@ -255,14 +255,14 @@ void SpringCamera::UpdateRespawningMode(float deltaTime)
 
     m_currentFOV = Lerp(m_currentFOV, m_normalParams.fov, 0.08f);
 
-    // ★ タイマーを進めてNORMALモードに戻る
+    //タイマーを進めてNORMALモードに戻る
     m_fallingModeTimer += deltaTime;
 
     if (m_fallingModeTimer >= 1.0f) { // 1秒でノーマルモードに復帰
      
         SetCameraMode(CameraMode::NORMAL);
 
-        // ★ スプリングパラメータを元に戻す
+        // スプリングパラメータを元に戻す
         m_positionSpring.stiffness = m_normalParams.positionStiffness;
         m_positionSpring.damping = m_normalParams.positionDamping;
         m_lookAtSpring.stiffness = m_normalParams.lookAtStiffness;
@@ -275,10 +275,10 @@ void SpringCamera::StartFallingMode()
     m_currentMode = CameraMode::FALLING;
     m_fallingModeTimer = 0.0f;
 
-    // ★ 落下開始時のプレイヤー位置を記憶
+    // 落下開始時のプレイヤー位置を記憶
     m_fallingStartPlayerPos = m_targetPlayer->GetPosition();
 
-    // ★ カメラ位置を「プレイヤーの真上」に固定
+    //カメラ位置を「プレイヤーの真上」に固定
     m_fallingCameraPosition = m_fallingStartPlayerPos;
     m_fallingCameraPosition.y += m_fallingCameraHeight; // 20m上
 
@@ -414,7 +414,7 @@ Vector3 SpringCamera::CalculateIdealCameraPositionWithPitch() const
     // 基本距離
     float effectiveDistance = m_currentParams.distance + anticipation;
 
-    // ★ 合計ピッチ角度 = 基本角度 + 坂道オフセット
+    //合計ピッチ角度 = 基本角度 + 坂道オフセット
     float totalPitchDeg = m_basePitchAngle + m_currentPitchOffset;
     float totalPitchRad = DirectX::XMConvertToRadians(totalPitchDeg);
 

@@ -50,7 +50,7 @@ void SparkEmitter::Update(float deltaTime)
         case ParticleBehaviorType::Trail:
             UpdateTrail(p, deltaTime);
             break;
-        case ParticleBehaviorType::Sparkle:  // ★追加★
+        case ParticleBehaviorType::Sparkle:  // 追加
             UpdateSparkle(p, deltaTime);
             break;
         }
@@ -162,7 +162,7 @@ void SparkEmitter::UpdateSparkle(Particle& p, float deltaTime)
     p.pos.y += p.velocity.y * deltaTime;
     p.pos.z += p.velocity.z * deltaTime;
 
-    // ★キラキラ感：サイズを脈動させる★
+    // キラキラ感：サイズを脈動させる
     float pulse = sin(p.life * 10.0f) * 0.3f + 0.7f;  // 0.4～1.0
     p.size = m_ParticleSize * pulse;
 
@@ -390,7 +390,7 @@ void SparkEmitter::Emit(const DirectX::XMFLOAT3& pos, const DirectX::XMFLOAT3& d
     case ParticleBehaviorType::Trail:
         EmitTrail(pos, dir);
         break;
-    case ParticleBehaviorType::Sparkle:  // ★追加★
+    case ParticleBehaviorType::Sparkle:  // 追加
         EmitSparkle(pos, dir);
         break;
     }
@@ -507,14 +507,14 @@ void SparkEmitter::EmitSparkle(const DirectX::XMFLOAT3& centerPos, const DirectX
     {
         Particle p;
 
-        // ★広範囲にランダム配置★
+        // 広範囲にランダム配置
         p.pos = {
             centerPos.x + (rand() % 200 - 100) * 0.01f * m_sparkleArea / 50.0f,
             centerPos.y + (rand() % 150) * 0.01f * m_sparkleArea / 50.0f,  // 上方向
             centerPos.z + (rand() % 200 - 100) * 0.01f * m_sparkleArea / 50.0f
         };
 
-        // ★初速：ゆっくり上昇、横にゆらぐ★
+        // 初速：ゆっくり上昇、横にゆらぐ
         float horizontalSpeed = (rand() % 100 - 50) * 0.01f;
         p.velocity = {
             horizontalSpeed,
@@ -522,7 +522,7 @@ void SparkEmitter::EmitSparkle(const DirectX::XMFLOAT3& centerPos, const DirectX
             horizontalSpeed
         };
 
-        // ★色のバリエーション★
+        // 色のバリエーション
         float t = static_cast<float>(rand() % 100) / 100.0f;
         p.color = {
             LerpFloat(m_StartColor.x, m_EndColor.x, t),

@@ -44,7 +44,7 @@ private:
 
 	Vector3 m_spiralStartPos;           // 螺旋開始位置
 	Vector3 m_spiralTargetPos;          // 螺旋終了位置（スタート地点）
-	float m_spiralInitialYaw = 0.0f;    // ★開始時の正面方向（Y軸回転）
+	float m_spiralInitialYaw = 0.0f;    // 開始時の正面方向（Y軸回転）
 
 	float m_spiralRadius = 15.0f;       // 螺旋の半径
 	float m_spiralHeight = 50.0f;       // 螺旋の高さ
@@ -57,7 +57,7 @@ private:
 	float m_spiralVerticalWave = 0.8f;      // 上下の揺れ幅
 	float m_spiralPitchWave = 0.1f;         // ピッチの揺れ幅
 	float m_spiralRollIntensity = 0.2f;     // ロールの傾き強度
-	float m_spiralDesiredSpeed = 25.0f; // ★降下速度（調整可能）
+	float m_spiralDesiredSpeed = 25.0f; // 降下速度（調整可能）
 
 
 	std::unique_ptr<CountdownEffect> m_countdown;
@@ -213,12 +213,12 @@ private:
 	bool m_isFalling = false;
 	float m_fallTimer = 0.0f;
 	float m_airTime = 0.0f; // 空中にいる時間
-	bool m_isWaitingForRespawn = false; // ★ 追加：リスポーン待機フラグ
+	bool m_isWaitingForRespawn = false; //  追加：リスポーン待機フラグ
 
 	const float FALL_THRESHOLD_Y = -10.0f;
 	const float FALL_VELOCITY_THRESHOLD = -8.0f;
 	const float MAX_AIR_TIME = 3.0f; // 3秒以上空中にいたら落下扱い
-	const float FALL_CAMERA_DURATION = 1.5f; // ★ カメラ演出の長さ
+	const float FALL_CAMERA_DURATION = 1.5f; //カメラ演出の長さ
 
 	void UpdateLastGroundedRoad();
 	void CheckFallState(float deltatime);

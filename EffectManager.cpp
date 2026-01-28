@@ -13,7 +13,7 @@ BillboardEffect::BillboardEffect(const Vector3& position, float width, float hei
     m_Billboard.Init(position, width, height, texturePath);
     m_OriginalColor = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
 }
-BillboardEffect::~BillboardEffect()   // ★ デストラクタを追加
+BillboardEffect::~BillboardEffect()   // デストラクタを追加
 {
     m_Billboard.Dispose();
     OutputDebugStringA("BillboardEffect デストラクタ呼ばれた\n");
@@ -72,7 +72,7 @@ void ParticleEffect::Update(float deltaTime)
         DirectX::XMFLOAT3 pos = { m_Position.x, m_Position.y, m_Position.z };
         DirectX::XMFLOAT3 dir = { m_Direction.x, m_Direction.y, m_Direction.z };
 
-        // ★ behaviorTypeを渡して放出
+        //behaviorTypeを渡して放出
         m_Emitter->Emit(pos, dir, m_Config.behaviorType);
     }
 
@@ -92,7 +92,7 @@ void EffectManager::Initialize()
     m_Emitters.clear();
     m_CurrentEmitterIndex = 0;
 
-    // ★ エミッタ数を確認
+    //エミッタ数を確認
     for (int i = 0; i < 5; ++i)
     {
         auto emitter = std::make_unique<SparkEmitter>();
@@ -122,7 +122,7 @@ void EffectManager::Finalize()
 {
     ClearAllEffects();
 
-    // ★ すべてのエミッタを解放
+    //すべてのエミッタを解放
     for (auto& emitter : m_Emitters)
     {
         if (emitter)
@@ -150,7 +150,7 @@ void EffectManager::Update(float deltaTime)
     // 非アクティブなエフェクトを削除
     RemoveInactiveEffects();
 
-    // ★ すべてのエミッタを更新
+    //すべてのエミッタを更新
     for (auto& emitter : m_Emitters)
     {
         if (emitter)
@@ -175,7 +175,7 @@ void EffectManager::Draw(ID3D11DeviceContext* context,const Matrix4x4& viewMatri
     {
         if(emitter)
         {
-            // ★ viewProjを正しく作る
+            //viewProjを正しく作る
             DirectX::XMMATRIX view = Renderer::GetViewMatrix();
             DirectX::XMMATRIX proj = Renderer::GetProjectionMatrix();
             DirectX::XMMATRIX viewProj = view * proj;
@@ -274,7 +274,7 @@ void EffectManager::RemoveInactiveEffects()
     );
 }
 
-// ★ 重要: 利用可能なエミッタを返す
+//利用可能なエミッタを返す
 SparkEmitter* EffectManager::GetAvailableEmitter()
 {
     if (m_Emitters.empty())
@@ -298,7 +298,7 @@ namespace EffectPresets
     {
         EffectManager& mgr = EffectManager::Instance();
 
-        // ★ 星エフェクト（敵が吹っ飛ぶ時）
+        //星エフェクト（敵が吹っ飛ぶ時）
         {
             EffectPreset preset;
             preset.type = EffectPreset::Type::Billboard;
@@ -353,7 +353,7 @@ namespace EffectPresets
             //preset.particleConfig.emitCount = 1;  // Emit を3回呼ぶ = 300個
             mgr.RegisterPreset("Explosion", preset);
         }
-        // ★ 砂煙エフェクト
+        //砂煙エフェクト
         {
             EffectPreset preset;
             preset.type = EffectPreset::Type::Particle;

@@ -49,7 +49,7 @@ class SparkEmitter
     };
 
 public:
-    ~SparkEmitter(); // ★ デストラクタを追加
+    ~SparkEmitter(); // デストラクタを追加
     bool Init(ID3D11Device* device);
 	// 基本のEmit関数(後方互換性のため残す)
    // void Emit(const DirectX::XMFLOAT3& position, const DirectX::XMFLOAT3& direction);
@@ -62,7 +62,7 @@ public:
     // 動作タイプを設定
     void SetBehaviorType(ParticleBehaviorType type) { m_BehaviorType = type; }
     void Update(float deltaTime);
-    void Uninit(); // ★ 明示的な解放関数も追加
+    void Uninit(); //明示的な解放関数も追加
     void Render(ID3D11DeviceContext*, const DirectX::XMMATRIX&);
     void CreateBuffers();
     void SetupRenderState();

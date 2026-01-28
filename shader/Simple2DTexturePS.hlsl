@@ -24,11 +24,8 @@ float4 main(PS_INPUT input) : SV_TARGET
     // テクスチャから色を取得
     float4 color = mainTexture.Sample(mainSampler, input.tex);
     
-    // ★★★ マテリアルのアルファを適用 ★★★
+    //  マテリアルのアルファを適用 
     color.a *= Diffuse.a;
-    
-    // ★★★ マテリアルのDiffuse色も適用（オプション） ★★★
-    // color.rgb *= Diffuse.rgb;  // 色の調整が必要な場合
-    
+   
     return color;
 }

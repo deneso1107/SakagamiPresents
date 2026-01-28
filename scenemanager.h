@@ -2,9 +2,9 @@
 #include <memory>
 #include <unordered_map>
 #include <string>
-#include <thread>        // ★追加
-#include <atomic>        // ★追加
-#include <mutex>         // ★追加
+#include <thread>        
+#include <atomic>       
+#include <mutex>         
 #include "system/noncopyable.h"
 #include "system/CShader.h"
 #include"ScreenFixedBillboard.h"
@@ -21,7 +21,7 @@ private:
     static ID3D11Buffer* m_transitionVertexBuffer;
     static ID3D11Buffer* m_transitionConstantBuffer;
     static ID3D11ShaderResourceView* m_transitionTexture;
-    static ID3D11ShaderResourceView* m_blackFadeTexture; // ★黒画像用
+    static ID3D11ShaderResourceView* m_blackFadeTexture; // 黒画像用
     static ID3D11ShaderResourceView* m_loadingTextTexture;
     static ID3D11ShaderResourceView* m_cowIconTexture;
     static ID3D11DepthStencilState* m_transitionDepthState;
@@ -91,7 +91,7 @@ public:
     static void InitTransitionResources();
     static void DisposeTransitionResources();
     static void DrawTransitionOverlay();
-    static void DrawBlackFade();  // ★黒背景フェード描画
+    static void DrawBlackFade();  // 黒背景フェード描画
     static void DrawLoadingIndicator();
     static void LoadTransitionTexture(const wchar_t* filepath );
 

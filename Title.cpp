@@ -11,30 +11,6 @@ void Title::init()
     // タイトルは画面外上部から開始
     m_TitleBillboard = new ScreenFixedBillboard(Vector2(0.5f, 0.3f), 0.6f, 0.6f, L"assets/texture/タイトル.png");
 
-    //m_VideoBB = ScreenFixedBillboard::CreateFromVideo(
-    //    Vector2(0.5f, 0.5f),
-    //    1.0f, 1.0f,
-    //    L"assets/video/画面録画 2025-12-18 173922.mp4"
-    //);
-
-    //if (m_VideoBB == nullptr) {
-    //    MessageBoxA(nullptr, "動画の読み込みに失敗しました", "Error", MB_OK);
-    //}
-    //else {
-    //    // 動画情報を確認
-    //    VideoPlayer* player = m_VideoBB->GetVideoPlayer();
-    //    if (player) {
-    //        char msg[256];
-    //        printf("動画サイズ: %dx%d\n長さ: %.2f秒",
-    //            player->GetWidth(),
-    //            player->GetHeight(),
-    //            player->GetDurationSeconds());
-    //        //MessageBoxA(nullptr, "Video Info", "OK", MB_OK);
-    //    }
-    //}
-    //m_VideoBB->SetLooping(true);
-    //m_VideoBB->PlayVideo();
-
 	// プレイヤーの初期化
     m_player = std::make_unique<Player>();
     m_player->Init();
@@ -65,7 +41,6 @@ void Title::init()
 
     // カメラオフセットをカスタマイズ（オプション）
     titleCam.SetCameraOffset(Vector3(8.0f, 0.0f, -30.0f));  // より後ろから
-    ///titleCam.SetLookAtOffset(Vector3(0.0f, 10.0f, 15.0f));   // より上を見る
 
     titleCam.SetFixedMode(false);  // 固定モード
 
@@ -89,7 +64,7 @@ void Title::update(float deltatime)
 
     m_spiralEffect->Update(deltatime);
 
-    // ★★★ プレイヤーの位置と回転をエフェクトから取得 ★★★
+    //プレイヤーの位置と回転をエフェクトから取得
     if (m_spiralEffect->IsActive())
     {
         Vector3 pos = m_spiralEffect->GetCurrentPosition();
@@ -160,7 +135,7 @@ void Title::update(float deltatime)
 
 void Title::draw(float deltatime)
 {
-    // ★★★ カメラのビュー行列を設定 ★★★
+    // カメラのビュー行列を設定
     TitleCamera::Instance().Draw();
     m_player->Draw();
  

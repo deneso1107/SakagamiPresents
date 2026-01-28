@@ -345,13 +345,13 @@ void CountdownEffect::Draw()
 {
     if (!m_isActive) return;
 
-    // ★★★ 重要：現在のマトリックスを保存 ★★★
+    // 重要：現在のマトリックスを保存
     Matrix4x4 savedWorld, savedView, savedProj;
     savedWorld=Renderer::GetWorldMatrix(/*&savedWorld*/);
     savedView=Renderer::GetViewMatrix();
     savedProj=Renderer::GetProjectionMatrix();
 
-    // ★★★ ブレンドステートを保存して、アルファブレンドを設定 ★★★
+    // ブレンドステートを保存して、アルファブレンドを設定
     ID3D11BlendState* savedBlendState = nullptr;
     float savedBlendFactor[4];
     UINT savedSampleMask = 0;
@@ -375,7 +375,7 @@ void CountdownEffect::Draw()
     float blendFactor[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
     Renderer::GetDeviceContext()->OMSetBlendState(uiBlendState, blendFactor, 0xFFFFFFFF);
 
-    // ★★★ 深度ステンシルステート: Zテスト無効、Z書き込み無効 ★★★
+    // 深度ステンシルステート: Zテスト無効、Z書き込み無効
     ID3D11DepthStencilState* savedDepthState = nullptr;
     UINT savedStencilRef = 0;
     Renderer::GetDeviceContext()->OMGetDepthStencilState(&savedDepthState, &savedStencilRef);
@@ -423,7 +423,7 @@ void CountdownEffect::Draw()
         }
     }
 
-    // ★★★ ステートを復元 ★★★
+    //ステートを復元
     if (uiBlendState) {
         uiBlendState->Release();
     }
@@ -440,7 +440,7 @@ void CountdownEffect::Draw()
         savedDepthState->Release();
     }
 
-    // ★★★ マトリックスを復元 ★★★
+    //マトリックスを復元 
     Renderer::SetWorldMatrix(&savedWorld);
     Renderer::SetViewMatrix(&savedView);
     Renderer::SetProjectionMatrix(&savedProj);

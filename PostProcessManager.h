@@ -46,7 +46,7 @@
 //    ID3D11DepthStencilView* GetSceneDepthStencil() const { return m_sceneDSV.Get(); }
 //    ID3D11ShaderResourceView* GetSceneShaderResourceView() const
 //    {
-//        return m_sceneSRV.Get();  // š ShaderResourceView ‚ğ•Ô‚·
+//        return m_sceneSRV.Get();  // ShaderResourceView ‚ğ•Ô‚·
 //    }
 //
 //

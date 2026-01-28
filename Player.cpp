@@ -188,7 +188,7 @@ void Player::UpdateStartSequence(float deltatime)
 			Vector3 lookDirection = Vector3(lookX - m_Position.x, 0.0f, lookZ - m_Position.z);
 			float targetYaw = atan2f(lookDirection.x, lookDirection.z);
 
-			// ★★★ 序盤から徐々に正面方向への補正を開始 ★★★
+			// 序盤から徐々に正面方向への補正を開始
 			if (progress > 0.01f) {
 				// 残り70%で初期方向に戻す
 				float returnProgress = (progress - 0.01f) / 0.99f; // 0.0 ~ 1.0
@@ -228,7 +228,7 @@ void Player::UpdateStartSequence(float deltatime)
 			float pitchWave = sinf(m_spiralTime * 3.5f) * m_spiralPitchWave;
 			float pitchDescend = -0.15f * progress;
 
-			// ★着地直前はピッチを水平に戻す（より早く）
+			// 着地直前はピッチを水平に戻す（より早く）
 			if (progress > 0.5f) {
 				float levelProgress = (progress - 0.5f) / 0.5f;
 				levelProgress = levelProgress * levelProgress; // 二次曲線
@@ -242,7 +242,7 @@ void Player::UpdateStartSequence(float deltatime)
 			float rollFromTurn = -sinf(angle) * m_spiralRollIntensity * (1.0f - progress * 0.5f);
 			float rollWave = cosf(m_spiralTime * 2.8f) * 0.08f;
 
-			// ★着地直前はロールを水平に戻す（より早く）
+			// 着地直前はロールを水平に戻す（より早く）
 			if (progress > 0.5f) {
 				float levelProgress = (progress - 0.5f) / 0.5f;
 				levelProgress = levelProgress * levelProgress; // 二次曲線
@@ -325,7 +325,7 @@ void Player::UpdateGoalSequence(float deltatime)
 	// UI演出の更新
 	m_goalEffect->Update(deltatime);
 
-	// ★★★ プレイヤーのロケット飛行アニメーション（螺旋上昇） ★★★
+	//プレイヤーのロケット飛行アニメーション（螺旋上昇）
 	m_goalJumpTime += deltatime;
 	float t = m_goalJumpTime / m_goalJumpDuration;
 
@@ -336,7 +336,7 @@ void Player::UpdateGoalSequence(float deltatime)
 		float spiralRotations = 3.0f;  // 螺旋の回転数
 
 		if (t < 0.4f) {
-			// ★★★ フェーズ1 (0~0.4秒): ゆっくり上昇 ★★★
+			//フェーズ1 (0~0.4秒): ゆっくり上昇
 			float t1 = t / 0.4f;
 
 			// 緩やかな二次曲線
@@ -394,7 +394,7 @@ void Player::UpdateGoalSequence(float deltatime)
 			Vector3 upOffset = Vector3(0, height, 0);
 			m_Position = m_goalStartPos + forwardOffset + upOffset + spiralOffset;
 
-			// ★★★ プレイヤーの向き：上向き（ロケットのように） ★★★
+			//プレイヤーの向き：上向き（ロケットのように
 			m_Rotation.y = m_goalStartRotation.y + spiralAngle;
 			m_Rotation.x = Lerp(-0.3f, -1.4f, t2);  // -17度 → -80度（ほぼ真上）
 
@@ -431,7 +431,7 @@ void Player::UpdateGoalSequence(float deltatime)
 
 		m_Position = m_goalStartPos + forwardOffset + upOffset + spiralOffset;
 
-		// ★★★ 回転は継続、上向き維持 ★★★
+		//回転は継続、上向き維持 
 		m_Rotation.y = m_goalStartRotation.y + spiralAngle;
 		m_Rotation.x = -1.4f;  // ほぼ真上を向く（約-80度）
 		m_Rotation.z = sinf(spiralAngle) * 0.2f;
@@ -460,7 +460,7 @@ void Player::Init()
 	//レンダラ初期化
 	m_meshrenderer.Init(m_mesh);
 
-	// ★自動計算: BottomYが負の場合は補正が必要★
+	//自動計算: BottomYが負の場合は補正が必要
 	float bottomY = m_mesh.GetBottomY();
 
 	if (bottomY < 0.0f) {
@@ -637,7 +637,7 @@ void Player::Update(float deltatime)
 	}
 
 	float timeScale = GameManager::Instance().GetTimeScale();
-    float scaledDeltaTime = deltatime * timeScale;  // ★ここで一度だけ計算
+    float scaledDeltaTime = deltatime * timeScale;  //ここで一度だけ計算
 
 	float throttle = 0.0f;
 	float steering = 0.0f;
@@ -969,7 +969,7 @@ void Player::UpdateSmoothTerrainFollowing(float deltatime)
 					// 通常速度時の処理
 					if (heightDiff > 3.0f) {
 						m_Position.y = m_targetHeight;
-						m_verticalVelocity = 0.0f; // ★追加: リセット
+						m_verticalVelocity = 0.0f; //リセット
 					}
 					else {
 						float lerpSpeed = isNearlyStationary ? 0.25f : 0.1f;
@@ -1102,6 +1102,8 @@ void Player::ApplyRoadSurfaceEffect(RoadType surfaceType, float deltatime)//道路
 	switch (surfaceType) {
 	case RoadType::DIRT:
 	{
+		if (!m_IsMaxSpeed)//最高速度時は影響を受けない
+		{
 		// ダートでは摩擦が大きく、速度が低下
 		float dirtFriction = 0.96f;  // 通常より強い減速（0.98fが通常）
 		m_Velocity.x *= pow(dirtFriction, timeScale);
@@ -1123,8 +1125,8 @@ void Player::ApplyRoadSurfaceEffect(RoadType surfaceType, float deltatime)//道路
 			m_Velocity.z *= speedRatio;
 		}
 
-		// デバッグ表示（オプション）
-		 printf("On DIRT road - Speed limited to %.2f\n", currentSpeed);
+		}
+
 		break;
 	}
 
@@ -1211,7 +1213,7 @@ void Player::UpdateDriftMovement(float throttle, float steering, Vector3 forward
 	Vector3 lateralForce = rightDir * m_DriftDirection * 0.02f * speedFactor;
 	m_Velocity += lateralForce;
 
-	// ★★★ 速度制限にハイブリッド速度倍率を適用 ★★★
+	//速度制限にハイブリッド速度倍率を適用
 	float speedMultiplier = GetCurrentSpeedMultiplier();
 	float maxSpeed = m_MaxSpeed * speedMultiplier;
 
@@ -1362,7 +1364,7 @@ void Player::DrawAfterImage()
 			mat.Emission.x = 0.3f * intensity;
 			mat.Emission.y = 1.0f * intensity;
 			mat.Emission.z = 1.5f * intensity;
-			mat.TextureEnable = FALSE; // ★テクスチャを無効化★
+			mat.TextureEnable = FALSE; //テクスチャを無効化
 			m_meshrenderer.DrawWithCustomMaterial(mat);
 
 			index++;
@@ -1413,7 +1415,7 @@ void Player::OnCollisionWithEnemy(Enemy& enemy)
 
 	// ノックバック力を適用
 	int  knockbackForce = (int)speed*50.0f; // 力を強くして確実に飛ぶようにする
-	m_gameScore += knockbackForce/10;
+	m_gameScore += knockbackForce/20;
 
 	if (timeScale != 1.0f)
 	{
@@ -1440,9 +1442,6 @@ void Player::OnCollisionWithEnemy(Enemy& enemy)
 		SpringCamera::Instance().Shake(3.0f, 0.2f);  // 強めのカメラシェイク
 
 		// ここでUI表示などを追加可能
-		// 例: "SPEED LEVEL UP!" みたいな表示
-		printf("★ MILESTONE! Speed Level: x%.2f (Hits: %d)\n",
-			m_PermanentSpeedBonus, m_ConsecutiveHits);
 	}
 
 	// 【一時ボーナス】敵を倒すたびに加算
@@ -1695,7 +1694,7 @@ void Player::CheckFallState(float deltatime)
 		printf("Fall detected: Too long in air (%.2fs)\n", m_airTime);
 	}
 
-	// ★ 落下状態になったらカメラ演出を開始（リスポーンは待機）
+	//  落下状態になったらカメラ演出を開始（リスポーンは待機）
 	if (isFallingNow && !m_isFalling && !m_isWaitingForRespawn) {
 		m_isFalling = true;
 		m_isWaitingForRespawn = true;
@@ -1707,7 +1706,7 @@ void Player::CheckFallState(float deltatime)
 		printf("Fall state started - Waiting for camera animation\n");
 	}
 
-	// ★ カメラ演出中はタイマーを進める
+	// カメラ演出中はタイマーを進める
 	if (m_isWaitingForRespawn) {
 		m_fallTimer += deltatime;
 
@@ -1727,27 +1726,21 @@ void Player::CheckFallState(float deltatime)
 		}
 	}
 
-	// ★ リスポーン後に接地したら落下状態を完全に解除
+	//リスポーン後に接地したら落下状態を完全に解除
 	if (m_isFalling && m_isGrounded && !m_isWaitingForRespawn) {
 		m_isFalling = false;
 		m_airTime = 0.0f;
-		printf("Recovered from fall state\n");
 	}
 }
 
 void Player::RespawnToLastRoad()
 {
-	if (!m_roadManager) {
-		printf("Error: RoadManager not available for respawn!\n");
-		return;
-	}
-
 	Vector3 respawnPos;
 	Vector3 respawnRot;
 	bool foundRespawn = false;
 	BaseRoad* targetRoad = nullptr;
 
-	// ★ 最後に接地していた道路からSTRAIGHTの道路を探す
+	// 最後に接地していた道路からSTRAIGHTの道路を探す
 	if (m_lastGroundedRoad) {
 		targetRoad = m_roadManager->FindNearestStraightRoad(m_lastGroundedRoad);
 
@@ -1756,15 +1749,11 @@ void Player::RespawnToLastRoad()
 				targetRoad,
 				m_lastGroundedPosition,
 				respawnPos,
-				respawnRot  // ★ STRAIGHTの道路の向きを取得
+				respawnRot  //STRAIGHTの道路の向きを取得
 			);
 
-			if (foundRespawn) {
-				printf("Respawning to nearest STRAIGHT road\n");
-			}
 		}
 		else {
-			printf("No STRAIGHT road found, using last grounded road\n");
 			// STRAIGHTが見つからない場合は元の道路を使用
 			targetRoad = m_lastGroundedRoad;
 			foundRespawn = m_roadManager->GetSafePositionOnRoad(
@@ -1784,7 +1773,6 @@ void Player::RespawnToLastRoad()
 			respawnPos.y += 2.0f;
 			respawnRot = Vector3(0.0f, 0.0f, 0.0f);
 			foundRespawn = true;
-			printf("No road found, respawning at start position\n");
 		}
 	}
 
@@ -1792,7 +1780,7 @@ void Player::RespawnToLastRoad()
 	if (foundRespawn) {
 		m_Position = respawnPos;
 
-		// ★ 道路の向きに合わせる（Y軸回転のみ適用）
+		//道路の向きに合わせる（Y軸回転のみ適用）
 		m_Rotation.y = respawnRot.y;  // STRAIGHTの道路の向き
 		m_Rotation.x = 0.0f;           // ピッチはリセット
 		m_Rotation.z = 0.0f;           // ロールはリセット

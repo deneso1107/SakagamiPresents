@@ -28,7 +28,7 @@ struct GoalEffectParams {
     float goalTextBounceTime = 0.3f;    // バウンス時間
 };
 
-// ★★★ UI演出専用クラス（プレイヤーの動きは含まない） ★★★
+// UI演出専用クラス（プレイヤーの動きは含まない）
 class GoalEffect {
 private:
     // ビルボード

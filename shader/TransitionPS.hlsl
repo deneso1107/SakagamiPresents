@@ -12,7 +12,7 @@ float4 main(PS_INPUT input) : SV_TARGET
     // テクスチャをサンプリング
     float4 color = transitionTexture.Sample(transitionSampler, input.uv);
     
-    // ★PNG画像の透明部分を処理
+    // PNG画像の透明部分を処理
     // アルファ値が低い部分は描画しない（背景を透過）
     if (color.a < 0.01f)
         discard;
