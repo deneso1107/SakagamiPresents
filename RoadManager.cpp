@@ -84,6 +84,7 @@ void RoadManager::InitializeCircuit(const std::vector<std::vector<RoadSegment>>&
     m_gridHeight = layout.size();
     m_gridWidth = layout[0].size();
 
+    DisposeAll();
     // グリッドをクリア
     m_roadGrid.clear();
     m_roadGrid.resize(m_gridHeight);
@@ -125,7 +126,9 @@ void RoadManager::InitializeCircuit(const std::vector<std::vector<RoadSegment>>&
 void RoadManager::SetRoad(int x, int y, RoadType type, Direction direction) {
     if (x < 0 || x >= m_gridWidth || y < 0 || y >= m_gridHeight) return;
 
+    // 既存の道路を安全に削除
     if (m_roadGrid[y][x]) {
+        m_roadGrid[y][x]->Dispose();
         m_roadGrid[y][x].reset();
     }
 
@@ -312,15 +315,25 @@ void RoadManager::DrawAll() {
 }
 
 void RoadManager::DisposeAll() {
-    // 各道路のDisposeメソッドを呼び出し
+    // 各道路のリソースを解放
     for (auto& row : m_roadGrid) {
         for (auto& road : row) {
             if (road) {
-                road->Dispose();  // 各道路のリソースを解放
-                road.reset();     // unique_ptrをnullptrにリセット
+                road->Dispose();
+                road.reset();
             }
         }
     }
+
+    // コンテナのクリア
+    m_roadGrid.clear();
+    m_roadLayout.clear();
+
+    // メモリの完全解放
+    m_roadGrid.shrink_to_fit();
+    m_roadLayout.shrink_to_fit();
+
+
 }
 
 

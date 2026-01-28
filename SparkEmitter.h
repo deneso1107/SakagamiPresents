@@ -107,7 +107,6 @@ public:
 
     void SetRadialWindMode(int rayCount, float speed, const DirectX::XMFLOAT3& color);
     ///Particle GetParticle();
-    void EmitWindTrail(const DirectX::XMFLOAT3& centerPos, float playerSpeed);
 
 private:
     struct Vertex;
@@ -137,13 +136,10 @@ private:
     void UpdateBurst(Particle& p, float deltaTime);
     void UpdateContinuous(Particle& p, float deltaTime);
     void UpdateTrail(Particle& p, float deltaTime);
-    void UpdateRadialWind(Particle& p, float deltaTime);
 
     void EmitBurst(const DirectX::XMFLOAT3& pos, const DirectX::XMFLOAT3& dir, int count);
     void EmitContinuous(const DirectX::XMFLOAT3& pos, const DirectX::XMFLOAT3& dir);
     void EmitTrail(const DirectX::XMFLOAT3& pos, const DirectX::XMFLOAT3& dir);
-    void UpdateWindTrails(float deltaTime);
-    void RenderWindTrails(ID3D11DeviceContext* context, const DirectX::XMMATRIX& viewProj);
 
     void UpdateSparkle(Particle& p, float deltaTime);
     void EmitSparkle(const DirectX::XMFLOAT3& centerPos, const DirectX::XMFLOAT3& dir);

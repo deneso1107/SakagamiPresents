@@ -73,8 +73,6 @@ private:
     static void UpdateTransition(float deltaTime);
     static void LoadNextSceneAsync();
 
-    static void CreateBlackTexture();
-    static void LoadLoadingTextures();
 
     static std::thread m_loadingThread;
     static std::atomic<bool> m_asyncLoading;

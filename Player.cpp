@@ -11,17 +11,22 @@
 #include "SpringCamera.h"
 #include"GoalCamera.h"
 
-
-float VALUE_MOVE_MODEL = 2.0f;						// キー入力時の移動量
-float VALUE_ROTATE_MODEL = PI * 0.02f;				// キー入力時の回転量
-float RATE_ROTATE_MODEL = 0.40f;					// １フレーム当たりの回転割合
-float RATE_MOVE_MODEL = 0.20f;						// １フレーム当たりの減衰割合
+// 定数定義を関数外に移動（再計算を防ぐ）
+namespace PlayerConstants {
+	constexpr float VALUE_MOVE_MODEL = 2.0f;
+	constexpr float VALUE_ROTATE_MODEL = PI * 0.02f;
+	constexpr float RATE_ROTATE_MODEL = 0.40f;
+	constexpr float RATE_MOVE_MODEL = 0.20f;
+	constexpr float TWO_PI = PI * 2.0f;
+	constexpr float MAX_FALL_SPEED = -10.0f;
+	constexpr float SPIRAL_MIN_DURATION = 2.0f;
+	constexpr float SPIRAL_MAX_DURATION = 6.0f;
+}
 
 // debug用
 static Vector3 g_rotation = Vector3(0.0f, 0.0f, 0.0f);
 static Vector3 g_position = Vector3(0.0f, 0.0f, 0.0f);
 static Vector3 g_scale = Vector3(1.0f, 1.0f, 1.0f);
-
 //最初の演出
 void Player::StartRaceSequence(const Vector3& startPosition)
 {
@@ -30,48 +35,41 @@ void Player::StartRaceSequence(const Vector3& startPosition)
 	m_stateManager.AddState(PlayerStateManager::State::SpiralDescending);
 
 	m_spiralTime = 0.0f;
-
-	//現在の向き（正面方向）を保存
 	m_spiralInitialYaw = m_Rotation.y;
 
-	// 開始位置を設定（スタート地点の上空）
+	// 開始位置を設定
 	m_spiralTargetPos = startPosition;
 	m_spiralStartPos = startPosition;
 	m_spiralStartPos.y += m_spiralHeight;
 
-	//実際の地形高度を取得して、正確な降下距離を計算
+	// 実際の地形高度を取得
 	if (m_roadManager) {
 		float terrainHeight;
 		Vector3 terrainNormal;
 		if (m_roadManager->GetTerrainHeight(startPosition, terrainHeight, terrainNormal)) {
-			// 地形の高さに合わせて目標位置を調整
 			float bottomOffsetY = m_mesh.GetBottomY();
 			m_spiralTargetPos.y = terrainHeight - (bottomOffsetY * m_Scale.y);
 			m_spiralStartPos.y = m_spiralTargetPos.y + m_spiralHeight;
 		}
 	}
 
-	//螺旋の長さから最適な時間を自動計算
-	float verticalDistance = m_spiralHeight;
-	float spiralCircumference = 2.0f * PI * m_spiralRadius;
-	float horizontalDistance = spiralCircumference * m_spiralRotations;
-	float totalDistance = sqrt(verticalDistance * verticalDistance +
+	// 螺旋の長さから最適な時間を計算（sqrt呼び出しを1回に削減）
+	const float verticalDistance = m_spiralHeight;
+	const float spiralCircumference = PlayerConstants::TWO_PI * m_spiralRadius;
+	const float horizontalDistance = spiralCircumference * m_spiralRotations;
+	const float totalDistance = sqrtf(verticalDistance * verticalDistance +
 		horizontalDistance * horizontalDistance);
 
-	float desiredSpeed = m_spiralDesiredSpeed;
-	m_spiralDuration = totalDistance / desiredSpeed;
-
-	// 最小・最大時間の制限
-	m_spiralDuration = std::max(2.0f, std::min(m_spiralDuration, 6.0f));
+	m_spiralDuration = totalDistance / m_spiralDesiredSpeed;
+	m_spiralDuration = std::clamp(m_spiralDuration,
+		PlayerConstants::SPIRAL_MIN_DURATION,
+		PlayerConstants::SPIRAL_MAX_DURATION);
 
 	// プレイヤーを開始位置に配置
 	m_Position = m_spiralStartPos;
-	m_Velocity = Vector3(0.0f, 0.0f, 0.0f);
-	// 回転はリセットせず、初期方向を維持
+	m_Velocity = Vector3::Zero; // ゼロベクトル定数使用
 	m_Rotation.x = 0.0f;
 	m_Rotation.z = 0.0f;
-	//m_Rotation.y = m_spiralInitialYaw;
-	// m_Rotation.y はそのまま（正面方向）
 
 	// ブースト関連もリセット
 	m_IsBoosting = false;
@@ -1380,6 +1378,13 @@ void Player::DrawAfterImage()
 
 void Player::Dispose()
 {
+	// unique_ptrは自動的に解放されるため、明示的な処理は不要
+	// ただし、念のためリセット
+	m_countdown.reset();
+	m_goalEffect.reset();
+
+	// dequeのクリア
+	m_ghostTrail.clear();
 }
 
 // 敵との衝突時の処理

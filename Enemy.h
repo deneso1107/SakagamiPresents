@@ -41,10 +41,11 @@ private:
 
 public:
 
-	bool m_IsKnockedBack;      // ノックバック中かどうか
+	bool m_IsKnockedBack=false;      // ノックバック中かどうか
 	Enemy(IScene* currentscene)
 		: m_StaticMeshRenderer(nullptr),
-		m_ownerscene(currentscene) {
+		m_ownerscene(currentscene)
+	{
 	}
 
 

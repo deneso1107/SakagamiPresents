@@ -166,9 +166,6 @@ private:
 	Vector3 m_terrainNormal = Vector3(0.0f, 1.0f, 0.0f);  // 地形の法線
 	float m_terrainTiltLerpSpeed = 0.1f;  // 傾斜の補間速度
 
-	float testparticle_y = 0.0f;
-	float testparticle_x = 0.0f;
-	float testparticle_z = 0.0f;
 
 	//道の埋め込み防止
 	float m_groundOffset = 0.0f; // 地面補正値
