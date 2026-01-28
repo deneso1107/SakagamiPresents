@@ -289,7 +289,7 @@ void SceneManager::LoadNextSceneAsync()
     std::string next = m_nextSceneName;
 
     //ワーカースレッド起動
-    m_loadingThread = std::thread([next]() {
+        m_loadingThread = std::thread([next]() {
         m_scenes[next]->loadAsync();  // ← CPUロードだけ
         m_asyncFinished = true;
         });
