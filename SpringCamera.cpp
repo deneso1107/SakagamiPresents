@@ -99,53 +99,225 @@ void SpringCamera::Init()
 
 void SpringCamera::Update(float deltaTime)
 {
+
     if (!m_targetPlayer) return;
 
-    // 現在の状態に応じたパラメータを取得
+    // モードに応じて異なる更新処理
+    switch (m_currentMode) {
+    case CameraMode::NORMAL:
+        UpdateNormalMode(deltaTime);
+        break;
+    case CameraMode::FALLING:
+        UpdateFallingMode(deltaTime);
+        break;
+    case CameraMode::RESPAWNING:
+        UpdateRespawningMode(deltaTime);
+        break;
+    }
+
+    // 共通処理（FOV、Shake等）
+    ApplyShake(m_position, deltaTime);
+
+
+    //if (!m_targetPlayer) return;
+
+    //// 現在の状態に応じたパラメータを取得
+    //CameraParams targetParams = DetermineTargetParams();
+
+    //// パラメータを遷移
+    //m_currentParams.distance = Lerp(m_currentParams.distance, targetParams.distance, m_transitionSpeed);
+    //m_currentParams.height = Lerp(m_currentParams.height, targetParams.height, m_transitionSpeed);
+    //m_currentParams.fov = Lerp(m_currentParams.fov, targetParams.fov, m_transitionSpeed);
+    //m_currentParams.anticipation = Lerp(m_currentParams.anticipation, targetParams.anticipation, m_transitionSpeed);
+    //m_currentParams.lookAheadDist = Lerp(m_currentParams.lookAheadDist, targetParams.lookAheadDist, m_transitionSpeed);
+
+    //// スプリングパラメータも更新
+    //m_positionSpring.stiffness = Lerp(m_positionSpring.stiffness, targetParams.positionStiffness, m_transitionSpeed);
+    //m_positionSpring.damping = Lerp(m_positionSpring.damping, targetParams.positionDamping, m_transitionSpeed);
+    //m_lookAtSpring.stiffness = Lerp(m_lookAtSpring.stiffness, targetParams.lookAtStiffness, m_transitionSpeed);
+    //m_lookAtSpring.damping = Lerp(m_lookAtSpring.damping, targetParams.lookAtDamping, m_transitionSpeed);
+
+    //// 坂道のピッチオフセットを計算
+    //m_targetPitchOffset = CalculatePitchOffset();
+    //m_currentPitchOffset = Lerp(m_currentPitchOffset, m_targetPitchOffset, m_pitchTransitionSpeed);
+
+    //// カメラ位置を計算（基本ピッチ + 坂道オフセット）
+    //m_positionSpring.target = CalculateIdealCameraPositionWithPitch();
+    //m_lookAtSpring.target = CalculateIdealLookAtPosition();
+
+    //// スプリング更新
+    //m_positionSpring.Update(deltaTime);
+    //m_lookAtSpring.Update(deltaTime);
+
+    //// 反映
+    //m_position = m_positionSpring.position;
+    //m_lookat = m_lookAtSpring.position;
+
+    //// エフェクト適用
+    //ApplyBoostShake(m_position);
+    //ApplyShake(m_position, deltaTime);
+
+    //// カメラバンク
+    //Vector3 steer = m_targetPlayer->GetRotation();
+    //float steerNorm = steer.y / 3.14f;
+    //float maxBankDeg = 1.25f;
+    //float targetBank = steerNorm * maxBankDeg;
+    //m_currentBank = Lerp(m_currentBank, targetBank, 0.1f);
+
+    //// FOV更新
+    //m_currentFOV = m_currentParams.fov;
+}
+
+void SpringCamera::UpdateNormalMode(float deltaTime)
+{
+    // 既存のUpdate処理の内容をそのまま移動
     CameraParams targetParams = DetermineTargetParams();
 
-    // パラメータを遷移
     m_currentParams.distance = Lerp(m_currentParams.distance, targetParams.distance, m_transitionSpeed);
     m_currentParams.height = Lerp(m_currentParams.height, targetParams.height, m_transitionSpeed);
     m_currentParams.fov = Lerp(m_currentParams.fov, targetParams.fov, m_transitionSpeed);
     m_currentParams.anticipation = Lerp(m_currentParams.anticipation, targetParams.anticipation, m_transitionSpeed);
     m_currentParams.lookAheadDist = Lerp(m_currentParams.lookAheadDist, targetParams.lookAheadDist, m_transitionSpeed);
 
-    // スプリングパラメータも更新
     m_positionSpring.stiffness = Lerp(m_positionSpring.stiffness, targetParams.positionStiffness, m_transitionSpeed);
     m_positionSpring.damping = Lerp(m_positionSpring.damping, targetParams.positionDamping, m_transitionSpeed);
     m_lookAtSpring.stiffness = Lerp(m_lookAtSpring.stiffness, targetParams.lookAtStiffness, m_transitionSpeed);
     m_lookAtSpring.damping = Lerp(m_lookAtSpring.damping, targetParams.lookAtDamping, m_transitionSpeed);
 
-    // 坂道のピッチオフセットを計算
     m_targetPitchOffset = CalculatePitchOffset();
     m_currentPitchOffset = Lerp(m_currentPitchOffset, m_targetPitchOffset, m_pitchTransitionSpeed);
 
-    // カメラ位置を計算（基本ピッチ + 坂道オフセット）
     m_positionSpring.target = CalculateIdealCameraPositionWithPitch();
     m_lookAtSpring.target = CalculateIdealLookAtPosition();
 
-    // スプリング更新
     m_positionSpring.Update(deltaTime);
     m_lookAtSpring.Update(deltaTime);
 
-    // 反映
     m_position = m_positionSpring.position;
     m_lookat = m_lookAtSpring.position;
 
-    // エフェクト適用
     ApplyBoostShake(m_position);
-    ApplyShake(m_position, deltaTime);
 
-    // カメラバンク
     Vector3 steer = m_targetPlayer->GetRotation();
     float steerNorm = steer.y / 3.14f;
     float maxBankDeg = 1.25f;
     float targetBank = steerNorm * maxBankDeg;
     m_currentBank = Lerp(m_currentBank, targetBank, 0.1f);
 
-    // FOV更新
     m_currentFOV = m_currentParams.fov;
+}
+
+void SpringCamera::UpdateFallingMode(float deltaTime)
+{
+    m_fallingModeTimer += deltaTime;
+
+    // カメラ位置は固定（落下開始時の位置を保持）
+	m_position = m_fallingCameraPosition;
+    // LookAt だけプレイヤーを追従
+    Vector3 playerPos = m_targetPlayer->GetPosition();
+    m_lookAtSpring.target = playerPos + Vector3(0, 2, 0);
+
+    // スプリングで滑らかに追従
+    m_lookAtSpring.Update(deltaTime);
+    m_lookat = m_lookAtSpring.position;
+
+    // FOVを少し広げて臨場感を出す（オプション）
+    float targetFOV = 50.0f;
+    m_currentFOV = Lerp(m_currentFOV, targetFOV, 0.05f);
+
+    // バンクはリセット
+    m_currentBank = Lerp(m_currentBank, 0.0f, 0.1f);
+}
+
+void SpringCamera::UpdateRespawningMode(float deltaTime)
+{
+    // リスポーン後の演出
+    Vector3 playerPos = m_targetPlayer->GetPosition();
+    Vector3 playerRot = m_targetPlayer->GetRotation();
+
+    // リスポーン地点の後方からスムーズに戻る
+    Vector3 backward = Vector3(-sinf(playerRot.y), 0.0f, -cosf(playerRot.y));
+    Vector3 targetPos = playerPos + backward * 50.0f;
+    targetPos.y += 15.0f; // 少し高めの位置から
+
+    m_positionSpring.target = targetPos;
+    m_lookAtSpring.target = playerPos + Vector3(0, 2, 0);
+
+    // スプリング更新（通常より速めに）
+    m_positionSpring.stiffness = 100.0f;
+    m_positionSpring.damping = 15.0f;
+
+    m_positionSpring.Update(deltaTime);
+    m_lookAtSpring.Update(deltaTime);
+
+    m_position = m_positionSpring.position;
+    m_lookat = m_lookAtSpring.position;
+
+    m_currentFOV = Lerp(m_currentFOV, m_normalParams.fov, 0.08f);
+
+    // ★ タイマーを進めてNORMALモードに戻る
+    m_fallingModeTimer += deltaTime;
+
+    if (m_fallingModeTimer >= 1.0f) { // 1秒でノーマルモードに復帰
+     
+        SetCameraMode(CameraMode::NORMAL);
+
+        // ★ スプリングパラメータを元に戻す
+        m_positionSpring.stiffness = m_normalParams.positionStiffness;
+        m_positionSpring.damping = m_normalParams.positionDamping;
+        m_lookAtSpring.stiffness = m_normalParams.lookAtStiffness;
+        m_lookAtSpring.damping = m_normalParams.lookAtDamping;
+    }
+}
+
+void SpringCamera::StartFallingMode()
+{
+    m_currentMode = CameraMode::FALLING;
+    m_fallingModeTimer = 0.0f;
+
+    // ★ 落下開始時のプレイヤー位置を記憶
+    m_fallingStartPlayerPos = m_targetPlayer->GetPosition();
+
+    // ★ カメラ位置を「プレイヤーの真上」に固定
+    m_fallingCameraPosition = m_fallingStartPlayerPos;
+    m_fallingCameraPosition.y += m_fallingCameraHeight; // 20m上
+
+    // LookAtのスプリングパラメータを調整（素早く反応）
+    m_lookAtSpring.stiffness = 300.0f;
+    m_lookAtSpring.damping = 30.0f;
+
+}
+
+void SpringCamera::EndFallingMode()
+{
+    // リスポーン演出モードに移行（オプション）
+    // または直接通常モードに戻す
+
+    m_currentMode = CameraMode::RESPAWNING;
+    m_fallingModeTimer = 0.0f;
+
+    // スプリングパラメータを元に戻す
+    m_lookAtSpring.stiffness = m_normalParams.lookAtStiffness;
+    m_lookAtSpring.damping = m_normalParams.lookAtDamping;
+
+    printf("Falling mode ended - Transitioning to respawn\n");
+}
+
+void SpringCamera::SetCameraMode(CameraMode mode)
+{
+    if (m_currentMode == mode) return;
+
+    CameraMode previousMode = m_currentMode;
+    m_currentMode = mode;
+
+    printf("Camera mode changed: %d -> %d\n", (int)previousMode, (int)mode);
+
+    // モード切り替え時の初期化処理
+    if (mode == CameraMode::NORMAL) {
+        // 通常モードに戻る時の処理
+        m_currentFOV = m_normalParams.fov;
+        m_currentBank = 0.0f;
+    }
 }
 
 void SpringCamera::Draw()
@@ -154,6 +326,7 @@ void SpringCamera::Draw()
     Vector3 up = Vector3(0.0f, 1.0f, 0.0f);
     m_viewmtx = DirectX::XMMatrixLookAtLH(m_position, m_lookat, up);
 
+    // バンク角適用
     // バンク角適用
     float bankRad = DirectX::XMConvertToRadians(m_currentBank);
     Matrix4x4 bankRot = Matrix4x4::CreateRotationZ(bankRad);//- カメラの視線方向に沿ってロールさせる必要があるためYからZに変更

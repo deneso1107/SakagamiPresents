@@ -20,6 +20,10 @@ class Skydome {
 	CShader				m_shader;		// シェーダ(夜)
 
 	Billboard			m_SunBillboard;	// ビルボード
+
+	//上半球と下半球を描画する内部関数
+	void DrawUpperHemisphere(bool isboost);
+	void DrawLowerHemisphere(bool isboost);
 public:
 	void Init();
 	void Update(Vector3);

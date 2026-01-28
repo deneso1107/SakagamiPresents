@@ -204,6 +204,27 @@ private:
 	bool m_afterImageEnabled = false;
 
 
+	// 最後に接触していた道路を記録
+	BaseRoad* m_lastGroundedRoad = nullptr;
+	Vector3 m_lastGroundedPosition;
+	Vector3 m_lastGroundedRotation;
+	float m_lastGroundedTime = 0.0f;
+
+	bool m_isFalling = false;
+	float m_fallTimer = 0.0f;
+	float m_airTime = 0.0f; // 空中にいる時間
+	bool m_isWaitingForRespawn = false; // ★ 追加：リスポーン待機フラグ
+
+	const float FALL_THRESHOLD_Y = -10.0f;
+	const float FALL_VELOCITY_THRESHOLD = -8.0f;
+	const float MAX_AIR_TIME = 3.0f; // 3秒以上空中にいたら落下扱い
+	const float FALL_CAMERA_DURATION = 1.5f; // ★ カメラ演出の長さ
+
+	void UpdateLastGroundedRoad();
+	void CheckFallState(float deltatime);
+	void RespawnToLastRoad();
+
+
 public:
 	void Init() override;
 	void Update(float) override;

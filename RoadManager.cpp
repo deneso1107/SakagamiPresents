@@ -367,17 +367,6 @@ bool RoadManager::GetTerrainHeight(const Vector3& position, float& height, Vecto
     }
 
     return false;
-    //// 最も近い道路を見つけて地形高度を取得
-    //for (auto& row : m_roadGrid) {
-    //    for (auto& road : row) {
-    //        if (road) {
-    //            if (road->GetTerrainHeight(position, height, normal)) {
-    //                return true;
-    //            }
-    //        }
-    //    }
-    //}
-    //return false;
 }
 std::optional<Vector3> RoadManager::GetStartPos()
 {
@@ -533,7 +522,8 @@ bool RoadManager::GetRoadSurfaceType(const Vector3& position, RoadType& outSurfa
 }
 
 
-void RoadManager::UpdatePlayerCollision(BoundingSphere& player, Vector3& velocity) {
+void RoadManager::UpdatePlayerCollision(BoundingSphere& player, Vector3& velocity)
+{
     for (auto& row : m_roadGrid) {
         for (auto& road : row) {
             if (road) {
@@ -543,91 +533,138 @@ void RoadManager::UpdatePlayerCollision(BoundingSphere& player, Vector3& velocit
     }
 }
 
-// カスタムサーキット作成用の新しいメソッド
-std::vector<std::vector<RoadSegment>> RoadManager::CreateCustomCircuit() {
-    std::vector<std::vector<RoadSegment>> layout(3, std::vector<RoadSegment>(3));
-
-    // 3x3のグリッドで時計回りのサーキットを作成
-    // 図に基づいて各位置に適切な道路を配置
-
-    // 上段 (y = 0): 左から右へ
-    layout[0][0] = RoadSegment(RoadType::TURN_RIGHT, Direction::WEST);   // 左上コーナー（西から北へ曲がる）
-    layout[0][1] = RoadSegment(RoadType::STRAIGHT, Direction::EAST);     // 上辺中央（東向き直線）
-    layout[0][2] = RoadSegment(RoadType::TURN_RIGHT, Direction::NORTH);  // 右上コーナー（北から東へ曲がる）
-
-    // 中段 (y = 1): 左右のみ
-    layout[1][0] = RoadSegment(RoadType::STRAIGHT, Direction::NORTH);    // 左辺（北向き直線）
-    layout[1][1] = RoadSegment(RoadType::NONE, Direction::NORTH);        // 中央は道路なし
-    layout[1][2] = RoadSegment(RoadType::STRAIGHT, Direction::SOUTH);    // 右辺（南向き直線）
-
-    // 下段 (y = 2): 右から左へ
-    layout[2][0] = RoadSegment(RoadType::TURN_RIGHT, Direction::SOUTH);  // 左下コーナー（南から西へ曲がる）
-    layout[2][1] = RoadSegment(RoadType::STRAIGHT, Direction::WEST);     // 下辺中央（西向き直線）
-    layout[2][2] = RoadSegment(RoadType::TURN_RIGHT, Direction::EAST);   // 右下コーナー（東から南へ曲がる）
-
-    return layout;
+BaseRoad* RoadManager::GetRoadAtPosition(const Vector3& position)
+{
+    for (auto& row : m_roadGrid) {
+        for (auto& road : row) {
+            if (road) {
+                float height;
+                Vector3 normal;
+                // この道路の範囲内にいるかチェック
+                if (road->GetTerrainHeight(position, height, normal)) {
+                    // 高さの許容範囲内かチェック（プレイヤーが道路の上にいる）
+                    float heightDiff = abs(position.y - height);
+                    if (heightDiff < 5.0f) { // 許容範囲
+                        return road.get();
+                    }
+                }
+            }
+        }
+    }
+    return nullptr;
 }
 
-// より汎用的なカスタムサーキット作成メソッド
-std::vector<std::vector<RoadSegment>> RoadManager::CreateCustomRectangleCircuit(int width, int height) {
-    if (width < 3 || height < 3) {
-        // 最小サイズチェック
-        return CreateCustomCircuit(); // デフォルトの3x3を返す
+bool RoadManager::GetSafePositionOnRoad(BaseRoad* road,//向きは要検討
+    const Vector3& referencePos,
+    Vector3& outPosition,
+    Vector3& outRotation)
+{
+    if (!road) return false;
+
+    // 道路の中心位置を取得
+    Vector3 roadPos = road->GetPosition();
+    Vector3 roadRot = road->GetRotation();
+
+    // 参照位置（プレイヤーが最後にいた位置）に最も近い道路上の点を探す
+    // 簡易実装：道路の中心を使用
+    float terrainHeight;
+    Vector3 terrainNormal;
+
+    // 参照位置の水平座標で道路の高さを取得
+    Vector3 checkPos = Vector3(referencePos.x, roadPos.y, referencePos.z);
+
+
+    if (road->GetTerrainHeight(roadPos, terrainHeight, terrainNormal)) {
+        // 道路の中心にリスポーン
+        outPosition = Vector3(roadPos.x, terrainHeight + 2.5f, roadPos.z);
+
+        // ★ 道路の向き（Y軸回転）をそのまま使用
+       outRotation = roadRot;
+
+        return true;
     }
 
-    std::vector<std::vector<RoadSegment>> layout(height, std::vector<RoadSegment>(width));
+    return false;
+}
 
-    for (int y = 0; y < height; ++y) {
-        for (int x = 0; x < width; ++x) {
-            if (y == 0) { // 上辺
-                if (x == 0) {
-                    layout[y][x] = RoadSegment(RoadType::TURN_RIGHT, Direction::WEST);   // 左上コーナー
-                }
-                else if (x == width - 1) {
-                    layout[y][x] = RoadSegment(RoadType::TURN_RIGHT, Direction::NORTH);  // 右上コーナー
-                }
-                else {
-                    layout[y][x] = RoadSegment(RoadType::STRAIGHT, Direction::EAST);     // 上辺直線
-                }
-            }
-            else if (y == height - 1) { // 下辺
-                if (x == 0) {
-                    layout[y][x] = RoadSegment(RoadType::TURN_RIGHT, Direction::SOUTH);  // 左下コーナー
-                }
-                else if (x == width - 1) {
-                    layout[y][x] = RoadSegment(RoadType::TURN_RIGHT, Direction::EAST);   // 右下コーナー
-                }
-                else {
-                    layout[y][x] = RoadSegment(RoadType::STRAIGHT, Direction::WEST);     // 下辺直線
-                }
-            }
-            else { // 中間行
-                if (x == 0) {
-                    layout[y][x] = RoadSegment(RoadType::STRAIGHT, Direction::NORTH);    // 左辺直線
-                }
-                else if (x == width - 1) {
-                    layout[y][x] = RoadSegment(RoadType::STRAIGHT, Direction::SOUTH);    // 右辺直線
-                }
-                else {
-                    layout[y][x] = RoadSegment(RoadType::NONE, Direction::NORTH);        // 内側は道路なし
+bool RoadManager::IsRoadSafe(BaseRoad* road) const
+{
+    if (!road) return false;
+
+    RoadType type = road->GetRoadType();
+
+    // リスポーン可能な道路タイプ
+    return (type != RoadType::NONE);
+}
+
+BaseRoad* RoadManager::FindNearestStraightRoad(BaseRoad* fromRoad)
+{
+    if (!fromRoad) return nullptr;
+
+    Vector3 fromPos = fromRoad->GetPosition();
+
+    float minDistance = FLT_MAX;
+    BaseRoad* nearestStraight = nullptr;
+
+    // 全ての道路を検索
+    for (int y = 0; y < m_gridHeight; y++) {
+        for (int x = 0; x < m_gridWidth; x++) {
+            if (m_roadGrid[y][x] && m_roadLayout[y][x].HasRoad()) {
+                RoadType type = m_roadLayout[y][x].type;
+
+                // ★ STRAIGHTタイプのみ対象
+                if (type == RoadType::STRAIGHT) {
+                    Vector3 roadPos = m_roadGrid[y][x]->GetPosition();
+
+                    // 水平距離を計算
+                    Vector3 diff = roadPos - fromPos;
+                    diff.y = 0; // 高さは無視
+                    float distance = diff.Length();
+
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        nearestStraight = m_roadGrid[y][x].get();
+                    }
                 }
             }
         }
     }
 
-    return layout;
+    if (nearestStraight) {
+        printf("Found nearest STRAIGHT road at distance: %.2f\n", minDistance);
+    }
+    else {
+        printf("No STRAIGHT road found!\n");
+    }
+
+    return nearestStraight;
 }
 
-// デバッグ用 - すべて直線の道路を作成（テスト用）
-std::vector<std::vector<RoadSegment>> RoadManager::CreateTestStraightGrid(int width, int height) {
-    std::vector<std::vector<RoadSegment>> layout(height, std::vector<RoadSegment>(width));
+BaseRoad* RoadManager::FindNearestStraightRoadFromPosition(const Vector3& position)
+{
+    float minDistance = FLT_MAX;
+    BaseRoad* nearestStraight = nullptr;
 
-    for (int y = 0; y < height; ++y) {
-        for (int x = 0; x < width; ++x) {
-            // すべて北向きの直線道路
-            layout[y][x] = RoadSegment(RoadType::STRAIGHT, Direction::NORTH);
+    for (int y = 0; y < m_gridHeight; y++) {
+        for (int x = 0; x < m_gridWidth; x++) {
+            if (m_roadGrid[y][x] && m_roadLayout[y][x].HasRoad()) {
+                RoadType type = m_roadLayout[y][x].type;
+
+                if (type == RoadType::STRAIGHT) {
+                    Vector3 roadPos = m_roadGrid[y][x]->GetPosition();
+
+                    Vector3 diff = roadPos - position;
+                    diff.y = 0;
+                    float distance = diff.Length();
+
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        nearestStraight = m_roadGrid[y][x].get();
+                    }
+                }
+            }
         }
     }
 
-    return layout;
+    return nearestStraight;
 }

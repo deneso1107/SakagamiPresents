@@ -358,7 +358,7 @@ void Player::UpdateGoalSequence(float deltatime)
 			Vector3 upOffset = Vector3(0, height, 0);
 			m_Position = m_goalStartPos + forwardOffset + upOffset + spiralOffset;
 
-			// ★★★ プレイヤーの向き：徐々に上を向く ★★★
+			//プレイヤーの向き：徐々に上を向く
 			m_Rotation.y = m_goalStartRotation.y + spiralAngle;
 			m_Rotation.x = -0.3f * t1;  // 徐々に上を向き始める（最大約-17度）
 
@@ -369,7 +369,7 @@ void Player::UpdateGoalSequence(float deltatime)
 
 		}
 		else {
-			// ★★★ フェーズ2 (0.4~1.0秒): 急加速 + 激しい螺旋！ ★★★
+			// フェーズ2 (0.4~1.0秒):螺旋
 			float t2 = (t - 0.4f) / 0.6f;
 
 			// 三次関数で急加速
@@ -715,6 +715,8 @@ void Player::Update(float deltatime)
 		UpdateNormalMovement(throttle, steering, forwardDir, rightDir, speedFactor);
 	}
 
+	UpdateLastGroundedRoad();
+
 	// 高速移動時の位置更新
 	UpdatePositionWithCollisionCheck(timeScale);
 
@@ -735,6 +737,9 @@ void Player::Update(float deltatime)
 
 	// 滑らかな地形追従処理
 	UpdateSmoothTerrainFollowing(deltatime);
+
+	// 落下状態チェック
+	CheckFallState(deltatime);
 
 	// リセット
 	if (CDirectInput::GetInstance().CheckKeyBuffer(DIK_RETURN)) {
@@ -1638,4 +1643,181 @@ void Player::UpdateCarRotationFromTerrain(const Vector3& terrainNormal)
 		m_Rotation.z = Lerp(m_Rotation.z, roll, lerpSpeed);
 	}
 	}
+void Player::UpdateLastGroundedRoad()
+{
+	// 地面に接触している場合のみ記録
+	if (m_isGrounded && m_roadManager) {
+		BaseRoad* currentRoad = m_roadManager->GetRoadAtPosition(m_Position);
 
+		if (currentRoad) {
+			// 新しい道路に乗ったら更新
+			if (currentRoad != m_lastGroundedRoad) {
+				m_lastGroundedRoad = currentRoad;
+				printf("Last grounded road updated: %p (Type: %d)\n",
+					currentRoad, (int)currentRoad->GetRoadType());
+			}
+
+			// 最後に接地していた位置と向きを記録
+			m_lastGroundedPosition = m_Position;
+			m_lastGroundedRotation = m_Rotation;
+			m_lastGroundedTime = 0.0f; // タイマーリセット
+		}
+	}
+	else {
+		m_lastGroundedTime += 0.016f; // 約60FPS想定
+	}
+}
+void Player::CheckFallState(float deltatime)
+{
+	bool isFallingNow = false;
+
+	// 空中時間を計測
+	if (!m_isGrounded) {
+		m_airTime += deltatime;
+	}
+	else {
+		m_airTime = 0.0f;
+	}
+
+	// 落下判定の条件
+	if (m_Position.y < FALL_THRESHOLD_Y) {
+		isFallingNow = true;
+		printf("Fall detected: Y position too low (%.2f)\n", m_Position.y);
+	}
+
+	if (!m_isGrounded && m_verticalVelocity < FALL_VELOCITY_THRESHOLD) {
+		isFallingNow = true;
+		printf("Fall detected: High-speed falling (velocity: %.2f)\n", m_verticalVelocity);
+	}
+
+	if (m_airTime > MAX_AIR_TIME) {
+		isFallingNow = true;
+		printf("Fall detected: Too long in air (%.2fs)\n", m_airTime);
+	}
+
+	// ★ 落下状態になったらカメラ演出を開始（リスポーンは待機）
+	if (isFallingNow && !m_isFalling && !m_isWaitingForRespawn) {
+		m_isFalling = true;
+		m_isWaitingForRespawn = true;
+		m_fallTimer = 0.0f;
+
+		// カメラを落下モードに切り替え
+		SpringCamera::Instance().StartFallingMode();
+
+		printf("Fall state started - Waiting for camera animation\n");
+	}
+
+	// ★ カメラ演出中はタイマーを進める
+	if (m_isWaitingForRespawn) {
+		m_fallTimer += deltatime;
+
+		// カメラ演出が完了したらリスポーン実行
+		if (m_fallTimer >= FALL_CAMERA_DURATION) {
+			printf("Camera animation complete - Executing respawn\n");
+
+			// リスポーン処理を実行
+			RespawnToLastRoad();
+
+			// カメラを通常モードに戻す
+			SpringCamera::Instance().EndFallingMode();
+
+			// フラグをリセット
+			m_isWaitingForRespawn = false;
+			m_fallTimer = 0.0f;
+		}
+	}
+
+	// ★ リスポーン後に接地したら落下状態を完全に解除
+	if (m_isFalling && m_isGrounded && !m_isWaitingForRespawn) {
+		m_isFalling = false;
+		m_airTime = 0.0f;
+		printf("Recovered from fall state\n");
+	}
+}
+
+void Player::RespawnToLastRoad()
+{
+	if (!m_roadManager) {
+		printf("Error: RoadManager not available for respawn!\n");
+		return;
+	}
+
+	Vector3 respawnPos;
+	Vector3 respawnRot;
+	bool foundRespawn = false;
+	BaseRoad* targetRoad = nullptr;
+
+	// ★ 最後に接地していた道路からSTRAIGHTの道路を探す
+	if (m_lastGroundedRoad) {
+		targetRoad = m_roadManager->FindNearestStraightRoad(m_lastGroundedRoad);
+
+		if (targetRoad) {
+			foundRespawn = m_roadManager->GetSafePositionOnRoad(
+				targetRoad,
+				m_lastGroundedPosition,
+				respawnPos,
+				respawnRot  // ★ STRAIGHTの道路の向きを取得
+			);
+
+			if (foundRespawn) {
+				printf("Respawning to nearest STRAIGHT road\n");
+			}
+		}
+		else {
+			printf("No STRAIGHT road found, using last grounded road\n");
+			// STRAIGHTが見つからない場合は元の道路を使用
+			targetRoad = m_lastGroundedRoad;
+			foundRespawn = m_roadManager->GetSafePositionOnRoad(
+				targetRoad,
+				m_lastGroundedPosition,
+				respawnPos,
+				respawnRot
+			);
+		}
+	}
+
+	// 記録された道路がない場合
+	if (!foundRespawn) {
+		auto startPos = m_roadManager->GetStartPos();
+		if (startPos.has_value()) {
+			respawnPos = startPos.value();
+			respawnPos.y += 2.0f;
+			respawnRot = Vector3(0.0f, 0.0f, 0.0f);
+			foundRespawn = true;
+			printf("No road found, respawning at start position\n");
+		}
+	}
+
+	// リスポーン実行
+	if (foundRespawn) {
+		m_Position = respawnPos;
+
+		// ★ 道路の向きに合わせる（Y軸回転のみ適用）
+		m_Rotation.y = respawnRot.y;  // STRAIGHTの道路の向き
+		m_Rotation.x = 0.0f;           // ピッチはリセット
+		m_Rotation.z = 0.0f;           // ロールはリセット
+
+		// 速度とステータスをリセット
+		m_Velocity *= 0.15f;
+		m_verticalVelocity = 0.0f;
+		m_IsDrifting = false;
+		m_IsBoosting = false;
+
+		// ペナルティの適用
+		m_BoostGauge *= 0.6f;
+
+		if (m_TemporarySpeedBonus > 1.0f) {
+			m_TemporarySpeedBonus = 1.0f;
+			m_SpeedBoostTimer = 0.0f;
+		}
+
+		SpringCamera::Instance().Shake(2.0f, 0.25f);
+
+		printf("Player respawned at STRAIGHT road: Pos(%.2f, %.2f, %.2f), Rot Y: %.2f degrees\n",
+			respawnPos.x, respawnPos.y, respawnPos.z,
+			DirectX::XMConvertToDegrees(respawnRot.y));
+	}
+	else {
+		printf("ERROR: Could not find any respawn position!\n");
+	}
+}

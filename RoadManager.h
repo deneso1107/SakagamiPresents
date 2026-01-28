@@ -41,6 +41,8 @@ private:
 
     float CalculateAccumulatedPosition(int x, int y, Direction direction, float thisSpacing, float, float);
 
+     bool IsRoadSafe(BaseRoad* road) const;
+
 public:
     RoadManager(float roadSize = 32.0f) : m_roadSize(roadSize), m_gridWidth(0), m_gridHeight(0) {
         // デフォルト設定を初期化（Z軸回転をデフォルトに）
@@ -151,9 +153,18 @@ public:
     // 道路の端の位置を取得
     Vector3 GetRoadEdgePosition(int x, int y, float offsetX = 0.0f, float offsetZ = 0.0f) const;
 
+    // 指定した道路上の安全な位置を取得
+    bool GetSafePositionOnRoad(BaseRoad* road,
+        const Vector3& referencePos,
+        Vector3& outPosition,
+        Vector3& outRotation);
 
-    // プリセットレイアウト生成メソッド
-    static std::vector<std::vector<RoadSegment>> CreateTestStraightGrid(int width, int height);  // デバッグ用
-    static std::vector<std::vector<RoadSegment>> CreateCustomCircuit();  // 3x3カスタムサーキット
-    static std::vector<std::vector<RoadSegment>> CreateCustomRectangleCircuit(int width, int height);  // 可変サイズ
+    // 指定位置が特定の道路の上にあるかチェック＆道路を返す
+    BaseRoad* GetRoadAtPosition(const Vector3& position);
+
+    // 指定した道路から最も近いSTRAIGHTの道路を取得
+    BaseRoad* FindNearestStraightRoad(BaseRoad* fromRoad);
+
+    // 指定位置から最も近いSTRAIGHTの道路を取得
+    BaseRoad* FindNearestStraightRoadFromPosition(const Vector3& position);
 };

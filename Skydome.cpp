@@ -12,7 +12,7 @@ void Skydome::Init()
 
 	// モデルの初期化
 	m_mesh.Load(
-		"assets/model/skydome/skyDome.fbx",
+		"assets/model/skydome/Dome3.fbx",
 		"assets/model/");
 
 	m_mesh_night.Load(
@@ -56,29 +56,59 @@ void Skydome::Update(Vector3 camepos)
 
 void Skydome::Draw(bool isboost)
 {
-	SRT srt;
+    // シェーダのセット
+    m_shader.SetGPU();
 
-	// SRT情報作成
-	srt.pos = m_Position;			// 位置
-	srt.rot = m_Rotation;			// 姿勢
-	srt.scale = m_Scale;			// 拡縮
+    // ★ 上半球を描画
+    DrawUpperHemisphere(isboost);
 
-	Matrix4x4 worldmtx;
+    // ★ 下半球を描画
+    DrawLowerHemisphere(isboost);
 
-	worldmtx = srt.GetMatrix();
+    // 太陽を描画
+    m_SunBillboard.Draw();
+}
 
-	Renderer::SetWorldMatrix(&worldmtx);		// GPUにセット
-	m_shader.SetGPU();		// シェーダのセット
-	if (isboost)
-	{
-		m_meshnight_renderer.Draw();//ブースト時は夜
-	}
-	else
-	{
-		m_meshrenderer.Draw();	// 通常時は昼
-	}
+void Skydome::DrawUpperHemisphere(bool isboost)
+{
+    // 上半球（通常の向き）
+    SRT srt;
+    srt.pos = m_Position;
+    srt.rot = m_Rotation;
+    srt.scale = m_Scale;
 
-	m_SunBillboard.Draw();
+    Matrix4x4 worldmtx = srt.GetMatrix();
+    Renderer::SetWorldMatrix(&worldmtx);
+
+    if (isboost) {
+        m_meshnight_renderer.Draw();
+    }
+    else {
+        m_meshrenderer.Draw();
+    }
+}
+
+void Skydome::DrawLowerHemisphere(bool isboost)
+{
+    // 下半球（上下反転）
+    SRT srt;
+    srt.pos = m_Position;
+
+    // ★ X軸で180度回転（上下反転）
+    srt.rot = Vector3(DirectX::XM_PI, 0.0f, 0.0f);
+
+    // ★ スケールも反転（Y軸を負にして反転）
+    srt.scale = Vector3(m_Scale.x, m_Scale.y, m_Scale.z);
+
+    Matrix4x4 worldmtx = srt.GetMatrix();
+    Renderer::SetWorldMatrix(&worldmtx);
+
+    if (isboost) {
+        m_meshnight_renderer.Draw();
+    }
+    else {
+        m_meshrenderer.Draw();
+    }
 }
 
 void Skydome::Dispose()

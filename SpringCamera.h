@@ -21,6 +21,12 @@ struct Spring
     void Snap();
 };
 
+// カメラモード
+enum class CameraMode {
+    NORMAL,      // 通常レース
+    FALLING,     // 落下中
+    RESPAWNING   // リスポーン演出中
+};
 // ===================================
 // スプリングカメラ本体
 // ===================================
@@ -91,7 +97,24 @@ private:
     float CalculatePitchOffset() const;
 	Vector3 CalculateIdealCameraPositionWithPitch() const;
 
+    CameraMode m_currentMode = CameraMode::NORMAL;
+
+    // 落下モード用パラメータ
+    Vector3 m_fallingCameraPosition;  // 落下時のカメラ固定位置
+    Vector3 m_fallingStartPlayerPos;  //落下開始時のプレイヤー位置
+    float m_fallingModeTimer = 0.0f;
+    float m_fallingModeDuration = 1.5f; // 落下演出の長さ
+    float m_fallingCameraHeight = 20.0f; //プレイヤーの上何m上にカメラを置くか
+
+	Vector3 m_fallPlayerPosition; // 落下中のプレイヤー位置取得用
+
+    // 落下モード用の更新
+    void UpdateFallingMode(float deltaTime);
+    void UpdateNormalMode(float deltaTime);
+    void UpdateRespawningMode(float deltaTime); // オプション
+
 public:
+
     SpringCamera();
     virtual ~SpringCamera() = default;
 
@@ -121,11 +144,10 @@ public:
 	void SetCurrentFOV(float fov) { m_currentFOV = fov; }
 	void PlusCurrentFOV() { m_boostParams.fov = m_MaxBoostingFOV; }
 
-    //Vector3 GetForward() const
-    //{
-    //    // カメラのターゲット - カメラ位置
-    //    Vector3 forward = m_lookat - m_position;
-    //    forward.Normalize();
-    //    return forward;
-    //}
+    void SetCameraMode(CameraMode mode);
+    CameraMode GetCameraMode() const { return m_currentMode; }
+
+    // 落下演出用
+    void StartFallingMode();
+    void EndFallingMode();
 };
