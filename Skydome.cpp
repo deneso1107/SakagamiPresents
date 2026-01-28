@@ -97,6 +97,8 @@ void Skydome::DrawLowerHemisphere(bool isboost)
     //Xé≤Ç≈180ìxâÒì]Åiè„â∫îΩì]Åj
     srt.rot = Vector3(DirectX::XM_PI, 0.0f, 0.0f);
 
+    srt.scale = Vector3(m_Scale.x, m_Scale.y, m_Scale.z);
+
     Matrix4x4 worldmtx = srt.GetMatrix();
     Renderer::SetWorldMatrix(&worldmtx);
 

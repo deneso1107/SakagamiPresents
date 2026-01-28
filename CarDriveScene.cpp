@@ -439,10 +439,6 @@ void CarDriveScene::SetupTreeOnRoad()
 	MultiTreeFormationConfig config;
 	config.totalTreeCount = 200;  // 合計10体
 
-
-	//treeconfig_right.centerPos.x += (start->GetActualModelSize().x * start->GetScale().x) / 2;
-	//treeconfig_right.centerPos.y += treeconfig_right.centerPos.y / 2;
-
 	std::vector<BaseRoad*> straightRoads = roadManager.GetRoadByType(RoadType::STRAIGHT);
 	for(auto& road:straightRoads)
 	{ 
@@ -450,16 +446,22 @@ void CarDriveScene::SetupTreeOnRoad()
 		{
 			TreeFormationConfig treeconfig_right;
 			TreeFormationConfig treeconfig_left;
-			 treeconfig_right.treeCount = 2;
+			 treeconfig_right.treeCount = 4;
 			 treeconfig_right.centerPos = road->GetPosition();  // 最初のストレート道路
 			 treeconfig_right.randomizeScale = false;
-			 treeconfig_left.treeCount = 1;
+			 treeconfig_left.treeCount = 3;
 			 treeconfig_left.centerPos = road->GetPosition();  // 最初のストレート道路
 			 treeconfig_left.randomizeScale = false;
 			switch (road->GetDirection())//角度に応じて敵の配置位置を調整
 			{
 			case Direction::WEST:
+				treeconfig_right.formation = TreeFormation::LINE_X;
+				treeconfig_right.centerPos.x += (road->GetActualModelSize().x * road->GetScale().x) / 2;
+				treeconfig_right.centerPos.z += (road->GetActualModelSize().z * road->GetScale().z) / 5;
 
+				treeconfig_left.formation = TreeFormation::LINE_X;
+				treeconfig_left.centerPos.x += (road->GetActualModelSize().x * road->GetScale().x) / 2;
+				treeconfig_left.centerPos.z -= (road->GetActualModelSize().z * road->GetScale().z) / 5;
 				break;
 			case Direction::SOUTH:
 				treeconfig_right.formation = TreeFormation::LINE;
@@ -480,55 +482,23 @@ void CarDriveScene::SetupTreeOnRoad()
 				treeconfig_left.centerPos.z += (road->GetActualModelSize().z * road->GetScale().z) / 5;
 				break;
 			case Direction::NORTH:
+				treeconfig_right.formation = TreeFormation::LINE;
+				treeconfig_right.centerPos.x -= (road->GetActualModelSize().x * road->GetScale().x) / 2;
+				treeconfig_right.centerPos.z += (road->GetActualModelSize().z * road->GetScale().z) / 2.5;
+
+				treeconfig_left.formation = TreeFormation::LINE;
+				treeconfig_left.centerPos.x += (road->GetActualModelSize().x * road->GetScale().x) / 2;
+				treeconfig_left.centerPos.z += (road->GetActualModelSize().z * road->GetScale().z) / 2.5;
 				break;
 
 			}
-			treeconfig_right.spacing = 100.0f;
-			treeconfig_left.spacing = 150.0f;
+			treeconfig_right.spacing = 50.0f;
+			treeconfig_left.spacing = 75.0f;
 
 			config.AddFormation(treeconfig_right);
 			config.AddFormation(treeconfig_left);
 		}
 	}
-	//std::vector<BaseRoad*> rightTurnRoads = roadManager.GetRoadByType(RoadType::TURN_LEFT);
-	//for (auto& road : rightTurnRoads)
-	//{
-	//	if (!rightTurnRoads.empty())
-	//	{
-	//		FormationConfig right;
-	//	    right.formation = EnemyFormation::DIAGONAL;
-	//	    right.enemyCount = 5;
-	//		Vector3 offset;
-	//		switch (road->GetDirection())//角度に応じて敵の配置位置を調整
-	//		{
-	//			case Direction::NORTH:
-	//			right.diagonalAngle = 45.0f;
-	//			offset = Vector3(0.0f, 0.0f, -100.0f); // 適切なオフセット値を設定
-	//			break;
-	//			case Direction::EAST:
-	//			right.diagonalAngle =135.0f;
-	//			offset = Vector3(-100.0f, 0.0f, 0.0f); // 適切なオフセット値を設定
-	//			break;
-
-	//		}
-	//		right.centerPos = road->GetPosition() + offset;  // 最初のストレート道路
-	//		config.AddFormation(right);
-	//	}
-	//}
-
-	//// 円形配置で3体
-	//FormationConfig circle;
-	//circle.formation = EnemyFormation::CIRCLE;
-	//circle.enemyCount = 5;
-	//circle.centerPos = startPos;
-	//circle.circleRadius = 30.0f;
-	//config.AddFormation(circle);
-
-	//// ランダム配置で残り3体
-	//FormationConfig random;
-	//random.formation = EnemyFormation::RANDOM;
-	//random.enemyCount = 3;
-	//config.AddFormation(random);
 
 	m_TreeManager.Init(config);
 
@@ -1240,6 +1210,8 @@ void CarDriveScene::dispose()
 		delete m_road;
 		m_road = nullptr;
 	}
+	roadManager.DisposeAll();
+
 	EffectManager::Instance().Finalize();
 	TreeManager::DisposeSharedResources();
 }

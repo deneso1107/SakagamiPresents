@@ -161,21 +161,33 @@ EdgeType BaseRoad::GetPlayerEdgeType(const Vector3& playerPos, float edgeThresho
 }
 
 void BaseRoad::Dispose() {
-    // メッシュリソースの解放
-    // 注意: CStaticMeshやCTerrainMeshにDisposeメソッドがある場合
-    // m_mesh.Dispose();
-    // m_terrainMesh.Dispose();
+    // 二重解放を防ぐ
+    if (!m_isInitialized) {
+        return;
+    }
 
-    // レンダラーの解放
-    // m_meshrenderer.Dispose();
+    try {
 
-    // シェーダーの解放
-    // m_shader.Release(); または m_shader.Dispose();
+        // 空間分割の初期化フラグをリセット
+        m_spatialGridInitialized = false;
 
-    // 空間分割の初期化フラグをリセット
-    m_spatialGridInitialized = false;
+        // 初期化フラグをリセット
+        m_isInitialized = false;
 
-    // その他のクリーンアップが必要なリソースがあればここに追加
+        // デバッグ出力（オプション）
+#ifdef _DEBUG
+        OutputDebugStringA("BaseRoad: Resources disposed successfully\n");
+#endif
+    }
+    catch (...) {
+        // 例外が発生してもフラグはリセット
+        m_spatialGridInitialized = false;
+        m_isInitialized = false;
+
+#ifdef _DEBUG
+        OutputDebugStringA("BaseRoad: Error during disposal\n");
+#endif
+    }
 }
 
 
