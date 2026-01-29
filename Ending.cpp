@@ -35,7 +35,7 @@ void Ending::init()
 
     // スコア情報
     m_currentScore = m_gameScore;
-    m_bestScore = 100;
+    m_bestScore = 999;
     m_isNewRecord = (m_currentScore > m_bestScore);
     m_displayScore = 0;
 
@@ -57,10 +57,10 @@ void Ending::init()
 
 	m_currentScoreUI = new NumberRenderer();
 	m_bestScoreUI = new NumberRenderer();
-    m_currentScoreTargetPos = Vector2(0.55f, 0.3f);  // 画面右側
-    m_bestScoreTargetPos = Vector2(0.55f, 0.5f);
-    m_currentScoreUI->Init(Vector2(2.5f, 0.3f), 0.04f, 0.06f, 0.01f, true);  // X=1.3で画面外
-    m_bestScoreUI->Init(Vector2(2.5f, 0.5f), 0.04f, 0.04f, 0.01f, true);
+    m_currentScoreTargetPos = Vector2(0.55f, 0.5f);  // 画面右側
+    m_bestScoreTargetPos = Vector2(0.55f, 0.3f);
+    m_currentScoreUI->Init(Vector2(2.5f, 0.5f), 0.04f, 0.06f, 0.01f, true);  // X=1.3で画面外
+    m_bestScoreUI->Init(Vector2(2.5f, 0.3f), 0.04f, 0.04f, 0.01f, true);
     m_currentScoreUI->SetNumber(static_cast<int>(m_currentScore));
     m_bestScoreUI->SetNumber(static_cast<int>(m_bestScore));
 
@@ -303,10 +303,14 @@ void Ending::draw(float deltatime)//文字動かないンゴゴゴ あとメモ�
 {
     ResultCamera::Instance().Draw();
 
-    if (m_currentScoreUI)
-     m_skydome->Draw(false);
-    if (m_bestScoreUI)
+    if (m_isNewRecord)
+    {
         m_skydome->Draw(true);
+    }
+    else
+    {
+        m_skydome->Draw(false);
+    }
     m_player->Draw();
     m_sparkEmitter->Render(Renderer::GetDeviceContext(), DirectX::XMMatrixIdentity());
     m_sparkleEmitter->Render(Renderer::GetDeviceContext(), DirectX::XMMatrixIdentity());
