@@ -140,10 +140,6 @@ void Enemy::Draw()
     Renderer::SetWorldMatrix(&worldmtx);        // GPU‚ÉƒZƒbƒg
 
     m_StaticMeshRenderer->Draw();
-
-    Color bscolor(1, 1, 1, 0.5f);
-
-    SphereDrawerDraw(m_BoundingSphere.radius, bscolor, m_Position.x, m_Position.y, m_Position.z);//‹…‘Ì‚ð•`‰æ
 }
 
 void Enemy::Dispose()

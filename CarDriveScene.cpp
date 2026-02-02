@@ -278,7 +278,8 @@ void CarDriveScene::loadAsync()
 	roadManager.ResizeGrid(7, 18);//East=東　West＝西　North＝北　South＝南
 	roadManager.InitializeGridSpacing();  // グリッド間隔を初期化
 	roadManager.SetRoad(0, 1, RoadType::START_LINE, Direction::SOUTH);
-	roadManager.SetRoad(0, 2, RoadType::STRAIGHT, Direction::NORTH);
+	roadManager.SetRoad(0, 2, RoadType::STRAIGHT
+		, Direction::NORTH);
 	roadManager.SetRoad(0, 3, RoadType::STRAIGHT, Direction::NORTH);//北↑
 	roadManager.SetRoad(0, 4, RoadType::SLOPE_UP, Direction::NORTH);
 	roadManager.SetRoad(0, 5, RoadType::STRAIGHT, Direction::SOUTH);
@@ -332,7 +333,7 @@ void CarDriveScene::loadAsync()
 	roadManager.SetRoad(5, 3, RoadType::SLOPE_UP, Direction::SOUTH);
 	roadManager.SetRoad(5, 2, RoadType::SLOPE_UP, Direction::SOUTH);
 	roadManager.SetRoad(5, 1, RoadType::SLOPE_UP, Direction::SOUTH);
-	roadManager.SetRoad(5, 0, RoadType::GOAL_LINE, Direction::NORTH);
+	//roadManager.SetRoad(5, 0, RoadType::GOAL_LINE, Direction::NORTH);
 	//roadManager.SetRoad(1, 14, RoadType::STRAIGHT, Direction::SOUTH);
 	//roadManager.SetRoad(2, 4, RoadType::STRAIGHT, Direction::SOUTH);
 	//roadManager.SetRoad(2, 3, RoadType::STRAIGHT, Direction::SOUTH);
