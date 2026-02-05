@@ -333,7 +333,7 @@ void CarDriveScene::loadAsync()
 	roadManager.SetRoad(5, 3, RoadType::SLOPE_UP, Direction::SOUTH);
 	roadManager.SetRoad(5, 2, RoadType::SLOPE_UP, Direction::SOUTH);
 	roadManager.SetRoad(5, 1, RoadType::SLOPE_UP, Direction::SOUTH);
-	//roadManager.SetRoad(5, 0, RoadType::GOAL_LINE, Direction::NORTH);
+	roadManager.SetRoad(5, 0, RoadType::GOAL_LINE, Direction::NORTH);
 	//roadManager.SetRoad(1, 14, RoadType::STRAIGHT, Direction::SOUTH);
 	//roadManager.SetRoad(2, 4, RoadType::STRAIGHT, Direction::SOUTH);
 	//roadManager.SetRoad(2, 3, RoadType::STRAIGHT, Direction::SOUTH);
