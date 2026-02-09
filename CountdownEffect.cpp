@@ -1,6 +1,7 @@
 #include "CountdownEffect.h"
 #include <algorithm>
 #include <cmath>
+#include "SoundManager.h"
 
 CountdownEffect::CountdownEffect()
     : m_numberBillboard(nullptr)
@@ -299,6 +300,7 @@ void CountdownEffect::TransitionToState(CountdownState newState)
     switch (newState) {
     case CountdownState::Show3:
         // 既に3のテクスチャがロードされている
+        SoundManager::GetInstance().PlaySE("countdown");
         break;
 
     case CountdownState::Show2:
@@ -310,6 +312,7 @@ void CountdownEffect::TransitionToState(CountdownState newState)
             m_numberHeight,
             L"assets/texture/StartCount/Count2.png"
         );
+        SoundManager::GetInstance().PlaySE("countdown");
         break;
 
     case CountdownState::Show1:
@@ -321,11 +324,14 @@ void CountdownEffect::TransitionToState(CountdownState newState)
             m_numberHeight,
             L"assets/texture/StartCount/Count1.png"
         );
+        SoundManager::GetInstance().PlaySE("countdown");
         break;
 
     case CountdownState::ShowGo:
         // 数字ビルボードを非表示にする
         // （描画時にチェックする）
+        SoundManager::GetInstance().PlaySE("countdownfinal");
+        //Goの時だけ音変えてもいいかも
         break;
 
     default:

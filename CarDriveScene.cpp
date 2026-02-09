@@ -157,6 +157,8 @@ void CarDriveScene::init()
 		return;
 	}
 
+	//SoundManager::GetInstance().GameSoundLoad();
+
 	// シャドウマップの初期化
 	Renderer::InitShadowMap(2048);
 	Renderer::EnableShadowMap(true);
@@ -247,6 +249,8 @@ void CarDriveScene::init()
 
 
 
+
+
 	if (auto start = roadManager.GetStart())
 	{
 		Vector3 startPos = start->GetPosition();
@@ -266,11 +270,12 @@ void CarDriveScene::init()
 	m_CameraManager.Init();
 
 
-
 	if (!m_sparkEmitter.Init(Renderer::GetDevice()))
 	{
 		OutputDebugStringA("サンプラーステート作成失敗\n");
 	}
+
+	SoundManager::GetInstance().PlaySE("GameSceneFirst");
 }
 
 void CarDriveScene::loadAsync()
@@ -334,29 +339,6 @@ void CarDriveScene::loadAsync()
 	roadManager.SetRoad(5, 2, RoadType::SLOPE_UP, Direction::SOUTH);
 	roadManager.SetRoad(5, 1, RoadType::SLOPE_UP, Direction::SOUTH);
 	roadManager.SetRoad(5, 0, RoadType::GOAL_LINE, Direction::NORTH);
-	//roadManager.SetRoad(1, 14, RoadType::STRAIGHT, Direction::SOUTH);
-	//roadManager.SetRoad(2, 4, RoadType::STRAIGHT, Direction::SOUTH);
-	//roadManager.SetRoad(2, 3, RoadType::STRAIGHT, Direction::SOUTH);
-	//roadManager.SetRoad(2, 2, RoadType::STRAIGHT, Direction::SOUTH);
-	//roadManager.SetRoad(2, 1, RoadType::STRAIGHT, Direction::SOUTH);
-	//roadManager.SetRoad(2, 0, RoadType::TURN_LEFT, Direction::SOUTH);
-	//roadManager.SetRoad(1, 0, RoadType::GOAL_LINE, Direction::EAST);
-	//roadManager.SetRoad(0, 0, RoadType::TURN_LEFT, Direction::WEST);
-
-
-
-	////ながーーーーーいお付き合い
-	//roadManager.SetRoad(0, 7, RoadType::STRAIGHT, Direction::SOUTH);
-	//roadManager.SetRoad(0, 8, RoadType::STRAIGHT, Direction::SOUTH);
-	//roadManager.SetRoad(0, 9, RoadType::STRAIGHT, Direction::SOUTH);
-	//roadManager.SetRoad(0, 10, RoadType::STRAIGHT, Direction::SOUTH);
-	//roadManager.SetRoad(0, 11, RoadType::STRAIGHT, Direction::SOUTH);
-	//roadManager.SetRoad(0, 12, RoadType::STRAIGHT, Direction::SOUTH);
-	//roadManager.SetRoad(0, 13, RoadType::STRAIGHT, Direction::SOUTH);
-	//roadManager.SetRoad(0, 14, RoadType::STRAIGHT, Direction::SOUTH);
-	//roadManager.SetRoad(0, 15, RoadType::STRAIGHT, Direction::SOUTH);
-	//roadManager.SetRoad(0, 16, RoadType::STRAIGHT, Direction::SOUTH);
-	//roadManager.SetRoad(0, 17, RoadType::GOAL_LINE, Direction::SOUTH);
 }
 void CarDriveScene::SetupEnemiesOnRoad()
 {
@@ -418,20 +400,6 @@ void CarDriveScene::SetupEnemiesOnRoad()
 			config.AddFormation(right);
 		}
 	}
-
-	//// 円形配置で3体
-	//FormationConfig circle;
-	//circle.formation = EnemyFormation::CIRCLE;
-	//circle.enemyCount = 5;
-	//circle.centerPos = startPos;
-	//circle.circleRadius = 30.0f;
-	//config.AddFormation(circle);
-
-	//// ランダム配置で残り3体
-	//FormationConfig random;
-	//random.formation = EnemyFormation::RANDOM;
-	//random.enemyCount = 3;
-	//config.AddFormation(random);
 
 	InitEnemiesWithMultiFormation(this, m_field.get(), config);
 }	
@@ -544,6 +512,7 @@ void CarDriveScene::update(float deltatime)//uint64_tとfloatの衝突　圧倒的衝突
 		// カメラ切り替え
 		m_currentCamera = &springCam;
 		m_introCamera->ResetIntro();
+		
 	}
 
 	//次は加速しましょう
@@ -657,6 +626,8 @@ void CarDriveScene::update(float deltatime)//uint64_tとfloatの衝突　圧倒的衝突
 				m_shockwaveTime = -1.0f;
 				m_shockwaveIntensity = 0.0f;
 				m_shockwaveProgress = 0.0f;
+				//加速時のSe
+				SoundManager::GetInstance().PlaySE("Accerationse",0.3f);
 			}
 		}
 

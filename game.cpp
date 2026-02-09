@@ -4,6 +4,7 @@
 #include	"scenemanager.h"
 #include	"fpscontrol.h"
 #include"GameManager.h"
+#include"SoundManager.h"
 void gameinit() 
 {
 	// レンダラの初期化    
@@ -15,8 +16,13 @@ void gameinit()
 		Application::GetWidth(),
 		Application::GetHeight());
 
+	// サウンドマネージャの初期化
+	SoundManager::Init();
+	SoundManager::GetInstance().AllSoundLoad();
+
 	// シーンマネージャの初期化
 	SceneManager::Init();
+
 
 	// デバッグUIの初期化
 	DebugUI::Init(Renderer::GetDevice(), Renderer::GetDeviceContext());
@@ -27,10 +33,11 @@ void gameupdate(uint64_t deltatime)
 {
 	CDirectInput::GetInstance().GetKeyBuffer();		// キーボードの状態を取得
 	CDirectInput::GetInstance().GetMouseState();	// マウスの状態を取得
-	GameManager::Instance().Update(deltatime);//わからんンんンんンん！！！！！！！！！(バグ一覧　重力ゲージ適応されないし、unini64とfloatが喧嘩してる　終わり)
+	GameManager::Instance().Update(deltatime);
 	// シーンマネージャの更新
 	float scaledDelta = GameManager::Instance().GetScaledDelta();
-	SceneManager::Update(scaledDelta);//こーーーーーーーーれ基底クラス
+	SoundManager::GetInstance().Update();
+	SceneManager::Update(scaledDelta);
 
 }
 
@@ -79,6 +86,8 @@ void gamedispose()
 	DebugUI::DisposeUI();
 
 	// シーンマネージャの終了処理
+
+	SoundManager::Uninit();
 	SceneManager::Dispose();	// デバッグUIの描画
 
 	// レンダラの終了処理

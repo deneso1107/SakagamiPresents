@@ -317,6 +317,7 @@ void SceneManager::ChangeScene(const std::string& sceneName, bool useTransition)
     if (m_sceneChangeRequested || m_transitionState != TransitionState::None) {
         return; // Šù‚ÉƒV[ƒ“•ÏX’†
     }
+    SoundManager::GetInstance().PlaySE("Click");
 
     m_nextSceneName = sceneName;
     m_sceneChangeRequested = true;

@@ -13,6 +13,7 @@
 #include"CountdownEffect.h"
 #include"GoalEffect.h"
 #include <deque>
+#include"SoundManager.h"
 class Player:public ObjectBase 
 {
 private:
@@ -47,8 +48,8 @@ private:
 	float m_spiralInitialYaw = 0.0f;    // 開始時の正面方向（Y軸回転）
 
 	float m_spiralRadius = 15.0f;       // 螺旋の半径
-	float m_spiralHeight = 50.0f;       // 螺旋の高さ
-	float m_spiralDuration = 2.0f;      // 螺旋降下にかかる時間（秒）
+	float m_spiralHeight = 100.0f;       // 螺旋の高さ
+	float m_spiralDuration = 8.0f;      // 螺旋降下にかかる時間（秒）
 	float m_spiralRotations = 2.0f;     // 螺旋の回転数
 
 	// 少し機械っぽいので追加の揺れパラメータ
@@ -57,7 +58,7 @@ private:
 	float m_spiralVerticalWave = 0.8f;      // 上下の揺れ幅
 	float m_spiralPitchWave = 0.1f;         // ピッチの揺れ幅
 	float m_spiralRollIntensity = 0.2f;     // ロールの傾き強度
-	float m_spiralDesiredSpeed = 25.0f; // 降下速度（調整可能）
+	float m_spiralDesiredSpeed = 10.0f; // 降下速度（調整可能）
 
 
 	std::unique_ptr<CountdownEffect> m_countdown;
@@ -220,6 +221,8 @@ private:
 	void UpdateLastGroundedRoad();
 	void CheckFallState(float deltatime);
 	void RespawnToLastRoad();
+
+	bool m_isBGM = false;
 
 
 public:

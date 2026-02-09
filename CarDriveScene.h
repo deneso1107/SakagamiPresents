@@ -32,6 +32,7 @@
 #include"ChaseCamera.h"
 #include"IntroCamera.h"
 #include"GoalCamera.h"
+#include"SoundManager.h"
 class CarDriveScene : public IScene
 {
 public:

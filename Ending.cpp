@@ -35,7 +35,7 @@ void Ending::init()
 
     // スコア情報
     m_currentScore = m_gameScore;
-    m_bestScore = 999;
+    m_bestScore = 100;
     m_isNewRecord = (m_currentScore > m_bestScore);
     m_displayScore = 0;
 
@@ -49,10 +49,12 @@ void Ending::init()
         m_newRecordText = new ScreenFixedBillboard(Vector2(0.3f, 0.5f), 0.3f, 0.3f, L"assets/texture/text/NewRecord.png");
         m_bestScore = m_currentScore;
         m_gameScore = 0.0f;
+        SoundManager::GetInstance().PlayBGM("ResultHigh");
     }
     else
     {
         m_newRecordText = new ScreenFixedBillboard(Vector2(0.3f, 0.5f), 0.3f, 0.3f, L"assets/texture/text/Result.png");
+        SoundManager::GetInstance().PlayBGM("ResultNormal");
     }
 
 	m_currentScoreUI = new NumberRenderer();
@@ -337,6 +339,7 @@ void Ending::loadAsync()
 
 void Ending::dispose()
 {
+    SoundManager::GetInstance().StopBGM();
     delete m_TitleBillboard;
     delete m_screenBillboard;
     delete m_newRecordText;
