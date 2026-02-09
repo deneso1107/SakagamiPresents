@@ -35,6 +35,7 @@
     <ClInclude Include="GoalEffect.h" />
     <ClInclude Include="IntroCamera.h" />
     <ClInclude Include="ResultCamera.h" />
+    <ClInclude Include="SoundManager.h" />
     <ClInclude Include="SpringCamera.h" />
     <ClInclude Include="CollisionCameraState.h" />
     <ClInclude Include="CTerrainMesh.h" />
@@ -143,6 +144,7 @@
     <ClCompile Include="GoalEffect.cpp" />
     <ClCompile Include="IntroCamera.cpp" />
     <ClCompile Include="ResultCamera.cpp" />
+    <ClCompile Include="SoundManager.cpp" />
     <ClCompile Include="SpringCamera.cpp" />
     <ClCompile Include="CTerrainMesh.cpp" />
     <ClCompile Include="Dirt.cpp" />

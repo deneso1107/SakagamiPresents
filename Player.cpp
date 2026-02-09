@@ -270,9 +270,10 @@ void Player::UpdateStartSequence(float deltatime)
 			// カウントダウン終了、レース開始
 			m_stateManager.RemoveState(PlayerStateManager::State::Countdown);
 			m_stateManager.AddState(PlayerStateManager::State::RaceReady);
-
-			// フラグをリセット（次回のレースのため）
+			// フラグをリセット（次回のレースのため）GameSceneNormalbgm
 			m_countdownStarted = false;
+			//通常時BGM開始
+			SoundManager::GetInstance().PlayBGM("GameSceneNormalbgm");
 		}
 
 		// カウントダウン中は静止
@@ -317,6 +318,9 @@ void Player::UpdateGoalSequence(float deltatime)
 	if (!m_goalEffectStarted)
 	{
 		m_goalEffect->Start();
+		SoundManager::GetInstance().StopBGM();
+		SoundManager::GetInstance().PlaySE("Goal", 1.0f);
+
 		m_goalEffectStarted = true;
 	}
 
@@ -455,6 +459,7 @@ void Player::Init()
 		"assets/model/Cow_Rocket_Adventure_1112064202_texture.fbx",// モデル名
 		"assets/model/");						// テクスチャのパス
 
+	//SoundManager::GetInstance().PlayBGM("bgm1",1.0f,true);
 	//レンダラ初期化
 	m_meshrenderer.Init(m_mesh);
 
@@ -771,6 +776,13 @@ void Player::Update(float deltatime)
 	if (m_IsMaxSpeed)
 	{
 		UpdateAfterImage(deltatime); // deltaTimeは既存のものを使用
+
+		if (!m_isBGM)
+		{
+			SoundManager::GetInstance().StopBGM();
+			SoundManager::GetInstance().PlayBGM("GameSceneAccerationbgm");
+			m_isBGM = true;
+		}
 	}
 }
 
@@ -819,7 +831,6 @@ void Player::UpdateAfterImage(float deltaTime)
 void Player::UpdateBoostSystem(bool boostInput, float deltaSeconds)
 {
 	if (boostInput && m_BoostGauge > 0.0f)
-
 	{
 		// ブースト使用中
 		m_IsBoosting = true;
@@ -836,6 +847,7 @@ void Player::UpdateBoostSystem(bool boostInput, float deltaSeconds)
 		m_IsBoosting = false;
 		m_PostProcessSetter(false, 0.0f);
 		m_IsMaxSpeed = false;
+
 	}
 }
 
@@ -881,6 +893,13 @@ void Player::UpdateSpeedBonusSystem(float deltatime)
 		// ブーストもしていない、速度倍率も低い場合は無効化
 		m_PostProcessSetter(false, 0.0f);
 		m_IsMaxSpeed = false;
+
+		if (m_isBGM)
+		{///元のBGMに戻す
+			SoundManager::GetInstance().StopBGM();
+			SoundManager::GetInstance().PlayBGM("GameSceneNormalbgm");
+			m_isBGM = false;
+		}
 	}
 }
 
@@ -1477,6 +1496,7 @@ void Player::OnCollisionWithEnemy(Enemy& enemy)
 	//敵を飛ばしたときに起きる効果
 	//ApplyHitStop(0.01f, 0.01f);
 	SpringCamera::Instance().Shake(1.0f, 0.1f);
+	SoundManager::GetInstance().PlaySE("fly_away");
 
 	enemy.ApplyKnockback(knockbackDirection, knockbackForce,timeScale);
 }

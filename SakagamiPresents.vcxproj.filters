@@ -393,6 +393,9 @@
     <ClInclude Include="TurningRoad.h">
       <Filter>ヘッダー ファイル\Object\Road</Filter>
     </ClInclude>
+    <ClInclude Include="SoundManager.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Application.cpp">
@@ -646,6 +649,9 @@
     </ClCompile>
     <ClCompile Include="ScreenGaugeBillboard.cpp">
       <Filter>ソース ファイル\BillBoard</Filter>
+    </ClCompile>
+    <ClCompile Include="SoundManager.cpp">
+      <Filter>ソース ファイル\Manager</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -53,6 +53,8 @@ void Title::init()
 	m_skydome = std::make_unique<Skydome>();
 	m_skydome->Init();
 
+    SoundManager::GetInstance().PlayBGM("titlebgm");
+
 }
 
 void Title::update(float deltatime)
@@ -60,6 +62,7 @@ void Title::update(float deltatime)
     if (CDirectInput::GetInstance().CheckKeyBuffer(DIK_RETURN))
     {
         SceneManager::ChangeScene("CarDriveScene",true);
+        SoundManager::GetInstance().StopBGM();
     }
 
     m_spiralEffect->Update(deltatime);
