@@ -458,8 +458,6 @@ void Player::Init()
 	m_mesh.Load(
 		"assets/model/Cow_Rocket_Adventure_1112064202_texture.fbx",// モデル名
 		"assets/model/");						// テクスチャのパス
-
-	//SoundManager::GetInstance().PlayBGM("bgm1",1.0f,true);
 	//レンダラ初期化
 	m_meshrenderer.Init(m_mesh);
 
@@ -525,6 +523,7 @@ void Player::Init()
 	m_goalJumpDistance = 70.0f;       // 前方に30m進む
 	m_goalRotationSpeed = 720.0f;     // 1回転
 	m_goalAcceleration = 5.0f;        // 加速倍率
+
 }
 //まだちょいがたつく
 void Player::Update(float deltatime)

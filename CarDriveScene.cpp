@@ -112,41 +112,19 @@ void CarDriveScene::debugFreeCamera()
 	//ImGui::End();
 }
 
-void CarDriveScene::debugChangeCamera()
+void CarDriveScene::debugControllEffect()
 {
-	ImGui::Begin("Change Camera");
-	if (ImGui::Button("SpringCamera")) {
-		m_NowCamera = true;
-	}
-	if (ImGui::Button("FreeCamera")) {
-		m_NowCamera = false;
-	}
-	ImGui::End();
-}
+#ifdef _DEBUG
+	ImGui::Begin("Controll Efect");
 
-void CarDriveScene::debugChangeScene()
-{
-	ImGui::Begin("Change Scene");
-	if (ImGui::Button("On")) {
-		m_Debug = true;
-	}
-	if (ImGui::Button("False")) {
-		m_Debug = false;
-	}
+	//ImGui::SliderFloat("Radius", &m_aberrationStrengt, 1,800);
+	ImGui::SliderFloat("Elevation", &m_LineSpeed, -PI, PI);
+	ImGui::SliderFloat("shockwaveSpeed", &m_shockwaveDuration, -PI, PI);
+	ImGui::SliderFloat("blurStrength", &m_debugblurStrength, -PI, PI);
+	ImGui::SliderFloat("MaxblurStrength", &m_blurMaxStrength, 0.0f, 10.0f);
+	ImGui::SliderFloat("AbrrationStrength", &m_debugaberrationStrength, 0.0f, 10.0f);
 	ImGui::End();
-}
-
-void CarDriveScene::debugParticlePos()
-{
-	ImGui::Begin("Particle Position");
-
-	ImGui::SliderFloat("Radius", &m_ParticlePos.x, -15, 15);
-	ImGui::SliderFloat("Elevation", &m_ParticlePos.y, -15, 15);
-	ImGui::SliderFloat("Azimuth", &m_ParticlePos.z, -15, 15);
-	ImGui::Text("Particle Position X: %.2f", m_ParticlePos.x);
-	ImGui::Text("Particle Position Y: %.2f", m_ParticlePos.y);
-	ImGui::Text("Particle Position Z: %.2f", m_ParticlePos.z);
-	ImGui::End();
+#endif
 }
 
 void CarDriveScene::init()
@@ -168,9 +146,6 @@ void CarDriveScene::init()
 	m_timeRenderer. Init(Vector2(0.95f, 0.15f),0.035f, 0.055f, 0.01f, true);
 	m_scoreRenderer.Init(Vector2(0.95f, 0.3f), 0.035f, 0.055f, 0.01f, true);
 	m_RemainingTime = 150.0f;
-	//m_timeRenderer.Update();  //数値が変化したらUpdateを呼ぶ
-	// 画面左上に配置（位置: 0.1, 0.1、サイズ: 0.15 x 0.15）
-	//m_BillboardLoad->Init(Vector2(0.1f, 0.1f), 0.15f, 0.15f, L"assets/texture/haikei.jpg");
 
 	m_speedMator = new SpeedMator();
 	m_speedMator->Init();
@@ -186,11 +161,6 @@ void CarDriveScene::init()
 	);
 
 	m_Gauge->SetAnimationSpeed(1.5f); // アニメーション速度を設定
-
-	//// ビルボードの初期化
-	//m_billboard = new Billboard();
-	//// 位置(x, y, z)、幅、高さ、テクスチャファイルパス
-	//m_billboard->Init(Vector3(0.0f, 0.0f, 0.0f), 10.0f, 10.0f, L"assets/texture/space.png");
 
 	// ローカル軸表示用線分の初期化
 	m_segments[0] = std::make_unique<::Segment>(Vector3(0, 0, 0), Vector3(100, 0, 0));
@@ -276,6 +246,11 @@ void CarDriveScene::init()
 	}
 
 	SoundManager::GetInstance().PlaySE("GameSceneFirst");
+
+	
+	DebugUI::RedistDebugFunction([this]() {
+		debugControllEffect();
+		});
 }
 
 void CarDriveScene::loadAsync()
@@ -636,8 +611,8 @@ void CarDriveScene::update(float deltatime)//uint64_tとfloatの衝突　圧倒的衝突
 		//ポストプロセスを設定
 		m_enableMotionBlur =true;//ここ注意
 		m_enableChromaticAberration = true;	
-		m_blurStrength = std::clamp(speedRatio * 1.4f, 0.0f, 0.4f);
-		m_aberrationStrength = std::clamp(speedRatio * 0.1f, 0.0f, 0.1f);
+		m_blurStrength = std::clamp(speedRatio * m_debugblurStrength, 0.0f, m_blurMaxStrength);//ブラーの変更はここ
+		m_aberrationStrength = std::clamp(speedRatio * m_debugaberrationStrength, 0.0f, m_debugaberrationStrength);
 		m_LineSpeed = speedRatio * 0.05f;
 		m_LineTime += deltatime;
     }
@@ -831,6 +806,7 @@ void CarDriveScene::draw(float deltatime)
 	m_Gauge->Draw();
 	m_timeRenderer.Draw(true);
 	m_scoreRenderer.Draw(true,false);
+	ImGui::Render();
 
 	// 【重要】2D描画後、明示的に深度テストを再度有効化
 	if (m_defaultDepthState) {

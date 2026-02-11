@@ -64,12 +64,28 @@ SpringCamera::SpringCamera()
 	m_currentParams = m_normalParams;// 初期状態は通常パラメータ
 }
 
+
+
 SpringCamera& SpringCamera::Instance()
 {
     static SpringCamera instance;
     return instance;
 }
 
+void SpringCamera::debugCameraParam()
+{
+#ifdef _DEBUG
+    ImGui::Begin("CameraParam");
+
+    //ImGui::SliderFloat("Radius", &m_aberrationStrengt, 1,800);
+    ImGui::SliderFloat("Elevation", &m_boostParams.distance, 0, 100);
+    ImGui::SliderFloat("shockwaveSpeed", &m_boostParams.height, 0, 100);
+    ImGui::SliderFloat("blurStrength", &m_boostParams.fov, 0, 100);
+    ImGui::SliderFloat("MaxblurStrength", &m_boostParams.anticipation, 0.0f, 10.0f);
+    ImGui::SliderFloat("AbrrationStrength", &m_boostParams.positionStiffness, 0.0f, 10.0f);
+    ImGui::End();
+#endif
+}
 void SpringCamera::Init()
 {
     Camera::Init();
@@ -95,6 +111,9 @@ void SpringCamera::Init()
         m_lookAtSpring.stiffness = m_normalParams.lookAtStiffness;
         m_lookAtSpring.damping = m_normalParams.lookAtDamping;
     }
+    DebugUI::RedistDebugFunction([this]() {
+        debugCameraParam();
+        });
 }
 
 void SpringCamera::Update(float deltaTime)
@@ -117,55 +136,6 @@ void SpringCamera::Update(float deltaTime)
 
     // 共通処理（FOV、Shake等）
     ApplyShake(m_position, deltaTime);
-
-
-    //if (!m_targetPlayer) return;
-
-    //// 現在の状態に応じたパラメータを取得
-    //CameraParams targetParams = DetermineTargetParams();
-
-    //// パラメータを遷移
-    //m_currentParams.distance = Lerp(m_currentParams.distance, targetParams.distance, m_transitionSpeed);
-    //m_currentParams.height = Lerp(m_currentParams.height, targetParams.height, m_transitionSpeed);
-    //m_currentParams.fov = Lerp(m_currentParams.fov, targetParams.fov, m_transitionSpeed);
-    //m_currentParams.anticipation = Lerp(m_currentParams.anticipation, targetParams.anticipation, m_transitionSpeed);
-    //m_currentParams.lookAheadDist = Lerp(m_currentParams.lookAheadDist, targetParams.lookAheadDist, m_transitionSpeed);
-
-    //// スプリングパラメータも更新
-    //m_positionSpring.stiffness = Lerp(m_positionSpring.stiffness, targetParams.positionStiffness, m_transitionSpeed);
-    //m_positionSpring.damping = Lerp(m_positionSpring.damping, targetParams.positionDamping, m_transitionSpeed);
-    //m_lookAtSpring.stiffness = Lerp(m_lookAtSpring.stiffness, targetParams.lookAtStiffness, m_transitionSpeed);
-    //m_lookAtSpring.damping = Lerp(m_lookAtSpring.damping, targetParams.lookAtDamping, m_transitionSpeed);
-
-    //// 坂道のピッチオフセットを計算
-    //m_targetPitchOffset = CalculatePitchOffset();
-    //m_currentPitchOffset = Lerp(m_currentPitchOffset, m_targetPitchOffset, m_pitchTransitionSpeed);
-
-    //// カメラ位置を計算（基本ピッチ + 坂道オフセット）
-    //m_positionSpring.target = CalculateIdealCameraPositionWithPitch();
-    //m_lookAtSpring.target = CalculateIdealLookAtPosition();
-
-    //// スプリング更新
-    //m_positionSpring.Update(deltaTime);
-    //m_lookAtSpring.Update(deltaTime);
-
-    //// 反映
-    //m_position = m_positionSpring.position;
-    //m_lookat = m_lookAtSpring.position;
-
-    //// エフェクト適用
-    //ApplyBoostShake(m_position);
-    //ApplyShake(m_position, deltaTime);
-
-    //// カメラバンク
-    //Vector3 steer = m_targetPlayer->GetRotation();
-    //float steerNorm = steer.y / 3.14f;
-    //float maxBankDeg = 1.25f;
-    //float targetBank = steerNorm * maxBankDeg;
-    //m_currentBank = Lerp(m_currentBank, targetBank, 0.1f);
-
-    //// FOV更新
-    //m_currentFOV = m_currentParams.fov;
 }
 
 void SpringCamera::UpdateNormalMode(float deltaTime)

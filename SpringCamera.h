@@ -150,4 +150,7 @@ public:
     // 落下演出用
     void StartFallingMode();
     void EndFallingMode();
+
+    //デバッグ用
+    void debugCameraParam();
 };

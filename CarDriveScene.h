@@ -47,9 +47,7 @@ public:
 	//IMGUIデバッグ形
 	void debugFreeCamera();
 	void debugDirectionalLight();
-	void debugChangeCamera();
-	void debugChangeScene();
-	void debugParticlePos();
+	void debugControllEffect();
 	Vector3 m_ParticlePos;//パーティクル位置保存用
 
 
@@ -100,13 +98,17 @@ private:
 
 	//MeshRenderer m_fullscreenQuad;
 	float m_blurStrength = 0.0f;
+	float m_debugblurStrength = 1.4f;
+	float m_blurMaxStrength = 0.4f;
 	bool m_usePostProcess = false;
 	bool m_NowCamera = true;//初手追尾カメラか全体カメラか
 	bool m_Debug = false;
 	float m_aberrationStrength = 0.0f;
+	float m_debugaberrationStrength = 0.1f;
 	float m_LineTime = 0.0f;//シェーダに渡す用
 	float m_LineSpeed = 0.0f;//同じく
 	float m_ShockWave = 0.0f;//同じく
+
 
 	float m_shockwaveTime = -1.0f; // 発動した時間（-1は無効）
 	float m_shockwaveDuration = 0.25f; // ショックウェーブ継続時間（秒）
