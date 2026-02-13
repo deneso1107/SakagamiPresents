@@ -683,9 +683,7 @@ void CarDriveScene::update(float deltatime)//uint64_t‚Æfloat‚ÌÕ“Ë@ˆ³“|“IÕ“Ë
 
 
     DirectX::XMFLOAT3 pos = m_player.get()->GetPosition();
-    //pos.x += m_ParticlePos.x;x	
     pos.y -= 2.5f;
-    //pos.z += m_ParticlePos.z;
     DirectX::XMFLOAT3 dir = DirectX::XMFLOAT3(0.0f, 1.0f, 0.0f);
     m_sparkEmitter.Emit(pos, dir);
 	m_sparkEmitter.Update(deltatime);
@@ -756,17 +754,6 @@ void CarDriveScene::draw(float deltatime)
 	Matrix4x4 worldMatrix = DirectX::XMMatrixIdentity();
 	Renderer::SetWorldMatrix(&worldMatrix);
 
-	//Color axiscol[3] = {
-	//	Color(1, 0, 0, 1),
-	//	Color(0, 1, 0, 1),
-	//	Color(0, 1, 1, 1)
-	//};
-
-	//for (int axisno = 0; axisno < 3; axisno++)
-	//{
-	//	Matrix4x4 rotmtx = Matrix4x4::Identity;
-	//	m_segments[axisno]->Draw(rotmtx, axiscol[axisno]);
-	//}
 
 	m_skydome->Draw(m_player->GetIsMaxSpeed());
 	//m_road->Draw();

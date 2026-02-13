@@ -1352,10 +1352,10 @@ void Player::DrawAfterImage()
 	// デプステストは有効、デプス書き込みは無効
 	Renderer::SetDepthEnable(true);   // 深度テストON
 
-
 	// シェーダー設定
 	m_shader.SetGPU();
 	const float AFTER_IMAGE_OPACITY = 0.8f; // ここで透明度を調整
+	const float GRADATION = 0.6f; // ここでグラデーションを調整
 	int index = 0;
 	int totalGhosts = m_ghostTrail.size();
 	// 残像を古い順に描画
@@ -1364,14 +1364,15 @@ void Player::DrawAfterImage()
 		Renderer::SetWorldMatrix(const_cast<Matrix4x4*>(&ghost.worldMatrix));
 
 		// マテリアルのアルファを変更
-		std::vector<MATERIAL>material = m_mesh.GetMaterials(); // これは既存のマテリアル取得方法に合わせてください
+		std::vector<MATERIAL>material = m_mesh.GetMaterials(); 
 		for(auto& mat : material)
 		{
 			// グラデーション
 			float fadeRatio = (float)index / (float)totalGhosts;
-			float displayAlpha = ghost.alpha * AFTER_IMAGE_OPACITY * (1.0f - fadeRatio * 0.6f);
+			float displayAlpha = ghost.alpha * AFTER_IMAGE_OPACITY * (1.0f - fadeRatio * GRADATION);
 			float intensity = displayAlpha * 2.0f;
 
+			//ショックウェーブに寄せた水色に
 			mat.Diffuse.x = 0.2f * displayAlpha;
 			mat.Diffuse.y = 0.8f * displayAlpha;
 			mat.Diffuse.z = 1.0f * displayAlpha;
@@ -1387,8 +1388,6 @@ void Player::DrawAfterImage()
 
 		}
 	}
-
-
 	// ブレンドステートを元に戻す
 	Renderer::SetBlendState(EBlendState::BS_ALPHABLEND);
 
