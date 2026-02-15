@@ -8,7 +8,8 @@ enum class ParticleBehaviorType
     Continuous,   // 連続的に少量放出（砂煙、炎など）
     Trail,         // 軌跡（剣の軌跡など）
     Sparkle,      // キラキラ
-    Wind      // キラキラ
+    Wind,      // キラキラ
+    MeteorShower  //メテオ
 };
 
 // パーティクルエミッターの設定構造体

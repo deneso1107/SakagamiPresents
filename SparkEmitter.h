@@ -48,6 +48,8 @@ class SparkEmitter
         DirectX::XMFLOAT4 color;
     };
 
+    
+
 public:
     ~SparkEmitter(); // デストラクタを追加
     bool Init(ID3D11Device* device);
@@ -106,7 +108,16 @@ public:
     Vector3 GetPosition() const { return m_Position; }
 
     void SetRadialWindMode(int rayCount, float speed, const DirectX::XMFLOAT3& color);
-    ///Particle GetParticle();
+
+    void UpdateMeteorShower(Particle& p, float deltaTime);
+    void EmitMeteorShower(const DirectX::XMFLOAT3& centerPos, const DirectX::XMFLOAT3& dir);
+
+    void SetMeteorShowerMode(float radius = 50.0f, float distance = 60.0f, float height = 30.0f,
+        float speed = 20.0f, int spawnRate = 3);
+
+    void SetPlayerForward(const DirectX::XMFLOAT3& forward) {
+        m_playerForward = forward;
+    }
 
 private:
     struct Vertex;
@@ -154,6 +165,26 @@ private:
     float m_radialSpreadAngle = 0.0f; // 現在の角度オフセット（回転用
     int m_maxTrails = 50;
 
+    // 流星群用パラメータ
+    float m_meteorSpawnRadius = 50.0f;      // プレイヤー周囲の生成半径
+    float m_meteorSpawnDistance = 60.0f;    // プレイヤーから横方向の距離
+    float m_meteorSpawnHeight = 15.0f;      // 生成高さ（やや低め）
+    float m_meteorSpeed = 25.0f;            // 流星の速度
+    DirectX::XMFLOAT3 m_playerForward = { 0, 0, 1 };  // プレイヤーの向き
+    int m_meteorSpawnRate = 4;              // フレームあたりの生成数
+    float m_meteorInnerRadius = 15.0f;   // 中心の避ける範囲（内側の半径）
+    float m_meteorOuterRadius = 50.0f;   // 外側の半径
+    float m_meteorFrontBackExcludeAngle = 45.0f;  // 前後を避ける角度（度）
+
+    // 流星のトレイル用
+    struct MeteorTrail {
+        std::vector<DirectX::XMFLOAT3> positions;
+        DirectX::XMFLOAT4 color;
+        float fadeTime;
+    };
+    std::vector<MeteorTrail> m_meteorTrails;
+
+
     std::vector<Particle> m_particles;
     std::vector<WindTrail> m_windTrails;
     ComPtr<ID3D11ShaderResourceView> m_texture;
@@ -166,6 +197,7 @@ private:
     ComPtr<ID3D11BlendState>  m_blendState = nullptr; // 定数バッファのメンバ変数を追加
     ComPtr<ID3D11Buffer> m_constantBuffer;
     ComPtr<ID3D11DepthStencilState> m_depthStencilState;
+
 
     ComPtr<ID3D11InputLayout> m_inputLayout;
 

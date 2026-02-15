@@ -1,30 +1,51 @@
 #include "RoadManager.h"
 using namespace DirectX::SimpleMath;
 std::unique_ptr<BaseRoad> RoadManager::CreateRoad(RoadType type, Direction direction) {
+    std::unique_ptr<BaseRoad> road;
+    
     switch (type) {
     case RoadType::STRAIGHT:
-        return std::make_unique<StraightRoad>(direction);
+        road = std::make_unique<StraightRoad>(direction);
+        break;
     case RoadType::TURN_LEFT:
-        return std::make_unique<LeftTurnRoad>(direction);
+        road = std::make_unique<LeftTurnRoad>(direction);
+        break;
     case RoadType::TURN_RIGHT:
-        return std::make_unique<RightTurnRoad>(direction);
-	case RoadType::START_LINE:
-		return std::make_unique<Start>(direction);
+        road = std::make_unique<RightTurnRoad>(direction);
+        break;
+    case RoadType::START_LINE:
+        road = std::make_unique<Start>(direction);
+        break;
     case RoadType::GOAL_LINE:
-        return std::make_unique<Goal>(direction);
+        road = std::make_unique<Goal>(direction);
+        break;
     case RoadType::SLOPE_UP:
-        return std::make_unique<StraightRoad>(direction);
+        road = std::make_unique<StraightRoad>(direction);
+        break;
     case RoadType::SLOPE_DOWN:
-        return std::make_unique<StraightRoad>(direction);
+        road = std::make_unique<StraightRoad>(direction);
+        break;
     case RoadType::DIRT:
-        return std::make_unique<Dirt>(direction);
+        road = std::make_unique<Dirt>(direction);
+        break;
     case RoadType::TURNING:
-        return std::make_unique<TurningRoad>(direction);
+        road = std::make_unique<TurningRoad>(direction);
+        break;
+    case RoadType::FINALSLOPE_UP:
+        road = std::make_unique<StraightRoad>(direction);
+        break; 
     case RoadType::NONE:
-        return nullptr;  // 道路なしの場合はnullptrを返す
+        return nullptr;
     default:
-        return nullptr;  // 未知のタイプもnullptrを返す
+        return nullptr;
     }
+    
+    // ★重要★ RoadTypeを設定
+    if (road) {
+        road->SetRoadType(type);
+    }
+    
+    return road;
 }
 
 Vector3 RoadManager::CalculateRotation(Direction direction, RoadType roadType) {
@@ -42,6 +63,9 @@ Vector3 RoadManager::CalculateRotation(Direction direction, RoadType roadType) {
 	case RoadType::SLOPE_UP:
 		slopeRotation = -m_slopeangle; // 上り坂はX軸に-15度の傾斜  坂の角度によって道の位置調整
 		break;
+    case RoadType::FINALSLOPE_UP:
+        slopeRotation = -m_slopeangle; // 上り坂はX軸に-15度の傾斜  坂の角度によって道の位置調整
+        break;
 	case RoadType::SLOPE_DOWN:
 		slopeRotation = m_slopeangle; // 下り坂はX軸に15度の傾斜
 		break;
@@ -156,8 +180,8 @@ void RoadManager::SetRoad(int x, int y, RoadType type, Direction direction) {
         float thisRoadSpacingZ = baseSpacingZ;
 
         // 坂道の場合、水平投影距離を計算
-        if (type == RoadType::SLOPE_UP || type == RoadType::SLOPE_DOWN) {
-            float slopeAngle = abs((type == RoadType::SLOPE_UP) ? -m_slopeangle : m_slopeangle);
+        if (type == RoadType::SLOPE_UP || type == RoadType::SLOPE_DOWN|| type == RoadType::FINALSLOPE_UP) {
+            float slopeAngle = abs((type == RoadType::SLOPE_UP|| type == RoadType::FINALSLOPE_UP) ? -m_slopeangle : m_slopeangle);
             float slopeAngleRad = MathUtils::DegreesToRadians(slopeAngle);
             float horizontalProjection = cos(slopeAngleRad);
 
@@ -171,7 +195,7 @@ void RoadManager::SetRoad(int x, int y, RoadType type, Direction direction) {
 
         float roadLength = (direction == Direction::NORTH || direction == Direction::SOUTH)
             ? actualDepth : actualWidth;
-        if (type == RoadType::SLOPE_UP || type == RoadType::SLOPE_DOWN)
+        if (type == RoadType::SLOPE_UP || type == RoadType::SLOPE_DOWN|| type == RoadType::FINALSLOPE_UP)
         {
             startHeight += GetPreviousRoadEndHeight(x, y, direction);//ここ　メンバ変数でやるか？
         }
@@ -181,12 +205,13 @@ void RoadManager::SetRoad(int x, int y, RoadType type, Direction direction) {
         }
 
         float heightChange = 0.0f;
-        if (type == RoadType::SLOPE_UP) {
+        if (type == RoadType::SLOPE_UP|| type == RoadType::FINALSLOPE_UP) {
             heightChange = abs(sin(MathUtils::DegreesToRadians(-m_slopeangle)) * roadLength);
         }
         else if (type == RoadType::SLOPE_DOWN) {
             heightChange = -abs(sin(MathUtils::DegreesToRadians(m_slopeangle)) * roadLength);
         }
+
 
         float pivotFactor = (direction == Direction::EAST || direction == Direction::WEST)
             ? 1.0f : 0.5f;
@@ -271,7 +296,7 @@ float RoadManager::GetPreviousRoadEndHeight(int x, int y, Direction direction) {
 }
 // 道路の終端高さを計算
 float RoadManager::GetRoadEndHeight(RoadType type, Direction direction, float roadLength, float currentHeight) {
-    if (type == RoadType::SLOPE_UP) {
+    if (type == RoadType::SLOPE_UP|| type == RoadType::FINALSLOPE_UP) {
         float slopeAngleRad = MathUtils::DegreesToRadians(8.0f);
         float heightChange = sin(slopeAngleRad) * roadLength;
         return currentHeight + heightChange;
@@ -515,22 +540,41 @@ Vector3 RoadManager::GetRoadEdgePosition(
 
 //Plauerがどの路面タイプにいるか取得する際に使用
 bool RoadManager::GetRoadSurfaceType(const Vector3& position, RoadType& outSurfaceType) {
-    // プレイヤーの位置にある道路を検索
+    const float LANDING_THRESHOLD = 1.0f;
+    bool foundAny = false;
+    float minDistance = FLT_MAX;
+    RoadType closestRoadType = RoadType::NONE;
+
     for (auto& row : m_roadGrid) {
         for (auto& road : row) {
             if (road) {
-                // 道路の範囲内にプレイヤーがいるかチェック
-                float height;
-                Vector3 normal;
-                if (road->GetTerrainHeight(position, height, normal))
-                {
-                    // この道路の上にいる
-                    outSurfaceType = road->GetRoadType();
-                    return true;
+                float candidateHeight;
+                Vector3 candidateNormal;
+
+                if (road->GetTerrainHeight(position, candidateHeight, candidateNormal)) {
+                    // プレイヤーより上の道路は無視
+                    if (candidateHeight >= position.y + LANDING_THRESHOLD) {
+                        continue;
+                    }
+
+                    // プレイヤーとの高さの差を計算
+                    float heightDifference = abs(position.y - candidateHeight);
+
+                    // より近い道路を優先
+                    if (heightDifference < minDistance) {
+                        minDistance = heightDifference;
+                        closestRoadType = road->GetRoadType();
+                        foundAny = true;
+                    }
                 }
             }
         }
     }
+    if (foundAny) {
+        outSurfaceType = closestRoadType;
+        return true;
+    }
+
     return false;  // どの道路の上にもいない
 }
 
