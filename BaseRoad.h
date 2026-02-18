@@ -10,6 +10,7 @@ enum class RoadType {
     TURN_RIGHT,  // 右カーブ
 	SLOPE_UP,   // 上り坂
 	SLOPE_DOWN, // 下り坂
+	FINALSLOPE_UP, // 最後の登り坂
     // 将来的な拡張用
     START_LINE,  // スタートライン
     GOAL_LINE,  // スタートライン
@@ -137,6 +138,7 @@ public:
 
     // アクセサ
     RoadType GetRoadType() const { return m_roadType; }
+    void SetRoadType(RoadType type){ m_roadType = type; }
     Direction GetDirection() const { return m_direction; }
 
     // 回転設定のヘルパーメソッド（度数法での設定を可能にする）

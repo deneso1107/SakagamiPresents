@@ -53,6 +53,10 @@ void SparkEmitter::Update(float deltaTime)
         case ParticleBehaviorType::Sparkle:  // 追加
             UpdateSparkle(p, deltaTime);
             break;
+
+        case ParticleBehaviorType::MeteorShower:  // ← 追加
+            UpdateMeteorShower(p, deltaTime);
+            break;
         }
     }
 
@@ -177,6 +181,42 @@ void SparkEmitter::UpdateSparkle(Particle& p, float deltaTime)
         p.color.w = 1.0f;
     }
 }
+// 流星群の更新
+void SparkEmitter::UpdateMeteorShower(Particle& p, float deltaTime)
+{
+    // 位置更新
+    p.pos.x += p.velocity.x * deltaTime;
+    p.pos.y += p.velocity.y * deltaTime;
+    p.pos.z += p.velocity.z * deltaTime;
+
+    // サイズ調整
+    float speed = sqrtf(p.velocity.x * p.velocity.x +
+        p.velocity.y * p.velocity.y +
+        p.velocity.z * p.velocity.z);
+
+    p.size = m_ParticleSize * (1.0f + speed / m_meteorSpeed * 0.5f);
+
+    // 色の変化
+    float t = p.life / p.lifespan;
+    p.color.x = LerpFloat(m_StartColor.x, m_EndColor.x, t);
+    p.color.y = LerpFloat(m_StartColor.y, m_EndColor.y, t);
+    p.color.z = LerpFloat(m_StartColor.z, m_EndColor.z, t);
+
+    // フェードアウト
+    if (t > 0.7f) {
+        float fadeT = (t - 0.7f) / 0.3f;
+        p.color.w = 1.0f - fadeT;
+    }
+    else {
+        p.color.w = 1.0f;
+    }
+
+    // 地面に到達したら消滅
+    if (p.pos.y < m_Position.y - 5.0f) {
+        p.life = p.lifespan;
+    }
+}
+
 
 
 void SparkEmitter::CreateBuffers()
@@ -283,7 +323,7 @@ void SparkEmitter::SetupRenderState()
     ID3D11DeviceContext* context = Renderer::GetDeviceContext();
 
 
-    // シェーダーを設定
+    // シェーダーを設定UpdateMeteorShower
     m_shader.SetGPU();;
 
     // マテリアル設定
@@ -335,7 +375,7 @@ void SparkEmitter::Render(ID3D11DeviceContext* context, const DirectX::XMMATRIX&
     // --- 5. インスタンスデータ作成 ---
     std::vector<InstanceData> instances;
    //emitterのワールド行列（位置）を加味する
-        DirectX::XMMATRIX emitterWorld = DirectX::XMMatrixTranslation(m_Position.x, m_Position.y, m_Position.z);
+        //DirectX::XMMATRIX emitterWorld = DirectX::XMMatrixTranslation(m_Position.x, m_Position.y, m_Position.z);
 
     for (const auto& p : m_particles)
     {
@@ -343,7 +383,8 @@ void SparkEmitter::Render(ID3D11DeviceContext* context, const DirectX::XMMATRIX&
         DirectX::XMMATRIX trans = DirectX::XMMatrixTranslation(p.pos.x, p.pos.y, p.pos.z);
 
         //ローカル(粒子) → エミッタ位置(ワールド)
-        DirectX::XMMATRIX world = scale * billboardRot * trans * emitterWorld;
+       // DirectX::XMMATRIX world = scale * billboardRot * trans * emitterWorld;
+        DirectX::XMMATRIX world = scale * billboardRot * trans;
 
         InstanceData inst;
         DirectX::XMStoreFloat4x4(&inst.world, world);
@@ -393,9 +434,12 @@ void SparkEmitter::Emit(const DirectX::XMFLOAT3& pos, const DirectX::XMFLOAT3& d
     case ParticleBehaviorType::Sparkle:  // 追加
         EmitSparkle(pos, dir);
         break;
+    case ParticleBehaviorType::MeteorShower:  
+        EmitMeteorShower(pos, dir);
+        break;
     }
 }
-void SparkEmitter::EmitBurst(const DirectX::XMFLOAT3& pos, const DirectX::XMFLOAT3& dir, int count)
+void SparkEmitter::EmitBurst(const DirectX::XMFLOAT3& pos, const DirectX::XMFLOAT3& dir, int count)//パーティクル途中
 {
     for (int i = 0; i < count && m_particles.size() < m_maxParticles; ++i)
     {
@@ -537,6 +581,97 @@ void SparkEmitter::EmitSparkle(const DirectX::XMFLOAT3& centerPos, const DirectX
 
         m_particles.push_back(p);
     }
+}
+
+// ラストの流星群の生成処理
+void SparkEmitter::EmitMeteorShower(const DirectX::XMFLOAT3& centerPos,
+    const DirectX::XMFLOAT3& dir)
+{
+    for (int i = 0; i < m_meteorSpawnRate && m_particles.size() < m_maxParticles; ++i)
+    {
+        Particle p;
+
+        DirectX::XMVECTOR forwardVec = DirectX::XMLoadFloat3(&m_playerForward);
+        forwardVec = DirectX::XMVector3Normalize(forwardVec);
+
+        DirectX::XMVECTOR upVec = DirectX::XMVectorSet(0, 1, 0, 0);
+        DirectX::XMVECTOR rightVec = DirectX::XMVector3Cross(upVec, forwardVec);
+        rightVec = DirectX::XMVector3Normalize(rightVec);
+
+        //完全に左右のみ（前後成分なし）
+        float side = (rand() % 2 == 0) ? -1.0f : 1.0f;
+
+        //わずかな前後のブレのみ（最大±20%）
+        float forwardOffset = ((rand() % 40) - 20) / 100.0f;  // -0.2～+0.2
+
+        // 距離
+        float normalizedDist = (rand() % 100) / 100.0f;
+        float distance = m_meteorInnerRadius + normalizedDist * (m_meteorOuterRadius - m_meteorInnerRadius);
+
+        //基本は真横、わずかに前後ブレ
+        DirectX::XMVECTOR spawnOffset =
+            DirectX::XMVectorScale(rightVec, distance * side) +
+            DirectX::XMVectorScale(forwardVec, distance * forwardOffset);
+
+        float heightVariation = (rand() % 100) / 100.0f * 10.0f;
+
+        DirectX::XMFLOAT3 spawnPos;
+        DirectX::XMStoreFloat3(&spawnPos,
+            DirectX::XMVectorAdd(
+                DirectX::XMVectorSet(centerPos.x, centerPos.y + m_meteorSpawnHeight + heightVariation, centerPos.z, 0),
+                spawnOffset
+            )
+        );
+
+        p.pos = spawnPos;
+
+        // 速度：真下
+        float downSpeed = m_meteorSpeed;
+        float horizontalVariation = (rand() % 100 - 50) * 0.02f;
+
+        p.velocity.x = horizontalVariation;
+        p.velocity.y = -downSpeed;
+        p.velocity.z = horizontalVariation;
+
+        float colorVar = (rand() % 100) / 100.0f;
+        p.color = {
+            LerpFloat(m_StartColor.x, m_EndColor.x, colorVar),
+            LerpFloat(m_StartColor.y, m_EndColor.y, colorVar),
+            LerpFloat(m_StartColor.z, m_EndColor.z, colorVar),
+            1.0f
+        };
+
+        p.life = 0.0f;
+        p.lifespan = 2.0f + (rand() % 100) / 100.0f * 1.0f;
+        p.size = m_ParticleSize + (rand() % 100) * 0.08f;
+
+        m_particles.push_back(p);
+    }
+}
+
+// 流星群モードの設定
+void SparkEmitter::SetMeteorShowerMode(float radius, float distance,
+    float height, float speed, int spawnRate)
+{
+    m_BehaviorType = ParticleBehaviorType::MeteorShower;
+
+    //radiusを外側の半径として使用
+    m_meteorOuterRadius = radius;
+
+    //内側の半径は自動計算（外側の30%程度）
+    m_meteorInnerRadius = radius * 0.3f;
+
+    m_meteorSpawnDistance = distance;    // 使わない（互換性のため残す）
+    m_meteorSpawnHeight = height;
+    m_meteorSpeed = speed;
+    m_meteorSpawnRate = spawnRate;
+
+    // 流星用の色設定（明るい黄色〜オレンジ）
+    m_StartColor = DirectX::XMFLOAT3(1.0f, 1.0f, 0.8f);
+    m_EndColor = DirectX::XMFLOAT3(1.0f, 0.5f, 0.1f);
+
+    m_ParticleSize = 15.0f;
+    m_Gravity = 0.0f;
 }
 
 SparkEmitter::~SparkEmitter()

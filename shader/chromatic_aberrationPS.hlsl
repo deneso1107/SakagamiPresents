@@ -4,7 +4,7 @@ SamplerState samplerState : register(s0);
 cbuffer PostProcessBuffer : register(b0)
 {
     float aberrationStrength;
-    float time;
+    float time; //現在は使用していないが、将来的に時間経過による変化を加えるために用意
     float2 padding;
 };
 
@@ -14,7 +14,7 @@ struct PS_INPUT
     float2 texCoord : TEXCOORD0;
 };
 
-float4 main(PS_INPUT input) : SV_TARGET
+float4 main(PS_INPUT input) : SV_TARGET //カメラレンズの色収差
 {
     float2 dir = input.texCoord - 0.5;
     float2 offset = dir * aberrationStrength;

@@ -120,8 +120,9 @@ private:
 	float m_time = 0.0f;
 
 	float m_RemainingTime;//タイム三校用
-	//ChaseCamera m_CheeseCamera;										// フリーカメラ
-	//FreeCamera m_FreeCamera;
+
+	RoadType m_previousRoadType = RoadType::NONE;
+
 	ScreenFixedBillboard* m_screenBillboard;//ゲッターあるよ
 	ScreenGaugeBillboard* m_Gauge;
 	std::array<std::unique_ptr<::Segment>, 3> m_segments;			// ローカル軸表示用線分
@@ -136,7 +137,7 @@ private:
 	NumberRenderer m_timeRenderer;
 	NumberRenderer m_scoreRenderer;
 	SparkEmitter m_sparkEmitter;
-	std::unique_ptr<SparkEmitter> m_WindEmitter;
+	SparkEmitter m_MeteoEmitter;
 	RoadManager roadManager; // 道路サイズはコンストラクタで指定
 	TreeManager m_TreeManager;
 	CameraManager m_CameraManager;

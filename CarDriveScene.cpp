@@ -80,44 +80,11 @@ void CarDriveScene::debugDirectionalLight()
 
 	ImGui::End();
 }
-
-// デバッグフリーカメラ
-void CarDriveScene::debugFreeCamera()
-{
-	//ImGui::Begin("debug Free camera");
-
-	//static float radius = 100.0f;
-	//static Vector3 pos = Vector3(0, 0, radius);
-	//static Vector3 lookat = Vector3(0, 0, 0);
-	//static float elevation = -90.0f * PI / 180.0f;
-	//static float azimuth = PI/2.0f;
-
-	//static Vector3 spherecenter = Vector3(0, 0, 0);	
-
-	//ImGui::SliderFloat("Radius", &radius, 1,800);
-	//ImGui::SliderFloat("Elevation", &elevation, -PI, PI);
-	//ImGui::SliderFloat("Azimuth", &azimuth, -PI, PI);
-
-	//ImGui::SliderFloat3("lookat ", &lookat.x, -100, 100);
-
-	//// カメラの位置を極座標からデカルト座標に変換
-	//m_FreeCamera.SetRadius(radius);
-	//m_FreeCamera.SetElevation(elevation);
-	//m_FreeCamera.SetAzimuth(azimuth);
-	//m_FreeCamera.SetLookat(lookat);
-
-	//// カメラの位置を極座標から求める
-	//m_FreeCamera.CalcCameraPosition();
-
-	//ImGui::End();
-}
-
 void CarDriveScene::debugControllEffect()
 {
 #ifdef _DEBUG
 	ImGui::Begin("Controll Efect");
 
-	//ImGui::SliderFloat("Radius", &m_aberrationStrengt, 1,800);
 	ImGui::SliderFloat("Elevation", &m_LineSpeed, -PI, PI);
 	ImGui::SliderFloat("shockwaveSpeed", &m_shockwaveDuration, -PI, PI);
 	ImGui::SliderFloat("blurStrength", &m_debugblurStrength, -PI, PI);
@@ -134,8 +101,6 @@ void CarDriveScene::init()
 		MessageBox(nullptr, "Renderer not initialized!", "Error", MB_OK);
 		return;
 	}
-
-	//SoundManager::GetInstance().GameSoundLoad();
 
 	// シャドウマップの初期化
 	Renderer::InitShadowMap(2048);
@@ -204,8 +169,6 @@ void CarDriveScene::init()
 	m_skydome = std::make_unique<Skydome>();
 	m_skydome->Init();
 
-	//InitEnemies(this, m_field.get());
-
 	InitPostProcess(); // ポストプロセス初期化
 
 	m_start = std::make_unique<Start>();	// スタート地点の初期化
@@ -215,11 +178,6 @@ void CarDriveScene::init()
 
 	m_item = std::make_unique<BoostItem>();	// スタート地点の初期化
 	m_item->Init();	// スタート地点の初期化   ここまで
-
-
-
-
-
 
 	if (auto start = roadManager.GetStart())
 	{
@@ -242,8 +200,21 @@ void CarDriveScene::init()
 
 	if (!m_sparkEmitter.Init(Renderer::GetDevice()))
 	{
+		OutputDebugStringA("パーティクル初期化失敗");
+	}
+
+	if (!m_MeteoEmitter.Init(Renderer::GetDevice()))
+	{
 		OutputDebugStringA("サンプラーステート作成失敗\n");
 	}
+
+	m_MeteoEmitter.SetMeteorShowerMode(
+		50.0f,   // プレイヤー周囲の半径
+		60.0f,   // 横方向の開始距離
+		15.0f,   // 高さ
+		25.0f,   // 速度
+		4        // フレームあたり4個生成
+	);
 
 	SoundManager::GetInstance().PlaySE("GameSceneFirst");
 
@@ -255,11 +226,11 @@ void CarDriveScene::init()
 
 void CarDriveScene::loadAsync()
 {
+	// ロードが必要なリソースがあればここで非同期に読み込む
 	roadManager.ResizeGrid(7, 18);//East=東　West＝西　North＝北　South＝南
 	roadManager.InitializeGridSpacing();  // グリッド間隔を初期化
 	roadManager.SetRoad(0, 1, RoadType::START_LINE, Direction::SOUTH);
-	roadManager.SetRoad(0, 2, RoadType::STRAIGHT
-		, Direction::NORTH);
+	roadManager.SetRoad(0, 2, RoadType::STRAIGHT, Direction::NORTH);
 	roadManager.SetRoad(0, 3, RoadType::STRAIGHT, Direction::NORTH);//北↑
 	roadManager.SetRoad(0, 4, RoadType::SLOPE_UP, Direction::NORTH);
 	roadManager.SetRoad(0, 5, RoadType::STRAIGHT, Direction::SOUTH);
@@ -308,11 +279,11 @@ void CarDriveScene::loadAsync()
 	roadManager.SetRoad(6, 7, RoadType::TURN_LEFT, Direction::SOUTH);
 	roadManager.SetRoad(5, 7, RoadType::TURN_LEFT, Direction::NORTH);
 	roadManager.SetRoad(5, 6, RoadType::STRAIGHT, Direction::SOUTH);
-	roadManager.SetRoad(5, 5, RoadType::SLOPE_UP, Direction::SOUTH);
-	roadManager.SetRoad(5, 4, RoadType::SLOPE_UP, Direction::SOUTH);
-	roadManager.SetRoad(5, 3, RoadType::SLOPE_UP, Direction::SOUTH);
-	roadManager.SetRoad(5, 2, RoadType::SLOPE_UP, Direction::SOUTH);
-	roadManager.SetRoad(5, 1, RoadType::SLOPE_UP, Direction::SOUTH);
+	roadManager.SetRoad(5, 5, RoadType::FINALSLOPE_UP, Direction::SOUTH);
+	roadManager.SetRoad(5, 4, RoadType::FINALSLOPE_UP, Direction::SOUTH);
+	roadManager.SetRoad(5, 3, RoadType::FINALSLOPE_UP, Direction::SOUTH);
+	roadManager.SetRoad(5, 2, RoadType::FINALSLOPE_UP, Direction::SOUTH);
+	roadManager.SetRoad(5, 1, RoadType::FINALSLOPE_UP, Direction::SOUTH);
 	roadManager.SetRoad(5, 0, RoadType::GOAL_LINE, Direction::NORTH);
 }
 void CarDriveScene::SetupEnemiesOnRoad()
@@ -381,7 +352,7 @@ void CarDriveScene::SetupEnemiesOnRoad()
 void CarDriveScene::SetupTreeOnRoad()
 {
 	MultiTreeFormationConfig config;
-	config.totalTreeCount = 200;  // 合計10体
+	config.totalTreeCount = 200;  // 合計200体(全ての道に敵を配置するための数)
 
 	std::vector<BaseRoad*> straightRoads = roadManager.GetRoadByType(RoadType::STRAIGHT);
 	for(auto& road:straightRoads)
@@ -456,6 +427,7 @@ bool m_isInSlowMotion = false;
 void CarDriveScene::update(float deltatime)//uint64_tとfloatの衝突　圧倒的衝突
 {
 
+#ifdef _DEBUG//デバッグ状態のみカメラの動的変更を許可
 	// キーで切り替え
 	if (CDirectInput::GetInstance().CheckKeyBuffer(DIK_2)) {
 		m_currentCamera = &SimpleFollowCamera::Instance();
@@ -466,6 +438,7 @@ void CarDriveScene::update(float deltatime)//uint64_tとfloatの衝突　圧倒的衝突
 	if (CDirectInput::GetInstance().CheckKeyBuffer(DIK_4)) {
 		m_currentCamera = &CheeseCamera::Instance();
 	}
+#endif
 
 
 	if (m_introCamera->IsIntroFinished()) {
@@ -507,21 +480,19 @@ void CarDriveScene::update(float deltatime)//uint64_tとfloatの衝突　圧倒的衝突
      
      	switch (edgeType) {
      	case EdgeType::LEFT:
-     		printf("左端！注意！\n");
      		// 左端の処理（警告音を鳴らす、速度を下げるなど）
      		break;
      
      	case EdgeType::RIGHT:
-     		printf("右端！注意！\n");
      		break;
      
      	case EdgeType::CORNER:
-     		printf("角！危険！\n");
-			//SceneManager::ChangeScene("CarDriveScene", true);
      		// より強い減速
      		break;
         case EdgeType::BACK:
-        	printf("後ろ\n");//Scene変更完了！
+        	break;
+
+        case EdgeType::FRONT:
 			if (!m_player->GetOnGoal())
 			{
 				m_player->OnGoal();
@@ -529,23 +500,9 @@ void CarDriveScene::update(float deltatime)//uint64_tとfloatの衝突　圧倒的衝突
 				m_currentCamera = &GoalCamera::Instance();
 
 			}
-        	// より強い減速
-        	break;
-        case EdgeType::FRONT:
-        	printf("前\n");
-        	// より強い減速
         	break;
           	}
 	 }
-
-	if (CDirectInput::GetInstance().CheckKeyBuffer(DIK_1))
-	{
-		//EffectManager::Instance().SpawnEffect("Flash", Vector3(-90.0f, 0.0f, 0.0f));
-		DirectX::XMFLOAT3 pos_ = { 0.0f, 0.0f, 0.0f };
-		pos_.x += 1.0f;
-		pos_.y += 2.0f;
-		EffectManager::Instance().SpawnEffect("SparkleParticle", pos_/*m_ParticlePos*/);//一旦諦めます！
-	}
 
 	if (CDirectInput::GetInstance().CheckKeyBuffer(DIK_M))
 	{
@@ -558,7 +515,7 @@ void CarDriveScene::update(float deltatime)//uint64_tとfloatの衝突　圧倒的衝突
 		float maxSpeed = m_player->GetMaxSpeed();// 最高速度（少しずれがあるので、マジの最大速度を出したいならPlayerのMovmentの最後に固定値を入れる）
 		float speedRatio = speed / maxSpeed;
 
-		//printf("Speed: %.2f, Ratio: %.2f\n", speed, maxSpeed);
+
 		// --- スロー開始判定 ---
 		if (speedRatio > 1.0f && m_shockwaveTime < 0.0f)
 		{
@@ -570,7 +527,7 @@ void CarDriveScene::update(float deltatime)//uint64_tとfloatの衝突　圧倒的衝突
 			{
 				m_isInSlowMotion = true;
 				m_slowMotionStartTime = m_time;
-				//GameManager::Instance().SetTimeScale(0.2f); // スローへ
+				//GameManager::Instance().SetTimeScale(0.2f); // スローへ(クビ)
 			}
 		}
 
@@ -623,26 +580,25 @@ void CarDriveScene::update(float deltatime)//uint64_tとfloatの衝突　圧倒的衝突
 		m_item->PlayerBoostGauge(m_player.get());//アイテム取得
 	}	
 
+	//各Objeectの更新
 	m_player->Update(deltatime);	// プレイヤの更新
 	m_speedMator->SetSpeed(m_player->GetSpeed());
 	m_speedMator->Update(deltatime);
 	// カメラの更新を先に行う
-
-
 	m_currentCamera->Update(deltatime);
 
 	m_screenBillboard->Update();
 
-	m_road->Update((deltatime)); // ミリ秒に変換
+	m_road->Update((deltatime));
 
 	// ゲージを更新（deltaTimeを渡す）
 	m_Gauge->Update(deltatime);
 
+	//タイム関係
 	m_RemainingTime -= deltatime;
 	m_timeRenderer.SetNumber(static_cast<int>(m_RemainingTime));
 	m_scoreRenderer.SetNumber(static_cast<int>(m_gameScore));
-
-	m_timeRenderer.Update(deltatime);//吹っ飛ばした時のスコアってSceneを作ってフェードアウトさせたら終わり///////////////////
+	m_timeRenderer.Update(deltatime);
 	m_scoreRenderer.Update(deltatime);
 
 	// プレイヤーの体力に基づいてゲージ値を設定
@@ -655,7 +611,7 @@ void CarDriveScene::update(float deltatime)//uint64_tとfloatの衝突　圧倒的衝突
 	roadManager.UpdateAll(deltatime); // 道路マネージャの描画
 	bool onField = false;
 
-	if (GM31::GE::Collision::CollisionSphereAABB(m_player->GetCollision(), m_field->GetFieldCollision()))
+	if (GM31::GE::Collision::CollisionSphereAABB(m_player.get()->GetCollision(), m_field->GetFieldCollision()))
 	{
 		// フィールドに接触している場合
 		Vector3 playerPos = m_player->GetPosition();
@@ -664,10 +620,6 @@ void CarDriveScene::update(float deltatime)//uint64_tとfloatの衝突　圧倒的衝突
 		// プレイヤーがフィールドの上にいるかチェック
 		if (playerPos.y - m_player->GetCollision().radius <= fieldTop + 0.1f) {
 
-			//// GameSceneのUpdate内で、位置を強制変更する前にプレイヤーの状態を保存
-			//Vector3 originalVelocity = m_player->GetVelocity();
-			//// 位置補正後
-			//m_player->SetVelocity(originalVelocity); // 速度を復元
 			// フィールドの上に配置
 			playerPos.y = fieldTop + m_player->GetCollision().radius;
 			m_player->SetPosition(playerPos);
@@ -678,16 +630,54 @@ void CarDriveScene::update(float deltatime)//uint64_tとfloatの衝突　圧倒的衝突
 			m_player->ResetVerticalVelocity();
 		}
 	}
+	//敵の更新
 	UpdateEnemies(deltatime);
-	// 道路の更新
 
-
+	//パーティクルの更新
     DirectX::XMFLOAT3 pos = m_player.get()->GetPosition();
     pos.y -= 2.5f;
     DirectX::XMFLOAT3 dir = DirectX::XMFLOAT3(0.0f, 1.0f, 0.0f);
     m_sparkEmitter.Emit(pos, dir);
 	m_sparkEmitter.Update(deltatime);
 	EffectManager::Instance().Update(deltatime);
+
+	RoadType currentRoadType;
+	bool onRoad = roadManager.GetRoadSurfaceType(m_player->GetPosition(), currentRoadType);
+	// 道路の端にいるかチェック（1.5f = 端から1.5単位以内）
+	
+      if(onRoad && currentRoadType == RoadType::FINALSLOPE_UP)
+	  {
+
+		  // 前フレームがFINALSLOPE_UPでない = 今入った瞬間
+		  if (m_previousRoadType != RoadType::FINALSLOPE_UP)
+		  {
+			  SoundManager::GetInstance().PlaySE("GameSceneFinal", 0.75f);
+		  }
+		// プレイヤーの位置と向きを取得
+		Vector3 playerPos = m_player->GetPosition();
+		Vector3 playerForward = m_player->GetForwardVector();
+
+		// エミッタの位置をプレイヤーに設定
+		m_MeteoEmitter.SetPosition(playerPos);
+
+		// プレイヤーの向きを設定
+		m_MeteoEmitter.SetPlayerForward(
+			DirectX::XMFLOAT3(playerForward.x, playerForward.y, playerForward.z)
+		);
+
+		// 流星群を生成
+		m_MeteoEmitter.Emit(
+			DirectX::XMFLOAT3(playerPos.x, playerPos.y, playerPos.z),
+			DirectX::XMFLOAT3(0, 0, 0),  // dirは使用されない
+			ParticleBehaviorType::MeteorShower
+		);
+
+		// 更新
+		m_MeteoEmitter.Update(deltatime);
+		m_previousRoadType = currentRoadType;
+	}
+
+
 	m_skydome->Update(m_currentCamera->GetPosition());
 }
 
@@ -743,11 +733,6 @@ void CarDriveScene::draw(float deltatime)
 	if (m_NowCamera) {
 		m_currentCamera->Draw();
 	}
-	else {
-		//m_FreeCamera.Draw();
-	}
-
-	//m_CameraManager.Draw();
 
 	Matrix4x4 viewMatrix =Renderer::GetViewMatrix();
 
@@ -756,17 +741,16 @@ void CarDriveScene::draw(float deltatime)
 
 
 	m_skydome->Draw(m_player->GetIsMaxSpeed());
-	//m_road->Draw();
 	m_goal->Draw();
 	m_item->Draw();
 	DrawEnemies();
 	roadManager.DrawAll();
 	m_TreeManager.Draw();
-	//m_field->Draw();
 	m_player->Draw();
 
 	EffectManager::Instance().Draw(context,viewMatrix);
 	m_sparkEmitter.Render(context, worldMatrix);
+	m_MeteoEmitter.Render(context, worldMatrix);
 
 
 	if (needsPostProcess)//2D描画前にポストプロセス適用し、画像に影響を及ぼさないように変更
@@ -775,7 +759,7 @@ void CarDriveScene::draw(float deltatime)
 	}
 
 	// === 2D UI描画 ===
-	// 【修正】prevDepthStateを保存せず、毎回作成
+	//prevDepthStateを保存せず、毎回作成
 	ID3D11DepthStencilState* noDepthState = nullptr;
 	D3D11_DEPTH_STENCIL_DESC depthDesc = {};
 	depthDesc.DepthEnable = FALSE;
@@ -795,7 +779,7 @@ void CarDriveScene::draw(float deltatime)
 	m_scoreRenderer.Draw(true,false);
 	ImGui::Render();
 
-	// 【重要】2D描画後、明示的に深度テストを再度有効化
+	//2D描画後、明示的に深度テストを再度有効化
 	if (m_defaultDepthState) {
 		context->OMSetDepthStencilState(m_defaultDepthState, 0);
 	}
@@ -831,7 +815,7 @@ void CarDriveScene::InitPostProcess()// ポストプロセス複数に適応させる
 
 
 
-	// 【重要】元のバックバッファを取得して保存
+	//元のバックバッファを取得して保存
 	ID3D11Texture2D* backBufferTexture = nullptr;
 	Renderer::GetSwapChain()->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&backBufferTexture);
 	Renderer::GetDevice()->CreateRenderTargetView(backBufferTexture, nullptr, &m_originalBackBuffer);
@@ -927,7 +911,7 @@ void CarDriveScene::CreateIntermediateTexture()
 	Renderer::GetDevice()->CreateRenderTargetView(m_intermediateTexture, nullptr, &m_intermediateRTV);
 	Renderer::GetDevice()->CreateShaderResourceView(m_intermediateTexture, nullptr, &m_intermediateSRV);
 }
-void CarDriveScene::ApplyPostProcess()
+void CarDriveScene::ApplyPostProcess()//複数エフェクト対応
 {
 	ID3D11DeviceContext* context = Renderer::GetDeviceContext();
 
@@ -997,9 +981,10 @@ void CarDriveScene::ApplyPostProcess()
 	}
 
 	// ステート復元
-	context->OMSetDepthStencilState(originalDepthState, originalStencilRef);//え？同時にできるんですか？
+	context->OMSetDepthStencilState(originalDepthState, originalStencilRef);
 	context->RSSetState(originalRasterState);
 
+	//解放
 	if (depthState) depthState->Release();
 	if (rasterState) rasterState->Release();
 	if (originalDepthState) originalDepthState->Release();
@@ -1011,12 +996,13 @@ void CarDriveScene::ApplyPostProcess()
 void CarDriveScene::ApplyMotionBlur(ID3D11DeviceContext* context,
 	ID3D11ShaderResourceView* input, ID3D11RenderTargetView* output)
 {
+	//ブラー、ショックウェーブ、スピードラインを適用
 	context->OMSetRenderTargets(1, &output, nullptr);
 
 	float clearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
 	context->ClearRenderTargetView(output, clearColor);
 
-	//【変更】定数バッファを拡張（放射状ブラー対応）
+	//定数バッファを拡張（放射状ブラー対応版)
 	struct PostProcessBuffer {
 		float blurStrength;        // 追加
 		float aberrationStrength;
@@ -1063,6 +1049,8 @@ void CarDriveScene::ApplyMotionBlur(ID3D11DeviceContext* context,
 void CarDriveScene::ApplyChromaticAberration(ID3D11DeviceContext* context,
 	ID3D11ShaderResourceView* input, ID3D11RenderTargetView* output)
 {
+	//色収差をしている
+
 	context->OMSetRenderTargets(1, &output, nullptr);
 
 	float clearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };

@@ -78,7 +78,7 @@ void Player::StartRaceSequence(const Vector3& startPosition)
 }
 
 
-void Player::UpdateStartSequence(float deltatime)
+void Player::UpdateStartSequence(float deltatime)//最初の降下演出
 {
 	// スパイラル降下中
 	if (m_stateManager.IsSpiralDescending())
@@ -131,9 +131,7 @@ void Player::UpdateStartSequence(float deltatime)
 			// 着地時は現在の回転をそのまま使う（補間済み）
 			// すでに徐々に正面を向いているので、強制的に変更しない
 			m_Rotation.x = 0.0f;  // ピッチだけ水平に
-			//m_Rotation.y =Lerp(m_Rotation.y, m_spiralInitialYaw, 1.0f);
 			m_Rotation.y = m_spiralInitialYaw;
-			// m_Rotation.y はそのまま（既に補間で正面に近づいている）
 			m_Rotation.z = 0.0f;  // ロールだけ水平に
 		}
 		else
@@ -290,7 +288,7 @@ void Player::UpdateStartSequence(float deltatime)
 	}
 }
 
-void Player::OnGoal()
+void Player::OnGoal()//Goal時の演出をあいまいにするため、GoalSequence状態に遷移させるだけにして、実際の演出はUpdateGoalSequenceで行う
 {
 	m_PostProcessSetter(false, 0.0f);
 	m_hasGoaled = true;
