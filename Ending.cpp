@@ -294,7 +294,7 @@ void Ending::UpdateShowScore(float deltatime)
 
 void Ending::UpdateWaitInput(float deltatime)
 {
-    if (CDirectInput::GetInstance().CheckKeyBuffer(DIK_RETURN))
+    if (CDirectInput::GetInstance().CheckKeyBuffer(DIK_RETURN)|| InputManager::GetInstance()->GetButton(SDL_CONTROLLER_BUTTON_A))
     {
         SceneManager::ChangeScene("Title");
     }

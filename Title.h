@@ -9,6 +9,7 @@
 #include"TitleMove.h"
 #include"Skydome.h"
 #include"SparkEmitter.h"
+#include"InputManager.h"
 class Title : public IScene
 {
 public:
