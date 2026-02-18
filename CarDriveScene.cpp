@@ -169,8 +169,6 @@ void CarDriveScene::init()
 	m_skydome = std::make_unique<Skydome>();
 	m_skydome->Init();
 
-	//InitEnemies(this, m_field.get());
-
 	InitPostProcess(); // ポストプロセス初期化
 
 	m_start = std::make_unique<Start>();	// スタート地点の初期化
@@ -180,11 +178,6 @@ void CarDriveScene::init()
 
 	m_item = std::make_unique<BoostItem>();	// スタート地点の初期化
 	m_item->Init();	// スタート地点の初期化   ここまで
-
-
-
-
-
 
 	if (auto start = roadManager.GetStart())
 	{
@@ -237,8 +230,7 @@ void CarDriveScene::loadAsync()
 	roadManager.ResizeGrid(7, 18);//East=東　West＝西　North＝北　South＝南
 	roadManager.InitializeGridSpacing();  // グリッド間隔を初期化
 	roadManager.SetRoad(0, 1, RoadType::START_LINE, Direction::SOUTH);
-	roadManager.SetRoad(0, 2, RoadType::STRAIGHT
-		, Direction::NORTH);
+	roadManager.SetRoad(0, 2, RoadType::STRAIGHT, Direction::NORTH);
 	roadManager.SetRoad(0, 3, RoadType::STRAIGHT, Direction::NORTH);//北↑
 	roadManager.SetRoad(0, 4, RoadType::SLOPE_UP, Direction::NORTH);
 	roadManager.SetRoad(0, 5, RoadType::STRAIGHT, Direction::SOUTH);
@@ -360,7 +352,7 @@ void CarDriveScene::SetupEnemiesOnRoad()
 void CarDriveScene::SetupTreeOnRoad()
 {
 	MultiTreeFormationConfig config;
-	config.totalTreeCount = 200;  // 合計200体
+	config.totalTreeCount = 200;  // 合計200体(全ての道に敵を配置するための数)
 
 	std::vector<BaseRoad*> straightRoads = roadManager.GetRoadByType(RoadType::STRAIGHT);
 	for(auto& road:straightRoads)
@@ -435,6 +427,7 @@ bool m_isInSlowMotion = false;
 void CarDriveScene::update(float deltatime)//uint64_tとfloatの衝突　圧倒的衝突
 {
 
+#ifdef _DEBUG//デバッグ状態のみカメラの動的変更を許可
 	// キーで切り替え
 	if (CDirectInput::GetInstance().CheckKeyBuffer(DIK_2)) {
 		m_currentCamera = &SimpleFollowCamera::Instance();
@@ -445,6 +438,7 @@ void CarDriveScene::update(float deltatime)//uint64_tとfloatの衝突　圧倒的衝突
 	if (CDirectInput::GetInstance().CheckKeyBuffer(DIK_4)) {
 		m_currentCamera = &CheeseCamera::Instance();
 	}
+#endif
 
 
 	if (m_introCamera->IsIntroFinished()) {
@@ -657,7 +651,7 @@ void CarDriveScene::update(float deltatime)//uint64_tとfloatの衝突　圧倒的衝突
 		  // 前フレームがFINALSLOPE_UPでない = 今入った瞬間
 		  if (m_previousRoadType != RoadType::FINALSLOPE_UP)
 		  {
-			  SoundManager::GetInstance().PlaySE("GameSceneFinal", 0.5f);
+			  SoundManager::GetInstance().PlaySE("GameSceneFinal", 0.75f);
 		  }
 		// プレイヤーの位置と向きを取得
 		Vector3 playerPos = m_player->GetPosition();
@@ -917,7 +911,7 @@ void CarDriveScene::CreateIntermediateTexture()
 	Renderer::GetDevice()->CreateRenderTargetView(m_intermediateTexture, nullptr, &m_intermediateRTV);
 	Renderer::GetDevice()->CreateShaderResourceView(m_intermediateTexture, nullptr, &m_intermediateSRV);
 }
-void CarDriveScene::ApplyPostProcess()
+void CarDriveScene::ApplyPostProcess()//複数エフェクト対応
 {
 	ID3D11DeviceContext* context = Renderer::GetDeviceContext();
 
@@ -987,9 +981,10 @@ void CarDriveScene::ApplyPostProcess()
 	}
 
 	// ステート復元
-	context->OMSetDepthStencilState(originalDepthState, originalStencilRef);//え？同時にできるんですか？
+	context->OMSetDepthStencilState(originalDepthState, originalStencilRef);
 	context->RSSetState(originalRasterState);
 
+	//解放
 	if (depthState) depthState->Release();
 	if (rasterState) rasterState->Release();
 	if (originalDepthState) originalDepthState->Release();
@@ -1001,12 +996,13 @@ void CarDriveScene::ApplyPostProcess()
 void CarDriveScene::ApplyMotionBlur(ID3D11DeviceContext* context,
 	ID3D11ShaderResourceView* input, ID3D11RenderTargetView* output)
 {
+	//ブラー、ショックウェーブ、スピードラインを適用
 	context->OMSetRenderTargets(1, &output, nullptr);
 
 	float clearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
 	context->ClearRenderTargetView(output, clearColor);
 
-	//【変更】定数バッファを拡張（放射状ブラー対応）
+	//定数バッファを拡張（放射状ブラー対応版)
 	struct PostProcessBuffer {
 		float blurStrength;        // 追加
 		float aberrationStrength;
@@ -1053,6 +1049,8 @@ void CarDriveScene::ApplyMotionBlur(ID3D11DeviceContext* context,
 void CarDriveScene::ApplyChromaticAberration(ID3D11DeviceContext* context,
 	ID3D11ShaderResourceView* input, ID3D11RenderTargetView* output)
 {
+	//色収差をしている
+
 	context->OMSetRenderTargets(1, &output, nullptr);
 
 	float clearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };

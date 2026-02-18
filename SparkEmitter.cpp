@@ -583,7 +583,7 @@ void SparkEmitter::EmitSparkle(const DirectX::XMFLOAT3& centerPos, const DirectX
     }
 }
 
-// 流星群の生成処理
+// ラストの流星群の生成処理
 void SparkEmitter::EmitMeteorShower(const DirectX::XMFLOAT3& centerPos,
     const DirectX::XMFLOAT3& dir)
 {
@@ -598,17 +598,17 @@ void SparkEmitter::EmitMeteorShower(const DirectX::XMFLOAT3& centerPos,
         DirectX::XMVECTOR rightVec = DirectX::XMVector3Cross(upVec, forwardVec);
         rightVec = DirectX::XMVector3Normalize(rightVec);
 
-        // ★ 完全に左右のみ（前後成分なし）
+        //完全に左右のみ（前後成分なし）
         float side = (rand() % 2 == 0) ? -1.0f : 1.0f;
 
-        // ★ わずかな前後のブレのみ（最大±20%）
+        //わずかな前後のブレのみ（最大±20%）
         float forwardOffset = ((rand() % 40) - 20) / 100.0f;  // -0.2～+0.2
 
         // 距離
         float normalizedDist = (rand() % 100) / 100.0f;
         float distance = m_meteorInnerRadius + normalizedDist * (m_meteorOuterRadius - m_meteorInnerRadius);
 
-        // ★ 基本は真横、わずかに前後ブレ
+        //基本は真横、わずかに前後ブレ
         DirectX::XMVECTOR spawnOffset =
             DirectX::XMVectorScale(rightVec, distance * side) +
             DirectX::XMVectorScale(forwardVec, distance * forwardOffset);

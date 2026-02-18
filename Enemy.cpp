@@ -223,6 +223,6 @@ GM31::GE::Collision::BoundingSphere Enemy::GetEnemyBoundingSphere()//Enemyの当た
 {
     GM31::GE::Collision::BoundingSphere sphere;
     sphere.center = m_Position;//敵のデフォルトのBoundingSquareとは別のやつを使っているのでどっちも変更尾する必要あり
-	sphere.radius = 10.0f; // X座標を半径として使用(カスコード)→ここの当たり判定だけ大きくする
+	sphere.radius = 20.0f; // X座標を半径として使用(カスコード)→ここの当たり判定だけ大きくする
     return sphere;
 }

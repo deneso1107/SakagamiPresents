@@ -40,7 +40,7 @@ std::unique_ptr<BaseRoad> RoadManager::CreateRoad(RoadType type, Direction direc
         return nullptr;
     }
     
-    // ★重要★ RoadTypeを設定
+    // RoadTypeを設定
     if (road) {
         road->SetRoadType(type);
     }
@@ -124,7 +124,8 @@ void RoadManager::InitializeCircuit(const std::vector<std::vector<RoadSegment>>&
             const auto& segment = layout[y][x];
 
             // 道路が設定されている場合のみ生成
-            if (segment.HasRoad()) {  // 重要な変更点
+            if (segment.HasRoad()) 
+            { 
                 auto road = CreateRoad(segment.type, segment.direction);
                 if (road) {
                     // 位置を計算 (グリッド座標 * 道路サイズ)
