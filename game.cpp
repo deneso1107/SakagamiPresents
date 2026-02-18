@@ -3,8 +3,9 @@
 #include    "system/CDirectInput.h"
 #include	"scenemanager.h"
 #include	"fpscontrol.h"
-#include"GameManager.h"
+#include"GameManager.h"	
 #include"SoundManager.h"
+#include"InputManager.h"
 void gameinit() 
 {
 	// レンダラの初期化    
@@ -27,17 +28,28 @@ void gameinit()
 	// デバッグUIの初期化
 	DebugUI::Init(Renderer::GetDevice(), Renderer::GetDeviceContext());
 
+	bool i=InputManager::GetInstance()->Initialize();
+	if (!i)
+	{
+		printf("Failed to initialize InputManager\n");
+	}
+	else
+	{
+		printf("InputManager initialized successfully\n");
+	}
 }
 
 void gameupdate(uint64_t deltatime)
 {
 	CDirectInput::GetInstance().GetKeyBuffer();		// キーボードの状態を取得
 	CDirectInput::GetInstance().GetMouseState();	// マウスの状態を取得
+	InputManager::GetInstance()->Update();
 	GameManager::Instance().Update(deltatime);
 	// シーンマネージャの更新
 	float scaledDelta = GameManager::Instance().GetScaledDelta();
 	SoundManager::GetInstance().Update();
 	SceneManager::Update(scaledDelta);
+
 
 }
 
@@ -92,6 +104,9 @@ void gamedispose()
 
 	// レンダラの終了処理
 	Renderer::Uninit();
+
+	InputManager::GetInstance()->Shutdown();
+	InputManager::Destroy();
 
 }
 

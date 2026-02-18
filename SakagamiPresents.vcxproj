@@ -33,6 +33,7 @@
     <ClInclude Include="CountdownEffect.h" />
     <ClInclude Include="GoalCamera.h" />
     <ClInclude Include="GoalEffect.h" />
+    <ClInclude Include="InputManager.h" />
     <ClInclude Include="IntroCamera.h" />
     <ClInclude Include="ResultCamera.h" />
     <ClInclude Include="SoundManager.h" />
@@ -142,6 +143,7 @@
     <ClCompile Include="CountdownEffect.cpp" />
     <ClCompile Include="GoalCamera.cpp" />
     <ClCompile Include="GoalEffect.cpp" />
+    <ClCompile Include="InputManager.cpp" />
     <ClCompile Include="IntroCamera.cpp" />
     <ClCompile Include="ResultCamera.cpp" />
     <ClCompile Include="SoundManager.cpp" />
@@ -357,12 +359,12 @@
     <LibraryPath>.\directxtk\lib\x64\Debug;.\assimp\assimp\5.2.5\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>.\assimp\assimp\5.2.5\include;$(IncludePath)</IncludePath>
-    <LibraryPath>.\directxtk\lib\x64\Debug;.\assimp\assimp\5.2.5\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>.\assimp\assimp\5.2.5\include;.\SDL2-2.30.9\include;$(IncludePath)</IncludePath>
+    <LibraryPath>.\SDL2-2.30.9\lib\x64;.\assimp\assimp\5.2.5\lib;.\directxtk\lib\x64\Debug;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>.\assimp\assimp\5.2.5\include;$(IncludePath)</IncludePath>
-    <LibraryPath>.\assimp\assimp\5.2.5\lib;.\directxtk\lib\x64\Release;$(LibraryPath)</LibraryPath>
+    <IncludePath>.\assimp\assimp\5.2.5\include;.\SDL2-2.30.9\include;$(IncludePath)</IncludePath>
+    <LibraryPath>.\assimp\assimp\5.2.5\lib;.\SDL2-2.30.9\lib\x64;.\directxtk\lib\x64\Release;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -399,13 +401,14 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NOMINMAX</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>.\directxtk\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\directxtk\include;.\SDL2-2.30.9\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>SDL2.lib;SDL2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -417,12 +420,13 @@
       <PreprocessorDefinitions>NOMINMAX</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>.\directxtk\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\directxtk\include;.\SDL2-2.30.9\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>SDL2.lib;SDL2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

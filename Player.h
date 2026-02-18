@@ -14,6 +14,7 @@
 #include"GoalEffect.h"
 #include <deque>
 #include"SoundManager.h"
+#include"InputManager.h"
 class Player:public ObjectBase 
 {
 private:

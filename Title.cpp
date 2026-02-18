@@ -59,7 +59,7 @@ void Title::init()
 
 void Title::update(float deltatime)
 {
-    if (CDirectInput::GetInstance().CheckKeyBuffer(DIK_RETURN))
+    if (CDirectInput::GetInstance().CheckKeyBuffer(DIK_RETURN)|| InputManager::GetInstance()->GetButton(SDL_CONTROLLER_BUTTON_A))
     {
         SceneManager::ChangeScene("CarDriveScene",true);
         SoundManager::GetInstance().StopBGM();

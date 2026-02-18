@@ -644,7 +644,7 @@ void Player::Update(float deltatime)
 	float throttle = 0.0f;
 	float steering = 0.0f;
 	// ブースト入力チェック
-	bool boostInput = CDirectInput::GetInstance().CheckKeyBuffer(DIK_SPACE);
+	bool boostInput = CDirectInput::GetInstance().CheckKeyBuffer(DIK_SPACE)|| InputManager::GetInstance()->GetButton(SDL_CONTROLLER_BUTTON_B);
 
 	// ブースト状態の更新
 	UpdateBoostSystem(boostInput, deltatime);
@@ -652,20 +652,42 @@ void Player::Update(float deltatime)
 	//速度システムの更新
 	UpdateSpeedBonusSystem(deltatime);
 
-	if (CDirectInput::GetInstance().CheckKeyBuffer(DIK_O))
-	{
-		AddBoostGauge(5.0f);
-	}
+	//if (CDirectInput::GetInstance().CheckKeyBuffer(DIK_O))
+	//{
+	//	AddBoostGauge(5.0f);
+	//}
+
+
+
 
 	// 前進・後退の入力
+	throttle = 0.0f;
+
+	// キーボード入力
 	if (CDirectInput::GetInstance().CheckKeyBuffer(DIK_W)) {
 		throttle = 1.0f;
 	}
 	else if (CDirectInput::GetInstance().CheckKeyBuffer(DIK_S)) {
-		throttle = -0.5f; // 後退は前進より遅く
+		throttle = -0.5f;
+	}
+
+	// コントローラー入力（Aボタン = 前進）
+	if (InputManager::GetInstance()->IsConnected())
+	{
+		if (InputManager::GetInstance()->GetButton(SDL_CONTROLLER_BUTTON_A))
+		{
+			throttle = 1.0f; // Aボタンで前進
+		}
+		else if (InputManager::GetInstance()->GetButton(SDL_CONTROLLER_BUTTON_B))
+		{
+			//throttle = -0.5f; // Bボタンで後退（必要なら）
+		}
 	}
 
 	// ステアリング入力
+	steering = 0.0f;
+
+	// キーボードのステアリング
 	if (CDirectInput::GetInstance().CheckKeyBuffer(DIK_A)) {
 		steering = -1.0f; // 左
 	}
@@ -673,16 +695,54 @@ void Player::Update(float deltatime)
 		steering = 1.0f;  // 右
 	}
 
-
 	// ドリフト入力チェック
 	bool driftInput = false;
+	m_DriftDirection = 0.0f;
+
+	// キーボードのドリフト
 	if (CDirectInput::GetInstance().CheckKeyBuffer(DIK_Q)) {
 		driftInput = true;
-		m_DriftDirection = -1.0f; // 左ドリフト
+		m_DriftDirection = -1.0f;
 	}
 	else if (CDirectInput::GetInstance().CheckKeyBuffer(DIK_E)) {
 		driftInput = true;
-		m_DriftDirection = 1.0f;  // 右ドリフト
+		m_DriftDirection = 1.0f;
+	}
+
+	// コントローラーの処理
+	if (InputManager::GetInstance()->IsConnected())
+	{
+		float leftX = InputManager::GetInstance()->GetAxis(SDL_CONTROLLER_AXIS_LEFTX);
+		const float THRESHOLD = 0.3f;
+
+		// ZR/R ボタンが押されているかチェック（ドリフトボタン）
+		bool isDriftButtonPressed =
+			InputManager::GetInstance()->GetButton(SDL_CONTROLLER_BUTTON_RIGHTSHOULDER)|| InputManager::GetInstance()->GetButton(SDL_CONTROLLER_BUTTON_LEFTSHOULDER);
+
+		if (abs(leftX) > THRESHOLD)
+		{
+			if (isDriftButtonPressed)
+			{
+				// Rボタン押下中 + スティック左右 = ドリフト
+				driftInput = true;
+
+				// アナログ値でドリフト方向（推奨）
+				m_DriftDirection = leftX;
+
+				// またはキーボードと同じく-1.0/1.0にする場合
+				// m_DriftDirection = (leftX < 0.0f) ? -1.0f : 1.0f;
+			}
+			else
+			{
+				// Rボタンなし + スティック左右 = 通常ハンドル操作
+
+				// アナログ値でステアリング（推奨）
+				steering = leftX;
+
+				// またはキーボードと同じく-1.0/1.0にする場合
+				// steering = (leftX < 0.0f) ? -1.0f : 1.0f;
+			}
+		}
 	}
 
 	// 車の向きベクトルを計算
@@ -1030,7 +1090,7 @@ void Player::UpdateSmoothTerrainFollowing(float deltatime)
 					m_slopeAngle = angleFromVertical;
 
 					bool hasThrottleInput = (CDirectInput::GetInstance().CheckKeyBuffer(DIK_W) ||
-						CDirectInput::GetInstance().CheckKeyBuffer(DIK_S));
+						CDirectInput::GetInstance().CheckKeyBuffer(DIK_S)|| InputManager::GetInstance()->GetButton(SDL_CONTROLLER_BUTTON_RIGHTSHOULDER)|| InputManager::GetInstance()->GetButton(SDL_CONTROLLER_BUTTON_LEFTSHOULDER));
 
 					if (slopeDot > 0 && hasThrottleInput)
 					{
