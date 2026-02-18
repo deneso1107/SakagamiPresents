@@ -1494,7 +1494,7 @@ void Player::OnCollisionWithEnemy(Enemy& enemy)
 
 
 	// ノックバック力を適用
-	int  knockbackForce = (int)speed*50.0f; // 力を強くして確実に飛ぶようにする
+	float  knockbackForce = speed*50.0f; // 力を強くして確実に飛ぶようにする
 	m_gameScore += knockbackForce/50;
 
 	if (timeScale != 1.0f)

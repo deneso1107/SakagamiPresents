@@ -158,7 +158,7 @@ void Enemy::ApplyKnockback(Vector3 direction, float force, float timeScale)
     // 初期位置は変更しない（KnockBack関数で更新される）
 
     m_IsKnockedBack = true;
-    m_KnockbackTimer = 10.5f;  // 3秒間飛行
+    m_KnockbackTimer = 0.5f;  // 3秒間飛行
     onField = false; // ノックバックで地面から離れる
 }
 
