@@ -55,6 +55,8 @@ void gameupdate(uint64_t deltatime)
 
 void gamedraw(uint64_t deltatime) 
 {
+	//今はシャドウマップは描画していないので、シャドウマップ生成のコードはコメントアウトしています。
+	
 	// ========== 第1パス: シャドウマップ生成 ==========
 	//if (Renderer::IsShadowMapEnabled())
 	//{

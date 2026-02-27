@@ -340,7 +340,7 @@ void Ending::loadAsync()
 void Ending::dispose()
 {
     SoundManager::GetInstance().StopBGM();
-    delete m_TitleBillboard;
+    delete m_TitleBillboard;    
     delete m_screenBillboard;
     delete m_newRecordText;
     delete m_currentScoreUI;

@@ -3,6 +3,7 @@
 #include	"CarDriveScene.h"
 #include	"Title.h"
 #include"Ending.h"
+#include"StageSelect.h"
 #include <algorithm>
 #include <iostream>
 #include <WICTextureLoader.h>
@@ -36,12 +37,15 @@ ID3D11SamplerState* SceneManager::m_transitionSamplerState = nullptr;
 
 int m_gameScore = 0;
 
+int SceneManager::m_stageNumber = 0; 
+
 void SceneManager::Init()
 {
     // シーンの登録
     RegisterScene<CarDriveScene>("CarDriveScene");
-    RegisterScene<Title>("Title");
     RegisterScene<Ending>("Ending");
+    RegisterScene<Title>("Title");
+    RegisterScene<StageSelect>("StageSelect");
 
     // トランジションリソースの初期化
     InitTransitionResources();

@@ -175,7 +175,6 @@ void TitleSpiralEffect::CalculateSpiralPosition(float t, Vector3& outPos, Vector
 
         outAngularVel.y = angularSpeed;
         outAngularVel.z = cosf(spiralAngle) * 0.3f;
-        printf("%f\n", t);
     }
 }
 void TitleSpiralEffect::CalculateStraightPosition(float t, Vector3& outPos, Vector3& outRot, Vector3& outVel)

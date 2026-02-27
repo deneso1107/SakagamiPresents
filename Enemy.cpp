@@ -57,57 +57,9 @@ void Enemy::Update(float deltaTime)
         }
         else
         {
-            //Player* p;
-            //p = ((CarDriveScene*)(m_ownerscene))->GetPlayer();    // プレイヤの取得
-            //// プレイヤの座標を取得
-            //Vector3 playerpos = p->GetPosition();
-            //// atan2を使用して角度を求める
-            //m_Destrot.y = atan2f(-(playerpos.x - m_Position.x), -(playerpos.z - m_Position.z));
-            //// 現在の向きとの差分を計算する
-            //float fDiffRotY = m_Destrot.y - m_Rotation.y;
-            //// 補正（－１８０～１８０の範囲）
-            //if (fDiffRotY > PI)
-            //{
-            //    fDiffRotY -= PI * 2.0f;
-            //}
-            //if (fDiffRotY < -PI)
-            //{
-            //    fDiffRotY += PI * 2.0f;
-            //}
-            //// 回転角度計算
-            //m_Rotation.y += fDiffRotY * RATE_ROTATE_ENEMY;
-            //if (m_Rotation.y > PI)
-            //{
-            //    m_Rotation.y -= PI * 2.0f;
-            //}
-            //if (m_Rotation.y < -PI)
-            //{
-            //    m_Rotation.y += PI * 2.0f;
-            //}
-            //Matrix4x4 mtx = Matrix4x4::CreateRotationY(m_Rotation.y);    // 目標角度を現在の角度に更新
-            //Vector3 forward = mtx.Forward();    // 前方ベクトルを取得
-            //m_Move = forward * m_speed;    // 前方ベクトルにスピードを掛けて移動量を計算
-            ///// 位置移動（X、Z軸のみ。Y軸は重力で制御済み）
-            //m_Position.x += m_Move.x;
-            //m_Position.z += m_Move.z;
-            //// 移動量に慣性をかける(減速率)
-            //m_Move += -m_Move * RATE_MOVE_MODEL;
+            //位置は固定
         }
     }
-    //else
-    //{
-    //    // フィールドから離れている場合
-    //    onField = false;
-
-
-    //    // 常に重力を適用
-    //    ApplyGravity(deltaTime);//重力がえぐい　しかもPLayerが動いている時だけめちゃdeltatimeが大きくなる一旦保留((重力を進める場合は25行目のNoundingSquareのコメントを解除)
-    //    m_Position.y += m_verticalVelocity * deltaTime;
-    //    if (m_IsKnockedBack)
-    //    {
-    //        KnockBack(deltaTime);
-    //    }
-    //}
 }
 
 void Enemy::ApplyGravity(uint64_t deltatime)
@@ -222,7 +174,7 @@ void Enemy::SpawnDisappearEffect()
 GM31::GE::Collision::BoundingSphere Enemy::GetEnemyBoundingSphere()//Enemyの当たり判定を取得する関数
 {
     GM31::GE::Collision::BoundingSphere sphere;
-    sphere.center = m_Position;//敵のデフォルトのBoundingSquareとは別のやつを使っているのでどっちも変更尾する必要あり
-	sphere.radius = 20.0f; // X座標を半径として使用(カスコード)→ここの当たり判定だけ大きくする
+    sphere.center = m_Position;//敵のデフォルトのBoundingSquareとは別のやつを使っているのでどっちも変更する必要あり
+	sphere.radius = 15.0f; // X座標を半径として使用→ここの当たり判定だけ大きくする
     return sphere;
 }

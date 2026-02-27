@@ -20,7 +20,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Application.h" />
+    <ClInclude Include="ArrowButtonAnimator.h" />
     <ClInclude Include="BaseRoad.h" />
+    <ClInclude Include="BaseStageModel.h" />
     <ClInclude Include="Billboard.h" />
     <ClInclude Include="BlastEnemy.h" />
     <ClInclude Include="BoostCameraState.h" />
@@ -70,6 +72,14 @@
     <ClInclude Include="Skydome.h" />
     <ClInclude Include="SparkEmitter.h" />
     <ClInclude Include="SpeedMator.h" />
+    <ClInclude Include="StageDecideEffect.h" />
+    <ClInclude Include="StageManager.h" />
+    <ClInclude Include="StageModel1.h" />
+    <ClInclude Include="StageModel2.h" />
+    <ClInclude Include="StageModel3.h" />
+    <ClInclude Include="StageSelect.h" />
+    <ClInclude Include="StageSelectCamera.h" />
+    <ClInclude Include="StageUIAnimation.h" />
     <ClInclude Include="Start.h" />
     <ClInclude Include="StraightRoad.h" />
     <ClInclude Include="system\AssimpPerse.h" />
@@ -132,6 +142,7 @@
   <ItemGroup>
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="BaseRoad.cpp" />
+    <ClCompile Include="BaseStageModel.cpp" />
     <ClCompile Include="Billboard.cpp" />
     <ClCompile Include="BlastEnemy.cpp" />
     <ClCompile Include="BoostItem.cpp" />
@@ -175,6 +186,11 @@
     <ClCompile Include="Skydome.cpp" />
     <ClCompile Include="SparkEmitter.cpp" />
     <ClCompile Include="SpeedMator.cpp" />
+    <ClCompile Include="StageDecideEffect.cpp" />
+    <ClCompile Include="StageModel1.cpp" />
+    <ClCompile Include="StageSelect.cpp" />
+    <ClCompile Include="StageSelectCamera.cpp" />
+    <ClCompile Include="StageUIAnimation.cpp" />
     <ClCompile Include="Start.cpp" />
     <ClCompile Include="StraightRoad.cpp" />
     <ClCompile Include="system\AssimpPerse.cpp" />
@@ -265,6 +281,14 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
+    <FxCompile Include="shader\StageModelPS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="shader\StageModelVS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+    </FxCompile>
     <FxCompile Include="shader\TransitionPS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
@@ -275,6 +299,7 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
+    <FxCompile Include="shader\unlitTextureVS.hlsl" />
     <FxCompile Include="shader\vertexLightingPS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>

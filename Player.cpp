@@ -817,8 +817,10 @@ void Player::Update(float deltatime)
 	}
 
 	// 敵との当たり判定
-	for (auto& enemy : GetAllEnemys()) {
-		if (CollisionSphere(m_BoundingSphere, enemy->GetEnemyBoundingSphere())) {
+	for (auto& enemy : GetAllEnemys()) 
+	{
+		if (CollisionSphere(m_BoundingSphere, enemy->GetEnemyBoundingSphere())) 
+		{
 			if (!enemy->m_IsKnockedBack) {
 
 				OnCollisionWithEnemy(*enemy);
@@ -1573,10 +1575,6 @@ void Player::AddBoostGauge(float amount)
 	{
 		m_BoostGauge = m_MaxBoostGauge;
 	}
-
-	// デバッグ用の出力（必要に応じてコメントアウト可能）
-	//printf("Boost Gauge increased by %.1f. Current: %.1f/%.1f\n",
-	//	amount, m_BoostGauge, m_MaxBoostGauge);
 }
 void Player::UpdatePositionWithCollisionCheck(float timeScale)
 {
@@ -1616,7 +1614,6 @@ void Player::UpdatePositionWithCollisionCheck(float timeScale)
 					nextPosition.y = terrainHeight + m_BoundingSphere.radius + 1.0f; // 少し余裕を持たせる
 					m_verticalVelocity = 0.0f;
 					m_isGrounded = true;
-					printf("Emergency collision correction at step %d\n", i);
 				}
 			}
 
@@ -1733,8 +1730,6 @@ void Player::UpdateLastGroundedRoad()
 			// 新しい道路に乗ったら更新
 			if (currentRoad != m_lastGroundedRoad) {
 				m_lastGroundedRoad = currentRoad;
-				printf("Last grounded road updated: %p (Type: %d)\n",
-					currentRoad, (int)currentRoad->GetRoadType());
 			}
 
 			// 最後に接地していた位置と向きを記録
@@ -1762,17 +1757,14 @@ void Player::CheckFallState(float deltatime)
 	// 落下判定の条件
 	if (m_Position.y < FALL_THRESHOLD_Y) {
 		isFallingNow = true;
-		printf("Fall detected: Y position too low (%.2f)\n", m_Position.y);
 	}
 
 	if (!m_isGrounded && m_verticalVelocity < FALL_VELOCITY_THRESHOLD) {
 		isFallingNow = true;
-		printf("Fall detected: High-speed falling (velocity: %.2f)\n", m_verticalVelocity);
 	}
 
 	if (m_airTime > MAX_AIR_TIME) {
 		isFallingNow = true;
-		printf("Fall detected: Too long in air (%.2fs)\n", m_airTime);
 	}
 
 	//  落下状態になったらカメラ演出を開始（リスポーンは待機）
@@ -1783,8 +1775,6 @@ void Player::CheckFallState(float deltatime)
 
 		// カメラを落下モードに切り替え
 		SpringCamera::Instance().StartFallingMode();
-
-		printf("Fall state started - Waiting for camera animation\n");
 	}
 
 	// カメラ演出中はタイマーを進める
@@ -1793,8 +1783,6 @@ void Player::CheckFallState(float deltatime)
 
 		// カメラ演出が完了したらリスポーン実行
 		if (m_fallTimer >= FALL_CAMERA_DURATION) {
-			printf("Camera animation complete - Executing respawn\n");
-
 			// リスポーン処理を実行
 			RespawnToLastRoad();
 
@@ -1882,11 +1870,9 @@ void Player::RespawnToLastRoad()
 
 		SpringCamera::Instance().Shake(2.0f, 0.25f);
 
-		printf("Player respawned at STRAIGHT road: Pos(%.2f, %.2f, %.2f), Rot Y: %.2f degrees\n",
-			respawnPos.x, respawnPos.y, respawnPos.z,
-			DirectX::XMConvertToDegrees(respawnRot.y));
 	}
-	else {
-		printf("ERROR: Could not find any respawn position!\n");
+	else 
+	{
+		printf("どこにもリスポーン出来なかった\n");
 	}
 }

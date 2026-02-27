@@ -92,13 +92,9 @@ void  RoadManager::ResizeGrid(int width, int height)
         row.resize(m_gridWidth);
     }
 
-    // m_roadLayoutの初期化（重要！）
+    // m_roadLayoutの初期化
     m_roadLayout.clear();
     m_roadLayout.resize(m_gridHeight, std::vector<RoadSegment>(m_gridWidth));
-
-    printf("Grid resized: %dx%d, Layout size: %zux%zu\n",
-        width, height, m_roadLayout.size(),
-        m_roadLayout.empty() ? 0 : m_roadLayout[0].size());
 
 }
 
@@ -289,7 +285,6 @@ float RoadManager::GetPreviousRoadEndHeight(int x, int y, Direction direction) {
         m_roadLayout[prevY][prevX].HasRoad()) {
 
         float prevEndHeight = m_roadLayout[prevY][prevX].endHeight;
-        printf("Previous road at (%d,%d) endHeight: %.2f\n", prevX, prevY, prevEndHeight);
         return prevEndHeight;
     }
 
