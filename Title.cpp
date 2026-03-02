@@ -125,10 +125,8 @@ void Title::update(float deltatime)
 
 	TitleCamera::Instance().Update(deltatime);
 
-    DirectX::XMFLOAT3 pos = m_player.get()->GetPosition();
-    //pos.x += m_ParticlePos.x;x	
+    DirectX::XMFLOAT3 pos = m_player.get()->GetPosition();	
     pos.y -= 5.0f;
-    //pos.z += m_ParticlePos.z;
     DirectX::XMFLOAT3 dir = DirectX::XMFLOAT3(0.0f, 1.0f, 0.0f);
     m_sparkEmitter->Emit(pos, dir);
     m_sparkEmitter->Update(deltatime);

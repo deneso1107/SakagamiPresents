@@ -42,6 +42,8 @@ void StageSelect::init()
 
     m_decideEffect.Start(m_stageManager.GetCurrent()->GetPosition());
     m_player->SetPosition(m_decideEffect.GetCurrentPosition());
+
+    SoundManager::GetInstance().PlayBGM("selectbgm");
 }
 void StageSelect::update(float deltatime)
 {
@@ -57,6 +59,7 @@ void StageSelect::update(float deltatime)
         m_currentBillboardIndex = m_stageManager.GetCurrentIndex();
         m_uiAnimator.Play(1.0f);  // 右入力
         spinDir = 1.0f;
+        SoundManager::GetInstance().PlaySE("Click",0.25f);
     }
     if (CDirectInput::GetInstance().CheckKeyBufferTrigger(DIK_A) ||
         InputManager::GetInstance()->GetButtonTrigger(SDL_CONTROLLER_BUTTON_LEFTSHOULDER))
@@ -66,6 +69,7 @@ void StageSelect::update(float deltatime)
         m_currentBillboardIndex = m_stageManager.GetCurrentIndex();
         m_uiAnimator.Play(-1.0f); // 左入力
         spinDir = -1.0f;
+        SoundManager::GetInstance().PlaySE("Click", 0.25f);
     }
 
     if (CDirectInput::GetInstance().CheckKeyBufferTrigger(DIK_RETURN) ||
@@ -75,6 +79,7 @@ void StageSelect::update(float deltatime)
             m_decideEffect.Start(m_stageManager.GetCurrent()->GetPosition());
             // UIスライドアウト
             m_uiAnimator.ForceSetPosition(Vector2(0.5f, 1.5f));
+            SoundManager::GetInstance().PlaySE("Click", 0.25f);
         }
     }
 
@@ -88,6 +93,7 @@ void StageSelect::update(float deltatime)
     // 演出完了でシーン遷移
     if (m_isDeciding && m_decideEffect.IsDone())
     {
+        SoundManager::GetInstance().StopBGM();
         SceneManager::ChangeScene("CarDriveScene", true);
 		SceneManager::SetStageNumber(m_stageManager.GetCurrentIndex());
     }
@@ -153,6 +159,7 @@ void StageSelect::draw(float deltatime)
 }
 void  StageSelect::dispose()
 {
+    m_isDeciding = false;
 	m_stageManager.Dispose();
 }
 void StageSelect::loadAsync()
