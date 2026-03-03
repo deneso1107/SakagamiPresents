@@ -31,6 +31,8 @@ private:
 	float m_verticalVelocity = 0.0f;  // YŽ²•ûŒü‚Ì‘¬“x
 	float m_RotateSpeed = 100.0f;
 
+	float m_BoundingSphereRadius = 15.0f; // “–‚½‚è”»’è‚Ì”¼Œa
+
 	Field* m_field = nullptr;
 
 	bool onField = false;

@@ -122,7 +122,6 @@ public:
 
     void Init() override;
     void Update(float deltaTime);
-    void OnlyPosUpdate(float deltaTime);
     void Draw() override;
 
     // 外部インターフェース

@@ -77,7 +77,6 @@ void SpringCamera::debugCameraParam()
 #ifdef _DEBUG
     ImGui::Begin("CameraParam");
 
-    //ImGui::SliderFloat("Radius", &m_aberrationStrengt, 1,800);
     ImGui::SliderFloat("Elevation", &m_boostParams.distance, 0, 100);
     ImGui::SliderFloat("shockwaveSpeed", &m_boostParams.height, 0, 100);
     ImGui::SliderFloat("blurStrength", &m_boostParams.fov, 0, 100);
@@ -270,7 +269,6 @@ void SpringCamera::EndFallingMode()
     m_lookAtSpring.stiffness = m_normalParams.lookAtStiffness;
     m_lookAtSpring.damping = m_normalParams.lookAtDamping;
 
-    printf("Falling mode ended - Transitioning to respawn\n");
 }
 
 void SpringCamera::SetCameraMode(CameraMode mode)
@@ -279,8 +277,6 @@ void SpringCamera::SetCameraMode(CameraMode mode)
 
     CameraMode previousMode = m_currentMode;
     m_currentMode = mode;
-
-    printf("Camera mode changed: %d -> %d\n", (int)previousMode, (int)mode);
 
     // モード切り替え時の初期化処理
     if (mode == CameraMode::NORMAL) {
@@ -346,7 +342,6 @@ float SpringCamera::CalculatePitchOffset() const
 {
     // 方法1を使用（方法2を使う場合はこちらを呼ぶ）
     float slopeAngle = m_targetPlayer->GetGroundSlope();
-    //printf(" %f\n", slopeAngle);
     // スロープの角度に応じてピッチオフセットを計算
     float pitchOffset = 0.0f;
 
@@ -535,6 +530,7 @@ void SpringCamera::SetTargetPlayer(Player* player)
     m_targetPlayer = player;
 }
 
+// カメラシェイク開始
 void SpringCamera::Shake(float intensity, float duration)
 {
     
@@ -542,6 +538,7 @@ void SpringCamera::Shake(float intensity, float duration)
     m_shakeDuration = duration;
     m_isShaking = true;
 }
+
 
 Vector3 SpringCamera::GetForward() const
 {
