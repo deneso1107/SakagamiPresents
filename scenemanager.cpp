@@ -3,6 +3,7 @@
 #include	"CarDriveScene.h"
 #include	"Title.h"
 #include"Ending.h"
+#include"StageSelect.h"
 #include <algorithm>
 #include <iostream>
 #include <WICTextureLoader.h>
@@ -25,8 +26,8 @@ std::atomic<bool>  SceneManager::m_asyncLoading;
 std::atomic<bool>  SceneManager::m_asyncFinished=true;
 CShader SceneManager::m_transitionShader;
 CShader SceneManager::m_blackfadeShader;
-ScreenFixedBillboard* SceneManager::m_BillboardLoad;
-ScreenFixedBillboard* SceneManager::m_BillboardCowIcon;
+ScreenFixedBillboard* SceneManager::m_billboardLoad;
+ScreenFixedBillboard* SceneManager::m_billboardCowIcon;
 ID3D11Buffer* SceneManager::m_transitionVertexBuffer = nullptr;
 ID3D11Buffer* SceneManager::m_transitionConstantBuffer = nullptr;
 ID3D11ShaderResourceView* SceneManager::m_transitionTexture = nullptr;
@@ -36,12 +37,15 @@ ID3D11SamplerState* SceneManager::m_transitionSamplerState = nullptr;
 
 int m_gameScore = 0;
 
+int SceneManager::m_stageNumber = 0; 
+
 void SceneManager::Init()
 {
     // シーンの登録
     RegisterScene<CarDriveScene>("CarDriveScene");
-    RegisterScene<Title>("Title");
     RegisterScene<Ending>("Ending");
+    RegisterScene<Title>("Title");
+    RegisterScene<StageSelect>("StageSelect");
 
     // トランジションリソースの初期化
     InitTransitionResources();
@@ -141,8 +145,8 @@ void SceneManager::InitTransitionResources()
 
     // ロケット牛の画像を読み込み
     LoadTransitionTexture(L"assets/texture/cow_rocket.png");
-    m_BillboardLoad = new ScreenFixedBillboard(Vector2(0.85f, 0.9f), 0.15f, 0.15f, L"assets/texture/Image.png");
-    m_BillboardCowIcon = new ScreenFixedBillboard(Vector2(0.95f, 0.90f), 0.05f, 0.05f, L"assets/texture/cow_icon.png");
+    m_billboardLoad = new ScreenFixedBillboard(Vector2(0.85f, 0.9f), 0.15f, 0.15f, L"assets/texture/Image.png");
+    m_billboardCowIcon = new ScreenFixedBillboard(Vector2(0.95f, 0.90f), 0.05f, 0.05f, L"assets/texture/cow_icon.png");
     //LoadTransitionTexture(L"assets/texture/cow_rocket.png", m_loadingTextTexture);
     //LoadTransitionTexture(L"assets/texture/cow_rocket.png", m_cowIconTexture);
 }
@@ -180,8 +184,8 @@ void SceneManager::Update(float deltaTime)
             m_scenes[m_currentSceneName]->update(deltaTime);
         }
     }
-    m_BillboardLoad->Update();
-    m_BillboardCowIcon->Update();
+    m_billboardLoad->Update();
+    m_billboardCowIcon->Update();
 }
 
 void SceneManager::Draw(float deltaTime)
@@ -245,7 +249,7 @@ void SceneManager::UpdateTransition(float deltaTime)
         m_fadeAlpha = 1.0f;
 
         m_loadingRotation += PI*2 * dt;
-		m_BillboardCowIcon->SetAngle(m_loadingRotation * (180.0f / 3.14159f)); // ラジアンを度に変換
+		m_billboardCowIcon->SetAngle(m_loadingRotation * (180.0f / 3.14159f)); // ラジアンを度に変換
 
 
         LoadNextSceneAsync();
@@ -656,8 +660,8 @@ void SceneManager::DrawTransitionOverlay()
 
 void SceneManager::DrawLoadingIndicator()
 {
-	m_BillboardLoad->Draw();
-    m_BillboardCowIcon->Draw();
+	m_billboardLoad->Draw();
+    m_billboardCowIcon->Draw();
 }
 
 void SceneManager::DisposeTransitionResources()

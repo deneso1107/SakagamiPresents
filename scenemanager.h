@@ -27,8 +27,8 @@ private:
     static ID3D11DepthStencilState* m_transitionDepthState;
     static ID3D11BlendState* m_transitionBlendState;
     static ID3D11SamplerState* m_transitionSamplerState;
-    static ScreenFixedBillboard* m_BillboardLoad;
-    static ScreenFixedBillboard* m_BillboardCowIcon;
+    static ScreenFixedBillboard* m_billboardLoad;
+    static ScreenFixedBillboard* m_billboardCowIcon;
 
     // トランジション用頂点構造体
     struct TransitionVertex {
@@ -78,6 +78,8 @@ private:
     static std::atomic<bool> m_asyncLoading;
     static std::atomic<bool> m_asyncFinished;
 
+    static int m_stageNumber;
+
 public:
     // 基本機能
     static void Init();
@@ -114,4 +116,9 @@ public:
     // デバッグ・ユーティリティ
     static std::vector<std::string> GetRegisteredSceneNames();
     static bool IsSceneRegistered(const std::string& sceneName);
+
+    ///ステージ関係
+    static void SetStageNumber(int stage) { m_stageNumber = stage; }
+    static int  GetStageNumber() { return m_stageNumber; }
+
 };

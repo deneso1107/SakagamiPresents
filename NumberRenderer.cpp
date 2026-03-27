@@ -48,9 +48,9 @@ void NumberRenderer::Init(const Vector2& basePos, float digitWidth, float digitH
     Vector2 backpos = basePos;
     backpos.y -= 0.05f;
     backpos.x -= 0.05f;
-    m_BackGroundScoreBillBoard= std::make_unique<ScreenFixedBillboard>(backpos, digitWidth*4, digitHeight*3, L"assets/texture/text/Score.png");
-    m_BackGroundTimeBillBoard= std::make_unique<ScreenFixedBillboard>(backpos, digitWidth*4, digitHeight*3, L"assets/texture/text/Time.png");
-    m_BackGroundTimeBillBoard= std::make_unique<ScreenFixedBillboard>(backpos, digitWidth*4, digitHeight*3, L"assets/texture/text/Time.png");
+    m_backGroundScoreBillBoard= std::make_unique<ScreenFixedBillboard>(backpos, digitWidth*4, digitHeight*3, L"assets/texture/text/Score.png");
+    m_backGroundTimeBillBoard= std::make_unique<ScreenFixedBillboard>(backpos, digitWidth*4, digitHeight*3, L"assets/texture/text/Time.png");
+    m_backGroundTimeBillBoard= std::make_unique<ScreenFixedBillboard>(backpos, digitWidth*4, digitHeight*3, L"assets/texture/text/Time.png");
 }
 
 void NumberRenderer::Dispose()
@@ -313,11 +313,11 @@ void NumberRenderer::Draw(bool useback,bool time)//‘æ“ñˆø”‚Å‚Ç‚¿‚ç‚ðŽg‚¤‚©‘I‘ð
     {
         if (time)//
         {
-            m_BackGroundTimeBillBoard->Draw();
+            m_backGroundTimeBillBoard->Draw();
         }
         else
         {
-            m_BackGroundScoreBillBoard->Draw();
+            m_backGroundScoreBillBoard->Draw();
         }
     }
     for (auto& billboard : m_digitBillboards) {

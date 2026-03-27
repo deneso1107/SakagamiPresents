@@ -33,7 +33,7 @@ void Camera::Draw()
 	// DIRECTXTKのメソッドは右手系　20230511 by suzuki.tomoki
 	// 右手系にすると３角形頂点が反時計回りになるので描画されなくなるので注意
 	// このコードは確認テストのために残す
-	//	m_ViewMatrix = m_ViewMatrix.CreateLookAt(m_Position, m_Target, up);					
+	//	m_ViewMatrix = m_ViewMatrix.CreateLookAt(m_position, m_Target, up);					
 
 	Renderer::SetViewMatrix(&m_viewmtx);
 

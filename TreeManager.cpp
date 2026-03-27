@@ -3,34 +3,34 @@
 #include <algorithm>
 
 // 静的メンバの定義
-CStaticMesh TreeManager::s_TreeMesh{};
-CStaticMeshRenderer TreeManager::s_TreeMeshRenderer{};
-CShader TreeManager::s_TreeShader{};
-bool TreeManager::s_ResourcesInitialized = false;
+CStaticMesh TreeManager::m_treeMesh{};
+CStaticMeshRenderer TreeManager::m_treeMeshRenderer{};
+CShader TreeManager::m_treeShader{};
+bool TreeManager::m_resourcesInitialized = false;
 
 
 // 共有リソースの初期化（一度だけ実行される）
 void TreeManager::InitializeSharedResources()
 {
-    if (s_ResourcesInitialized)
+    if (m_resourcesInitialized)
     {
         return;  // 既に初期化済み
     }
 
     // モデルの初期化（一度だけ）
-    s_TreeMesh.Load(
+    m_treeMesh.Load(
         "assets/model/Tree/tree_1126023743_texture.fbx",
         "assets/model/");
 
     // レンダラ初期化
-    s_TreeMeshRenderer.Init(s_TreeMesh);
+    m_treeMeshRenderer.Init(m_treeMesh);
 
     // シェーダーの初期化
-    s_TreeShader.Create(
+    m_treeShader.Create(
         "shader/vertexLightingVS.hlsl",
         "shader/vertexLightingPS.hlsl");
 
-    s_ResourcesInitialized = true;
+    m_resourcesInitialized = true;
 
     printf("Tree shared resources initialized.\n");
 }
@@ -64,7 +64,7 @@ void TreeManager::CalculateTreeTransform(
         outRot.y = rotDist(mt);
     }
 
-	float Offset_Y = -s_TreeMesh.GetBottomY() * outScale.y; // 底面の位置に合わせてYオフセットを調整
+	float Offset_Y = -m_treeMesh.GetBottomY() * outScale.y; // 底面の位置に合わせてYオフセットを調整
     float adjustedYOffset = config.yOffset - Offset_Y;
         
     // 位置の計算
@@ -232,7 +232,7 @@ void TreeManager::Init(const MultiTreeFormationConfig& config)
     }
 
     // 既存の木をクリア
-    m_Trees.clear();
+    m_trees.clear();
 
     std::mt19937 mt{ std::random_device{}() };
 
@@ -297,24 +297,24 @@ void TreeManager::Init(const MultiTreeFormationConfig& config)
             tree->SetRotation(rot);
             tree->SetScale(scale);
 
-            m_Trees.emplace_back(std::move(tree));
+            m_trees.emplace_back(std::move(tree));
             currentIndex++;
         }
     }
 
     // 最終チェック：生成された木の数を確認
-    printf("Initialized %d trees (requested: %d)\n", (int)m_Trees.size(), config.totalTreeCount);
+    printf("Initialized %d trees (requested: %d)\n", (int)m_trees.size(), config.totalTreeCount);
 }
 
 void TreeManager::Update(float deltaTime)
 {
     // 空チェック
-    if (m_Trees.empty())
+    if (m_trees.empty())
     {
         return;
     }
 
-    for (auto& tree : m_Trees)
+    for (auto& tree : m_trees)
     {
         // nullptrチェック
         if (tree)
@@ -328,23 +328,23 @@ void TreeManager::Update(float deltaTime)
 void TreeManager::Draw()
 {
     // 空チェック
-    if (m_Trees.empty())
+    if (m_trees.empty())
     {
         return;
     }
 
     // 共有リソースが初期化されていない場合は描画しない
-    if (!s_ResourcesInitialized)
+    if (!m_resourcesInitialized)
     {
         printf("Warning: Tree resources not initialized!\n");
         return;
     }
 
     // シェーダーを一度だけセット
-    s_TreeShader.SetGPU();
+    m_treeShader.SetGPU();
 
     // 全ての木を描画
-    for (auto& tree : m_Trees)
+    for (auto& tree : m_trees)
     {
         // nullptrチェック
         if (tree)
@@ -361,7 +361,7 @@ void TreeManager::Draw()
             Renderer::SetWorldMatrix(&worldmtx);
 
             // 共有メッシュレンダラーで描画
-            s_TreeMeshRenderer.Draw();
+            m_treeMeshRenderer.Draw();
         }
     }
 }
@@ -370,7 +370,7 @@ void TreeManager::Dispose()
 {
     DisposeSharedResources();
     // 全ての木を破棄
-    for (auto& tree : m_Trees)
+    for (auto& tree : m_trees)
     {
         if (tree)
         {
@@ -378,18 +378,18 @@ void TreeManager::Dispose()
         }
     }
 
-    m_Trees.clear();
+    m_trees.clear();
 }
 
 void TreeManager::DisposeSharedResources()
 {
-    if (!s_ResourcesInitialized)
+    if (!m_resourcesInitialized)
     {
         return;
     }
 
     // 必要に応じてリソースの破棄処理を追加
-    s_ResourcesInitialized = false;
+    m_resourcesInitialized = false;
 
     printf("Tree shared resources disposed.\n");
 }

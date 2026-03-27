@@ -60,12 +60,12 @@ private:
 
     // UI—v‘f
     ScreenFixedBillboard* m_screenBillboard;
-    ScreenFixedBillboard* m_TitleBillboard;
+    ScreenFixedBillboard* m_titleBillboard;
     ScreenFixedBillboard* m_newRecordText;
     NumberRenderer* m_currentScoreUI;
     NumberRenderer* m_bestScoreUI;
-    std::unique_ptr<ScreenFixedBillboard>  m_BestGroundBillBoard;
-    std::unique_ptr<ScreenFixedBillboard>  m_ScoreGroundBillBoard;
+    std::unique_ptr<ScreenFixedBillboard>  m_bestGroundBillBoard;
+    std::unique_ptr<ScreenFixedBillboard>  m_scoreGroundBillBoard;
 
 
     std::unique_ptr<Player> m_player;

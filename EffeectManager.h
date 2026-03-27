@@ -10,19 +10,19 @@ using namespace DirectX::SimpleMath;
 class Effect
 {
 public:
-    Effect() : m_IsActive(true), m_LifeTime(0.0f), m_MaxLifeTime(1.0f) {}
+    Effect() : m_isActive(true), m_lifeTime(0.0f), m_maxLifeTime(1.0f) {}
     virtual ~Effect() = default;
 
     virtual void Update(float deltaTime) = 0;
     virtual void Draw(const Matrix4x4& viewMatrix) = 0;
 
-    bool IsActive() const { return m_IsActive; }
-    void SetActive(bool active) { m_IsActive = active; }
+    bool IsActive() const { return m_isActive; }
+    void SetActive(bool active) { m_isActive = active; }
 
 protected:
-    bool m_IsActive;
-    float m_LifeTime;
-    float m_MaxLifeTime;
+    bool m_isActive;
+    float m_lifeTime;
+    float m_maxLifeTime;
 };
 
 //既存Billboardクラスを使ったエフェクト
@@ -36,16 +36,16 @@ public:
     void Update(float deltaTime) override;
     void Draw(const Matrix4x4& viewMatrix) override;
 
-    void SetFadeOut(bool fade) { m_FadeOut = fade; }
-    void SetScale(float scale) { m_Scale = scale; }
+    void SetFadeOut(bool fade) { m_fadeOut = fade; }
+    void SetScale(float scale) { m_scale = scale; }
 
 private:
-    Billboard m_Billboard;
-    Vector4 m_OriginalColor;
-    bool m_FadeOut;
-    float m_Scale;
-    float m_InitialWidth;
-    float m_InitialHeight;
+    Billboard m_billboard;
+    Vector4 m_originalColor;
+    bool m_fadeOut;
+    float m_scale;
+    float m_initialWidth;
+    float m_initialHeight;
 };
 
 class ParticleEffect : public Effect
@@ -54,34 +54,34 @@ public:
     ParticleEffect(SparkEmitter* sharedEmitter,
         const Vector3& position, const Vector3& direction,
         const ParticleEmitterGroup& config)
-        : m_Emitter(sharedEmitter),
-        m_Config(config),
-        m_Position(position),
-        m_Direction(direction),
-        m_ParticleCountToEmit(config.emitCountPerCall),
-        m_HasSetup(false),
-        m_EmitDuration(0.3f)
+        : m_emitter(sharedEmitter),
+        m_config(config),
+        m_position(position),
+        m_direction(direction),
+        m_particleCountToEmit(config.emitCountPerCall),
+        m_hasSetup(false),
+        m_emitDuration(0.3f)
     {
-        m_MaxLifeTime = config.duration;
-        m_LifeTime = 0.0f;
+        m_maxLifeTime = config.duration;
+        m_lifeTime = 0.0f;
     }
 
     ~ParticleEffect() override = default;
     void Update(float deltaTime) override;
     void Draw(const Matrix4x4& viewMatrix) override {}
 
-    const ParticleEmitterGroup& GetConfig() const { return m_Config; }
-    Vector3 GetPosition() const { return m_Position; }
-    Vector3 GetDirection() const { return m_Direction; }
+    const ParticleEmitterGroup& GetConfig() const { return m_config; }
+    Vector3 GetPosition() const { return m_position; }
+    Vector3 GetDirection() const { return m_direction; }
 
 private:
-    SparkEmitter* m_Emitter;
-    ParticleEmitterGroup m_Config;
-    Vector3 m_Position;
-    Vector3 m_Direction;
-    int m_ParticleCountToEmit;
-    bool m_HasSetup;
-    float m_EmitDuration;
+    SparkEmitter* m_emitter;
+    ParticleEmitterGroup m_config;
+    Vector3 m_position;
+    Vector3 m_direction;
+    int m_particleCountToEmit;
+    bool m_hasSetup;
+    float m_emitDuration;
 };
 
 
@@ -154,16 +154,16 @@ private:
     EffectManager(const EffectManager&) = delete;
     EffectManager& operator=(const EffectManager&) = delete;
 
-    std::vector<std::unique_ptr<Effect>> m_Effects;
-    std::unordered_map<std::string, EffectPreset> m_Presets;
-    size_t m_CurrentEmitterIndex = 0;
+    std::vector<std::unique_ptr<Effect>> m_effects;
+    std::unordered_map<std::string, EffectPreset> m_presets;
+    size_t m_currentEmitterIndex = 0;
 
     //BillBoard抑制
-    bool m_BillboardSpawnedThisFrame = false;
-    int m_CurrentFrame = 0;//現在のフレーム数を取得する
+    bool m_billboardSpawnedThisFrame = false;
+    int m_currentFrame = 0;//現在のフレーム数を取得する
 
     //複数のエミッタを保持
-    std::vector<std::unique_ptr<SparkEmitter>> m_Emitters;
+    std::vector<std::unique_ptr<SparkEmitter>> m_emitters;
 
     void RemoveInactiveEffects();
     SparkEmitter* GetAvailableEmitter();

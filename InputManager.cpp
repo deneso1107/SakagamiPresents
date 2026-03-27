@@ -33,7 +33,7 @@ bool InputManager::Initialize()
 {
     if (SDL_Init(SDL_INIT_GAMECONTROLLER) < 0)
     {
-        printf("できないっぴ");
+        printf("コントローラーなし");
         return false;
     }
 
@@ -69,6 +69,17 @@ void InputManager::Shutdown()
 
 void InputManager::Update()
 {
+    // 前フレームの状態を保存
+    memcpy(m_prevButtons, m_currButtons, sizeof(m_currButtons));
+
+    // 現在の状態を更新
+    if (controller) {
+        for (int i = 0; i < SDL_CONTROLLER_BUTTON_MAX; i++) {
+            m_currButtons[i] = SDL_GameControllerGetButton(
+                controller, (SDL_GameControllerButton)i) != 0;
+        }
+    }
+
     // イベント処理（コントローラーの抜き差し検知など）
     SDL_Event event;
     while (SDL_PollEvent(&event))
@@ -94,8 +105,7 @@ void InputManager::Update()
 
 bool InputManager::GetButton(SDL_GameControllerButton button)
 {
-    if (controller == nullptr) return false;
-    return SDL_GameControllerGetButton(controller, button) != 0;
+    return m_currButtons[button];
 }
 
 float InputManager::GetAxis(SDL_GameControllerAxis axis)
@@ -110,6 +120,12 @@ float InputManager::GetAxis(SDL_GameControllerAxis axis)
 
     // -1.0 ~ 1.0 に正規化
     return value / 32767.0f;
+}
+
+//押した瞬間だけtrue
+bool InputManager::GetButtonTrigger(SDL_GameControllerButton button)
+{
+    return m_currButtons[button] && !m_prevButtons[button];
 }
 
 bool InputManager::IsConnected() const

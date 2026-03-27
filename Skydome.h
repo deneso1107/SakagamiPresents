@@ -8,7 +8,7 @@
 
 class Skydome {
 
-	// SRT情報（姿勢情報）
+	// SRT情報（姿勢情報）ここ大文字にしてるのは、カメラと同じように、外部からアクセスする可能性があるから
 	Vector3	m_Position = Vector3(0.0f, 0.0f, 0.0f);
 	Vector3	m_Rotation = Vector3(0.0f, 0.0f, 0.0f);
 	Vector3	m_Scale = Vector3(1.0f, 1.0f, 1.0f);
@@ -19,7 +19,7 @@ class Skydome {
 	CStaticMesh			m_mesh_night;	// メッシュレンダラ(夜)
 	CShader				m_shader;		// シェーダ(夜)
 
-	Billboard			m_SunBillboard;	// ビルボード
+	Billboard			m_sunBillboard;	// ビルボード
 
 	//上半球と下半球を描画する内部関数
 	void DrawUpperHemisphere(bool isboost);

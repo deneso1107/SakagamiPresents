@@ -84,7 +84,6 @@ public:
     void SetCameraTransitionSpeed(float speed) { m_cameraTransitionSpeed = speed; }
 
     void EnableDebug(bool enable) { m_enableDebug = enable; }
-    void DrawDebugUI();
     void Shake(float intensity, float duration);
 
     Vector3 GetForward() const

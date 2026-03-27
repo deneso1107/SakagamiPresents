@@ -1,11 +1,16 @@
 #pragma once
 #include <SDL.h>
 #include <stdio.h>
+#include <string.h>
 class InputManager
 {
 private:
     static InputManager* instance;
     SDL_GameController* controller;
+
+    // 前フレームのボタン状態
+    bool m_prevButtons[SDL_CONTROLLER_BUTTON_MAX] = {};
+    bool m_currButtons[SDL_CONTROLLER_BUTTON_MAX] = {};
 
     // コンストラクタをprivateに
     InputManager();
@@ -19,6 +24,9 @@ public:
     // インスタンス取得
     static InputManager* GetInstance();
     static void Destroy();
+
+    // 押した瞬間だけtrue
+    bool GetButtonTrigger(SDL_GameControllerButton button);
 
     // 初期化・終了
     bool Initialize();

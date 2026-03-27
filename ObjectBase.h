@@ -10,13 +10,12 @@
 
 class ObjectBase {
 protected:
-    // SRT情報（姿勢情報）]
+	// SRT情報（姿勢情報）ここ小文字にしたら違和感あるから大文字のままに
     Vector3 m_Position = Vector3(0.0f, 0.0f, 0.0f);
     Vector3 m_Rotation = Vector3(0.0f, 0.0f, 0.0f);
     Vector3 m_Scale = Vector3(1.0f, 1.0f, 1.0f);
 
-
-    // 当たり判定
+    // 当たり判定　ここ小文字にしたら違和感あるから大文字のままに
     GM31::GE::Collision::BoundingSphere m_BoundingSphere;
 
 public:

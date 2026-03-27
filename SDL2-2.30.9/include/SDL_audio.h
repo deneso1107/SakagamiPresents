@@ -595,7 +595,7 @@ extern DECLSPEC int SDLCALL SDL_GetDefaultAudioInfo(char **name,
  *   single sample frame). This number should be a power of two, and may be
  *   adjusted by the audio driver to a value more suitable for the hardware.
  *   Good values seem to range between 512 and 4096 inclusive, depending on
- *   the application and CPU speed. Smaller values reduce latency, but can
+ *   the application and CPU m_speed. Smaller values reduce latency, but can
  *   lead to underflow if the application is doing heavy processing and cannot
  *   fill the audio buffer in time. Note that the number of sample frames is
  *   directly related to time by the following formula: `ms =

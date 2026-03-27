@@ -26,9 +26,9 @@ private:
 
 
     std::vector<std::unique_ptr<ScreenFixedBillboard>> m_digitBillboards;
-    std::unique_ptr<ScreenFixedBillboard>  m_BackGroundScoreBillBoard;
-    std::unique_ptr<ScreenFixedBillboard>  m_BackGroundTimeBillBoard;
-    std::unique_ptr<ScreenFixedBillboard>  m_BackGroundBillBoard;
+    std::unique_ptr<ScreenFixedBillboard>  m_backGroundScoreBillBoard;
+    std::unique_ptr<ScreenFixedBillboard>  m_backGroundTimeBillBoard;
+    std::unique_ptr<ScreenFixedBillboard>  m_backGroundBillBoard;
 
     // アニメーション用メンバ変数
     bool m_isAnimating;              // アニメーション中かどうか
@@ -62,7 +62,7 @@ public:
     void AddToNumber(int value) { s_displayNumber += value; }
 
     void SetPosition(const Vector2& pos) { m_basePosition = pos; }
-    void SetPositionBack(const Vector2& pos) { m_BackGroundBillBoard->SetScreenPosition(pos); }
+    void SetPositionBack(const Vector2& pos) { m_backGroundBillBoard->SetScreenPosition(pos); }
     Vector2 GetPosition() { return  m_basePosition; }
     void SetDigitSize(float width, float height) { m_digitWidth = width; m_digitHeight = height; }
     void SetSpacing(float spacing) { m_digitSpacing = spacing; }

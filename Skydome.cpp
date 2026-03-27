@@ -29,13 +29,13 @@ void Skydome::Init()
 		"shader/unlitTextureVS.hlsl",		// 頂点シェーダー
 		"shader/unlitTexturePS.hlsl");		// ピクセルシェーダー
 
-	m_SunBillboard.Init(
+	m_sunBillboard.Init(
 		Vector3(0.0f, 0.0f, 0.0f),	//位置
 		20.0f, 20.0f,				//幅、高さ
 		L"assets/texture/cow_icon.png"	//テクスチャパス
 	);
 
-	m_SunBillboard.m_blendType = BillboardBlendType::Additive;
+	m_sunBillboard.m_blendType = BillboardBlendType::Additive;
 }
 
 void Skydome::Update(Vector3 camepos)
@@ -51,7 +51,7 @@ void Skydome::Update(Vector3 camepos)
 	float sunDistance = 200.0f; // スカイドーム半径より小さめ
 	Vector3 sunPos = camepos + sunDir * sunDistance;
 
-	m_SunBillboard.SetPosition(sunPos);
+	m_sunBillboard.SetPosition(sunPos);
 }
 
 void Skydome::Draw(bool isboost)
@@ -66,7 +66,7 @@ void Skydome::Draw(bool isboost)
     DrawLowerHemisphere(isboost);
 
     // 太陽を描画
-    m_SunBillboard.Draw();
+    m_sunBillboard.Draw();
 }
 
 void Skydome::DrawUpperHemisphere(bool isboost)

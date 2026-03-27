@@ -141,8 +141,6 @@ void CheeseCamera::Draw()
         m_lookat,
         up);
 
-    //m_viewmtx = Matrix4x4::CreateLookAt(m_position, m_lookat, up);
-
     // バンク角（ロール）を追加
     float bankRad = DirectX::XMConvertToRadians(m_currentBank);
     Matrix4x4 bankRot = Matrix4x4::CreateRotationY(bankRad);

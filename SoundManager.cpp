@@ -226,6 +226,7 @@ void SoundManager::AllSoundLoad()
 {
 	//タイトルBGM、ゲームBGM、リザルトBGMをまとめて読み込む
     LoadSound("titlebgm", L"assets/sound/bgm/Title.mp3");
+    LoadSound("selectbgm", L"assets/sound/bgm/stageselect.wav");
     LoadSound("GameSceneNormalbgm", L"assets/sound/bgm/通常時.mp3");
     LoadSound("GameSceneAccerationbgm", L"assets/sound/bgm/無題.mp4");
     LoadSound("GameSceneAccerationbgm2", L"assets/sound/bgm/加速時の歓声.mp3");

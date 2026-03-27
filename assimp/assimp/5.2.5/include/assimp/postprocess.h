@@ -448,7 +448,7 @@ enum aiPostProcessSteps
     /** <hr>This step searches for duplicate meshes and replaces them
      *  with references to the first mesh.
      *
-     *  This step takes a while, so don't use it if speed is a concern.
+     *  This step takes a while, so don't use it if m_speed is a concern.
      *  Its main purpose is to workaround the fact that many export
      *  file formats don't support instanced meshes, so exporters need to
      *  duplicate meshes. This step removes the duplicates again. Please
@@ -652,9 +652,9 @@ enum aiPostProcessSteps
   *  @brief Default postprocess configuration optimizing the data for real-time rendering.
   *
   *  Unlike #aiProcessPreset_TargetRealtime_Fast, this configuration
-  *  performs some extra optimizations to improve rendering speed and
+  *  performs some extra optimizations to improve rendering m_speed and
   *  to minimize memory usage. It could be a good choice for a level editor
-  *  environment where import speed is not so important.
+  *  environment where import m_speed is not so important.
   *
   *  If you're using DirectX, don't forget to combine this value with
   *  the #aiProcess_ConvertToLeftHanded step. If you don't support UV transformations
@@ -683,7 +683,7 @@ enum aiPostProcessSteps
   *  @brief Default postprocess configuration optimizing the data for real-time rendering.
   *
   *  This preset enables almost every optimization step to achieve perfectly
-  *  optimized data. It's your choice for level editor environments where import speed
+  *  optimized data. It's your choice for level editor environments where import m_speed
   *  is not important.
   *
   *  If you're using DirectX, don't forget to combine this value with

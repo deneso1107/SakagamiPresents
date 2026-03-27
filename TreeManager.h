@@ -74,13 +74,13 @@ struct MultiTreeFormationConfig
 class TreeManager
 {
 private:
-    std::vector<std::unique_ptr<Tree>> m_Trees;
+    std::vector<std::unique_ptr<Tree>> m_trees;
 
     // 共有リソース（全ての木で共有）
-    static CStaticMesh s_TreeMesh;
-    static CStaticMeshRenderer s_TreeMeshRenderer;
-    static CShader s_TreeShader;
-    static bool s_ResourcesInitialized;
+    static CStaticMesh m_treeMesh;
+    static CStaticMeshRenderer m_treeMeshRenderer;
+    static CShader m_treeShader;
+    static bool m_resourcesInitialized;
 
     // 内部関数：配置パターンに応じた位置・回転・スケールを計算
     void CalculateTreeTransform(
@@ -120,9 +120,9 @@ public:
     static void DisposeSharedResources();
 
     // 木の取得
-    std::vector<std::unique_ptr<Tree>>& GetAllTrees() { return m_Trees; }
-    const std::vector<std::unique_ptr<Tree>>& GetAllTrees() const { return m_Trees; }
+    std::vector<std::unique_ptr<Tree>>& GetAllTrees() { return m_trees; }
+    const std::vector<std::unique_ptr<Tree>>& GetAllTrees() const { return m_trees; }
 
     // 木の数を取得
-    int GetTreeCount() const { return static_cast<int>(m_Trees.size()); }
+    int GetTreeCount() const { return static_cast<int>(m_trees.size()); }
 };

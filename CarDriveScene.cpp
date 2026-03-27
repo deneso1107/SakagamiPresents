@@ -110,7 +110,7 @@ void CarDriveScene::init()
 	EffectManager::Instance().Initialize();
 	m_timeRenderer. Init(Vector2(0.95f, 0.15f),0.035f, 0.055f, 0.01f, true);
 	m_scoreRenderer.Init(Vector2(0.95f, 0.3f), 0.035f, 0.055f, 0.01f, true);
-	m_RemainingTime = 150.0f;
+	m_remainingTime = 150.0f;
 
 	m_speedMator = new SpeedMator();
 	m_speedMator->Init();
@@ -194,8 +194,8 @@ void CarDriveScene::init()
 		m_aberrationStrength = strength;
 		});
 
-	m_CameraManager.SetTargetPlayer(m_player.get());
-	m_CameraManager.Init();
+	m_cameraManager.SetTargetPlayer(m_player.get());
+	m_cameraManager.Init();
 
 
 	if (!m_sparkEmitter.Init(Renderer::GetDevice()))
@@ -203,12 +203,12 @@ void CarDriveScene::init()
 		OutputDebugStringA("パーティクル初期化失敗");
 	}
 
-	if (!m_MeteoEmitter.Init(Renderer::GetDevice()))
+	if (!m_meteoEmitter.Init(Renderer::GetDevice()))
 	{
 		OutputDebugStringA("サンプラーステート作成失敗\n");
 	}
 
-	m_MeteoEmitter.SetMeteorShowerMode(
+	m_meteoEmitter.SetMeteorShowerMode(
 		50.0f,   // プレイヤー周囲の半径
 		60.0f,   // 横方向の開始距離
 		15.0f,   // 高さ
@@ -226,65 +226,111 @@ void CarDriveScene::init()
 
 void CarDriveScene::loadAsync()
 {
-	// ロードが必要なリソースがあればここで非同期に読み込む
-	roadManager.ResizeGrid(7, 18);//East=東　West＝西　North＝北　South＝南
-	roadManager.InitializeGridSpacing();  // グリッド間隔を初期化
-	roadManager.SetRoad(0, 1, RoadType::START_LINE, Direction::SOUTH);
-	roadManager.SetRoad(0, 2, RoadType::STRAIGHT, Direction::NORTH);
-	roadManager.SetRoad(0, 3, RoadType::STRAIGHT, Direction::NORTH);//北↑
-	roadManager.SetRoad(0, 4, RoadType::SLOPE_UP, Direction::NORTH);
-	roadManager.SetRoad(0, 5, RoadType::STRAIGHT, Direction::SOUTH);
-	roadManager.SetRoad(0, 6, RoadType::STRAIGHT, Direction::SOUTH);
-	roadManager.SetRoad(0, 7, RoadType::SLOPE_DOWN, Direction::NORTH);
-	roadManager.SetRoad(0, 8, RoadType::STRAIGHT, Direction::NORTH);
-	roadManager.SetRoad(0, 9, RoadType::STRAIGHT, Direction::NORTH);
-	//Curveダート地帯
-	roadManager.SetRoad(0, 10, RoadType::TURN_LEFT, Direction::NORTH);//東に向いてほしい
-	roadManager.SetRoad(1, 10, RoadType::STRAIGHT, Direction::EAST);//東→
-	roadManager.SetRoad(2, 10, RoadType::TURN_LEFT, Direction::SOUTH);//北に向いてほしい
-	roadManager.SetRoad(2, 11, RoadType::STRAIGHT, Direction::NORTH);
-	roadManager.SetRoad(2, 12, RoadType::STRAIGHT, Direction::NORTH);
-	roadManager.SetRoad(2, 13, RoadType::TURN_LEFT, Direction::EAST);//
-	roadManager.SetRoad(1, 13, RoadType::STRAIGHT, Direction::WEST);//←西
-	roadManager.SetRoad(0, 11, RoadType::DIRT, Direction::NORTH);
-	roadManager.SetRoad(0, 12, RoadType::DIRT, Direction::NORTH);
-	roadManager.SetRoad(0, 13, RoadType::TURN_LEFT, Direction::WEST);
-	//ここまで
-	roadManager.SetRoad(0, 14, RoadType::STRAIGHT, Direction::NORTH);
-	roadManager.SetRoad(1, 14, RoadType::DIRT, Direction::EAST);
-	roadManager.SetRoad(2, 14, RoadType::DIRT, Direction::EAST);
-	roadManager.SetRoad(3, 14, RoadType::DIRT, Direction::EAST);
-	roadManager.SetRoad(4, 14, RoadType::DIRT, Direction::EAST);
-	roadManager.SetRoad(0, 15, RoadType::STRAIGHT, Direction::NORTH);
-	roadManager.SetRoad(0, 16, RoadType::STRAIGHT, Direction::NORTH);
-	roadManager.SetRoad(0, 17, RoadType::TURN_LEFT, Direction::NORTH);
-	roadManager.SetRoad(1, 17, RoadType::STRAIGHT, Direction::EAST);
-	roadManager.SetRoad(2, 17, RoadType::STRAIGHT, Direction::EAST);
-	roadManager.SetRoad(3, 17, RoadType::STRAIGHT, Direction::EAST);
-	roadManager.SetRoad(4, 17, RoadType::STRAIGHT, Direction::EAST);
-	roadManager.SetRoad(5, 17, RoadType::TURN_LEFT, Direction::EAST);
-	roadManager.SetRoad(5, 16, RoadType::STRAIGHT, Direction::SOUTH);//南↓
-	roadManager.SetRoad(5, 15, RoadType::STRAIGHT, Direction::SOUTH);
-	roadManager.SetRoad(5, 14, RoadType::STRAIGHT, Direction::SOUTH);
-	roadManager.SetRoad(5, 13, RoadType::TURN_LEFT, Direction::SOUTH);
-	roadManager.SetRoad(4, 13, RoadType::TURN_LEFT, Direction::NORTH);
-	roadManager.SetRoad(4, 12, RoadType::STRAIGHT, Direction::SOUTH);
-	roadManager.SetRoad(4, 11, RoadType::TURN_LEFT, Direction::WEST);
-	roadManager.SetRoad(5, 11, RoadType::TURN_LEFT, Direction::EAST);
-	roadManager.SetRoad(5, 10, RoadType::STRAIGHT, Direction::SOUTH);
+	switch (SceneManager::GetStageNumber())
+	{
+	case 0:
+		roadManager.ResizeGrid(2, 10);//East=東　West＝西　North＝北　South＝南
+		roadManager.InitializeGridSpacing();  // グリッド間隔を初期化
+		roadManager.SetRoad(0, 1, RoadType::START_LINE, Direction::SOUTH);
+		roadManager.SetRoad(0, 2, RoadType::STRAIGHT, Direction::NORTH);
+		roadManager.SetRoad(0, 3, RoadType::STRAIGHT, Direction::NORTH);//北↑
+		roadManager.SetRoad(0, 4, RoadType::STRAIGHT, Direction::NORTH);//北↑
+		roadManager.SetRoad(0, 5, RoadType::STRAIGHT, Direction::NORTH);//北↑
+		roadManager.SetRoad(0, 6, RoadType::STRAIGHT, Direction::NORTH);//北↑
+		roadManager.SetRoad(0, 7, RoadType::STRAIGHT, Direction::NORTH);//北↑
+		roadManager.SetRoad(0, 8, RoadType::GOAL_LINE, Direction::SOUTH);
+		break;
+	case 1:
+		// ロードが必要なリソースがあればここで非同期に読み込む
+		roadManager.ResizeGrid(7, 18);//East=東　West＝西　North＝北　South＝南
+		roadManager.InitializeGridSpacing();  // グリッド間隔を初期化
+		roadManager.SetRoad(0, 1, RoadType::START_LINE, Direction::SOUTH);
+		roadManager.SetRoad(0, 2, RoadType::STRAIGHT, Direction::NORTH);
+		roadManager.SetRoad(0, 3, RoadType::STRAIGHT, Direction::NORTH);//北↑
+		roadManager.SetRoad(0, 4, RoadType::SLOPE_UP, Direction::NORTH);
+		roadManager.SetRoad(0, 5, RoadType::STRAIGHT, Direction::SOUTH);
+		roadManager.SetRoad(0, 6, RoadType::STRAIGHT, Direction::SOUTH);
+		roadManager.SetRoad(0, 7, RoadType::SLOPE_DOWN, Direction::NORTH);
+		roadManager.SetRoad(0, 8, RoadType::STRAIGHT, Direction::NORTH);
+		roadManager.SetRoad(0, 9, RoadType::STRAIGHT, Direction::NORTH);
+		roadManager.SetRoad(0, 10, RoadType::TURN_LEFT, Direction::NORTH);//東に向いてほしい
+		roadManager.SetRoad(1, 10, RoadType::STRAIGHT, Direction::EAST);//東→
+		roadManager.SetRoad(2, 10, RoadType::STRAIGHT, Direction::EAST);//東→
+		roadManager.SetRoad(3, 10, RoadType::TURN_LEFT, Direction::EAST);//南に向いてほしい
+		roadManager.SetRoad(3, 9, RoadType::STRAIGHT, Direction::SOUTH);
+		roadManager.SetRoad(3, 8, RoadType::STRAIGHT, Direction::SOUTH);//北↑
+		roadManager.SetRoad(3, 7, RoadType::STRAIGHT, Direction::SOUTH);//北↑
+		roadManager.SetRoad(3, 6, RoadType::STRAIGHT, Direction::SOUTH);//北↑
+		roadManager.SetRoad(3, 5, RoadType::STRAIGHT, Direction::SOUTH);//北↑
+		roadManager.SetRoad(3, 4, RoadType::STRAIGHT, Direction::SOUTH);//北↑
+		roadManager.SetRoad(3, 3, RoadType::STRAIGHT, Direction::SOUTH);//北↑
+		roadManager.SetRoad(3, 2, RoadType::STRAIGHT, Direction::SOUTH);//北↑
+		roadManager.SetRoad(3, 1, RoadType::STRAIGHT, Direction::SOUTH);//北↑
+		roadManager.SetRoad(3, 0, RoadType::TURN_LEFT, Direction::SOUTH);
+		roadManager.SetRoad(2, 0, RoadType::GOAL_LINE, Direction::WEST);
+		break;
+	case 2:
+		// ロードが必要なリソースがあればここで非同期に読み込む
+		roadManager.ResizeGrid(7, 18);//East=東　West＝西　North＝北　South＝南
+		roadManager.InitializeGridSpacing();  // グリッド間隔を初期化
+		roadManager.SetRoad(0, 1, RoadType::START_LINE, Direction::SOUTH);
+		roadManager.SetRoad(0, 2, RoadType::STRAIGHT, Direction::NORTH);
+		roadManager.SetRoad(0, 3, RoadType::STRAIGHT, Direction::NORTH);//北↑
+		roadManager.SetRoad(0, 4, RoadType::SLOPE_UP, Direction::NORTH);
+		roadManager.SetRoad(0, 5, RoadType::STRAIGHT, Direction::SOUTH);
+		roadManager.SetRoad(0, 6, RoadType::STRAIGHT, Direction::SOUTH);
+		roadManager.SetRoad(0, 7, RoadType::SLOPE_DOWN, Direction::NORTH);
+		roadManager.SetRoad(0, 8, RoadType::STRAIGHT, Direction::NORTH);
+		roadManager.SetRoad(0, 9, RoadType::STRAIGHT, Direction::NORTH);
+		//Curveダート地帯
+		roadManager.SetRoad(0, 10, RoadType::TURN_LEFT, Direction::NORTH);//東に向いてほしい
+		roadManager.SetRoad(1, 10, RoadType::STRAIGHT, Direction::EAST);//東→
+		roadManager.SetRoad(2, 10, RoadType::TURN_LEFT, Direction::SOUTH);//北に向いてほしい
+		roadManager.SetRoad(2, 11, RoadType::STRAIGHT, Direction::NORTH);
+		roadManager.SetRoad(2, 12, RoadType::STRAIGHT, Direction::NORTH);
+		roadManager.SetRoad(2, 13, RoadType::TURN_LEFT, Direction::EAST);//
+		roadManager.SetRoad(1, 13, RoadType::STRAIGHT, Direction::WEST);//←西
+		roadManager.SetRoad(0, 11, RoadType::DIRT, Direction::NORTH);
+		roadManager.SetRoad(0, 12, RoadType::DIRT, Direction::NORTH);
+		roadManager.SetRoad(0, 13, RoadType::TURN_LEFT, Direction::WEST);
+		//ここまで
+		roadManager.SetRoad(0, 14, RoadType::STRAIGHT, Direction::NORTH);
+		roadManager.SetRoad(1, 14, RoadType::DIRT, Direction::EAST);
+		roadManager.SetRoad(2, 14, RoadType::DIRT, Direction::EAST);
+		roadManager.SetRoad(3, 14, RoadType::DIRT, Direction::EAST);
+		roadManager.SetRoad(4, 14, RoadType::DIRT, Direction::EAST);
+		roadManager.SetRoad(0, 15, RoadType::STRAIGHT, Direction::NORTH);
+		roadManager.SetRoad(0, 16, RoadType::STRAIGHT, Direction::NORTH);
+		roadManager.SetRoad(0, 17, RoadType::TURN_LEFT, Direction::NORTH);
+		roadManager.SetRoad(1, 17, RoadType::STRAIGHT, Direction::EAST);
+		roadManager.SetRoad(2, 17, RoadType::STRAIGHT, Direction::EAST);
+		roadManager.SetRoad(3, 17, RoadType::STRAIGHT, Direction::EAST);
+		roadManager.SetRoad(4, 17, RoadType::STRAIGHT, Direction::EAST);
+		roadManager.SetRoad(5, 17, RoadType::TURN_LEFT, Direction::EAST);
+		roadManager.SetRoad(5, 16, RoadType::STRAIGHT, Direction::SOUTH);//南↓
+		roadManager.SetRoad(5, 15, RoadType::STRAIGHT, Direction::SOUTH);
+		roadManager.SetRoad(5, 14, RoadType::STRAIGHT, Direction::SOUTH);
+		roadManager.SetRoad(5, 13, RoadType::TURN_LEFT, Direction::SOUTH);
+		roadManager.SetRoad(4, 13, RoadType::TURN_LEFT, Direction::NORTH);
+		roadManager.SetRoad(4, 12, RoadType::STRAIGHT, Direction::SOUTH);
+		roadManager.SetRoad(4, 11, RoadType::TURN_LEFT, Direction::WEST);
+		roadManager.SetRoad(5, 11, RoadType::TURN_LEFT, Direction::EAST);
+		roadManager.SetRoad(5, 10, RoadType::STRAIGHT, Direction::SOUTH);
 
-	roadManager.SetRoad(5, 9, RoadType::TURN_LEFT, Direction::WEST);
-	roadManager.SetRoad(6, 9, RoadType::TURN_LEFT, Direction::EAST);
-	roadManager.SetRoad(6, 8, RoadType::STRAIGHT, Direction::SOUTH);
-	roadManager.SetRoad(6, 7, RoadType::TURN_LEFT, Direction::SOUTH);
-	roadManager.SetRoad(5, 7, RoadType::TURN_LEFT, Direction::NORTH);
-	roadManager.SetRoad(5, 6, RoadType::STRAIGHT, Direction::SOUTH);
-	roadManager.SetRoad(5, 5, RoadType::FINALSLOPE_UP, Direction::SOUTH);
-	roadManager.SetRoad(5, 4, RoadType::FINALSLOPE_UP, Direction::SOUTH);
-	roadManager.SetRoad(5, 3, RoadType::FINALSLOPE_UP, Direction::SOUTH);
-	roadManager.SetRoad(5, 2, RoadType::FINALSLOPE_UP, Direction::SOUTH);
-	roadManager.SetRoad(5, 1, RoadType::FINALSLOPE_UP, Direction::SOUTH);
-	roadManager.SetRoad(5, 0, RoadType::GOAL_LINE, Direction::NORTH);
+		roadManager.SetRoad(5, 9, RoadType::TURN_LEFT, Direction::WEST);
+		roadManager.SetRoad(6, 9, RoadType::TURN_LEFT, Direction::EAST);
+		roadManager.SetRoad(6, 8, RoadType::STRAIGHT, Direction::SOUTH);
+		roadManager.SetRoad(6, 7, RoadType::TURN_LEFT, Direction::SOUTH);
+		roadManager.SetRoad(5, 7, RoadType::TURN_LEFT, Direction::NORTH);
+		roadManager.SetRoad(5, 6, RoadType::STRAIGHT, Direction::SOUTH);
+		roadManager.SetRoad(5, 5, RoadType::FINALSLOPE_UP, Direction::SOUTH);
+		roadManager.SetRoad(5, 4, RoadType::FINALSLOPE_UP, Direction::SOUTH);
+		roadManager.SetRoad(5, 3, RoadType::FINALSLOPE_UP, Direction::SOUTH);
+		roadManager.SetRoad(5, 2, RoadType::FINALSLOPE_UP, Direction::SOUTH);
+		roadManager.SetRoad(5, 1, RoadType::FINALSLOPE_UP, Direction::SOUTH);
+		roadManager.SetRoad(5, 0, RoadType::GOAL_LINE, Direction::NORTH);
+		break;
+	}
 }
 void CarDriveScene::SetupEnemiesOnRoad()
 {
@@ -292,10 +338,29 @@ void CarDriveScene::SetupEnemiesOnRoad()
 	config.totalEnemyCount = 200;  // 合計10体
 
 	std::vector<BaseRoad*> straightRoads = roadManager.GetRoadByType(RoadType::STRAIGHT);
+
+	bool isFirst = true;
 	for (auto& road : straightRoads)
 	{
 		if (!straightRoads.empty())
 		{
+			for (auto& road : straightRoads)
+			{
+				if (road->GetDirection() == Direction::NORTH)
+				{
+					InitWeavingEnemies(
+						this,
+						m_field.get(),
+						MoveDirection::NORTH,
+						1,
+						road->GetPosition(),
+						30.0f,
+						isFirst,  // 最初だけtrueでclear、以降はfalseで追記
+						road
+					);
+					isFirst = false;
+				}
+			}
 			FormationConfig line;
 			line.formation = EnemyFormation::DIAGONAL;
 			line.enemyCount = 5;
@@ -415,7 +480,7 @@ void CarDriveScene::SetupTreeOnRoad()
 		}
 	}
 
-	m_TreeManager.Init(config);
+	m_treeManager.Init(config);
 
 	//スコアをリセット
 	m_gameScore = 0;
@@ -496,7 +561,7 @@ void CarDriveScene::update(float deltatime)//uint64_tとfloatの衝突　圧倒的衝突
 			if (!m_player->GetOnGoal())
 			{
 				m_player->OnGoal();
-				m_gameScore += m_RemainingTime;
+				m_gameScore += m_remainingTime;
 				m_currentCamera = &GoalCamera::Instance();
 
 			}
@@ -595,8 +660,8 @@ void CarDriveScene::update(float deltatime)//uint64_tとfloatの衝突　圧倒的衝突
 	m_Gauge->Update(deltatime);
 
 	//タイム関係
-	m_RemainingTime -= deltatime;
-	m_timeRenderer.SetNumber(static_cast<int>(m_RemainingTime));
+	m_remainingTime -= deltatime;
+	m_timeRenderer.SetNumber(static_cast<int>(m_remainingTime));
 	m_scoreRenderer.SetNumber(static_cast<int>(m_gameScore));
 	m_timeRenderer.Update(deltatime);
 	m_scoreRenderer.Update(deltatime);
@@ -632,6 +697,7 @@ void CarDriveScene::update(float deltatime)//uint64_tとfloatの衝突　圧倒的衝突
 	}
 	//敵の更新
 	UpdateEnemies(deltatime);
+	ActivateWeavingEnemiesNearPlayer(m_player->GetPosition());
 
 	//パーティクルの更新
     DirectX::XMFLOAT3 pos = m_player.get()->GetPosition();
@@ -658,27 +724,47 @@ void CarDriveScene::update(float deltatime)//uint64_tとfloatの衝突　圧倒的衝突
 		Vector3 playerForward = m_player->GetForwardVector();
 
 		// エミッタの位置をプレイヤーに設定
-		m_MeteoEmitter.SetPosition(playerPos);
+		m_meteoEmitter.SetPosition(playerPos);
 
 		// プレイヤーの向きを設定
-		m_MeteoEmitter.SetPlayerForward(
+		m_meteoEmitter.SetPlayerForward(
 			DirectX::XMFLOAT3(playerForward.x, playerForward.y, playerForward.z)
 		);
 
 		// 流星群を生成
-		m_MeteoEmitter.Emit(
+		m_meteoEmitter.Emit(
 			DirectX::XMFLOAT3(playerPos.x, playerPos.y, playerPos.z),
 			DirectX::XMFLOAT3(0, 0, 0),  // dirは使用されない
 			ParticleBehaviorType::MeteorShower
 		);
 
 		// 更新
-		m_MeteoEmitter.Update(deltatime);
+		m_meteoEmitter.Update(deltatime);
 		m_previousRoadType = currentRoadType;
 	}
 
 
 	m_skydome->Update(m_currentCamera->GetPosition());
+}
+
+void CarDriveScene::ActivateWeavingEnemiesNearPlayer(const Vector3& playerPos)
+{
+	for (auto& enemy : GetAllWeavingEnemies())
+	{
+		if (!enemy || !enemy->GetActive())    continue;
+		if (enemy->IsActivated())             continue; // 既に起動済み
+
+		BaseRoad* road = enemy->GetLinkedRoad();
+		if (!road) continue;
+
+		// 道路の当たり判定でプレイヤーが乗っているか確認
+		float height;
+		Vector3 normal;
+		if (road->GetTerrainHeight(playerPos, height, normal))
+		{
+			enemy->ActivateMovement();
+		}
+	}
 }
 
 void CarDriveScene::draw(float deltatime)
@@ -745,12 +831,12 @@ void CarDriveScene::draw(float deltatime)
 	m_item->Draw();
 	DrawEnemies();
 	roadManager.DrawAll();
-	m_TreeManager.Draw();
+	m_treeManager.Draw();
 	m_player->Draw();
 
 	EffectManager::Instance().Draw(context,viewMatrix);
 	m_sparkEmitter.Render(context, worldMatrix);
-	m_MeteoEmitter.Render(context, worldMatrix);
+	m_meteoEmitter.Render(context, worldMatrix);
 
 
 	if (needsPostProcess)//2D描画前にポストプロセス適用し、画像に影響を及ぼさないように変更

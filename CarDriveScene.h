@@ -38,14 +38,12 @@ class CarDriveScene : public IScene
 public:
 	explicit CarDriveScene()=default;
 	void update(float deltatime) override;//継承！継承
-	//void update(float deltatime) override;//継承！継承
 	void draw(float deltatime) override;
 	void init() override;
 	void loadAsync() override;
 	void dispose() override;
 
 	//IMGUIデバッグ形
-	void debugFreeCamera();
 	void debugDirectionalLight();
 	void debugControllEffect();
 	Vector3 m_ParticlePos;//パーティクル位置保存用
@@ -56,6 +54,7 @@ public:
 	void ApplyMotionBlur(ID3D11DeviceContext*, ID3D11ShaderResourceView*, ID3D11RenderTargetView*);
 	void ApplyChromaticAberration(ID3D11DeviceContext*, ID3D11ShaderResourceView*, ID3D11RenderTargetView*);
 	void CreateIntermediateTexture();
+	void ActivateWeavingEnemiesNearPlayer(const Vector3&);
 	void ChangeScene(const std::string& sceneName)
 	{
 		SceneManager::ChangeScene(sceneName,false);
@@ -116,10 +115,10 @@ private:
 	float m_shockwaveProgress = 0.0f;
 
 
-	float m_PrevBoostGauge = 0.0f;
+	float m_prevBoostGauge = 0.0f;
 	float m_time = 0.0f;
 
-	float m_RemainingTime;//タイム三校用
+	float m_remainingTime;//タイム
 
 	RoadType m_previousRoadType = RoadType::NONE;
 
@@ -137,10 +136,10 @@ private:
 	NumberRenderer m_timeRenderer;
 	NumberRenderer m_scoreRenderer;
 	SparkEmitter m_sparkEmitter;
-	SparkEmitter m_MeteoEmitter;
+	SparkEmitter m_meteoEmitter;
 	RoadManager roadManager; // 道路サイズはコンストラクタで指定
-	TreeManager m_TreeManager;
-	CameraManager m_CameraManager;
+	TreeManager m_treeManager;
+	CameraManager m_cameraManager;
 
 	Camera* m_currentCamera;
 	IntroCamera* m_introCamera = nullptr;  //IntroCamera専用ポインタ

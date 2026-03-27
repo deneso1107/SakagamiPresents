@@ -2,7 +2,7 @@
 #include "system/CShader.h"
 #include <d3d11.h>
 #include <wrl/client.h>
-//
+//Œ³Xg—p‚µ‚Ä‚¢‚½‚ª—˜•Ö«‚Ì“s‡ãíœ
 //using Microsoft::WRL::ComPtr;
 //
 //class PostProcessManager

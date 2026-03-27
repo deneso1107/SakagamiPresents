@@ -9,7 +9,7 @@ void Title::init()
     m_screenBillboard = new ScreenFixedBillboard(Vector2(0.5f, 0.9f), 0.3f, 0.3f, L"assets/texture/Button.png");
 
     // タイトルは画面外上部から開始
-    m_TitleBillboard = new ScreenFixedBillboard(Vector2(0.5f, 0.3f), 0.6f, 0.6f, L"assets/texture/タイトル.png");
+    m_titleBillboard = new ScreenFixedBillboard(Vector2(0.5f, 0.3f), 0.6f, 0.6f, L"assets/texture/タイトル.png");
 
 	// プレイヤーの初期化
     m_player = std::make_unique<Player>();
@@ -61,7 +61,7 @@ void Title::update(float deltatime)
 {
     if (CDirectInput::GetInstance().CheckKeyBuffer(DIK_RETURN)|| InputManager::GetInstance()->GetButton(SDL_CONTROLLER_BUTTON_A))
     {
-        SceneManager::ChangeScene("CarDriveScene",true);
+        SceneManager::ChangeScene("StageSelect",true);
         SoundManager::GetInstance().StopBGM();
     }
 
@@ -116,19 +116,17 @@ void Title::update(float deltatime)
         }
 
         // ビルボードの位置を更新
-        if (m_TitleBillboard)
+        if (m_titleBillboard)
         {
-            m_TitleBillboard->SetScreenPosition(Vector2(0.5f, m_titlePosY));
+            m_titleBillboard->SetScreenPosition(Vector2(0.5f, m_titlePosY));
         }
-        m_TitleBillboard->Update();
+        m_titleBillboard->Update();
     }
 
 	TitleCamera::Instance().Update(deltatime);
 
-    DirectX::XMFLOAT3 pos = m_player.get()->GetPosition();
-    //pos.x += m_ParticlePos.x;x	
+    DirectX::XMFLOAT3 pos = m_player.get()->GetPosition();	
     pos.y -= 5.0f;
-    //pos.z += m_ParticlePos.z;
     DirectX::XMFLOAT3 dir = DirectX::XMFLOAT3(0.0f, 1.0f, 0.0f);
     m_sparkEmitter->Emit(pos, dir);
     m_sparkEmitter->Update(deltatime);
@@ -145,7 +143,7 @@ void Title::draw(float deltatime)
     m_skydome->Draw(deltatime);
     m_sparkEmitter->Render(Renderer::GetDeviceContext(), DirectX::XMMatrixIdentity());
     m_screenBillboard->Draw();
-    m_TitleBillboard->Draw();
+    m_titleBillboard->Draw();
 
 }
 
@@ -161,10 +159,10 @@ void Title::dispose()
         m_screenBillboard = nullptr;
     }
 
-    if (m_TitleBillboard)
+    if (m_titleBillboard)
     {
-        delete m_TitleBillboard;
-        m_TitleBillboard = nullptr;
+        delete m_titleBillboard;
+        m_titleBillboard = nullptr;
     }
     m_player->Dispose();
     changepic = false;
