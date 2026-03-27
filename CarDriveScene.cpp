@@ -110,7 +110,7 @@ void CarDriveScene::init()
 	EffectManager::Instance().Initialize();
 	m_timeRenderer. Init(Vector2(0.95f, 0.15f),0.035f, 0.055f, 0.01f, true);
 	m_scoreRenderer.Init(Vector2(0.95f, 0.3f), 0.035f, 0.055f, 0.01f, true);
-	m_RemainingTime = 150.0f;
+	m_remainingTime = 150.0f;
 
 	m_speedMator = new SpeedMator();
 	m_speedMator->Init();
@@ -194,8 +194,8 @@ void CarDriveScene::init()
 		m_aberrationStrength = strength;
 		});
 
-	m_CameraManager.SetTargetPlayer(m_player.get());
-	m_CameraManager.Init();
+	m_cameraManager.SetTargetPlayer(m_player.get());
+	m_cameraManager.Init();
 
 
 	if (!m_sparkEmitter.Init(Renderer::GetDevice()))
@@ -203,12 +203,12 @@ void CarDriveScene::init()
 		OutputDebugStringA("パーティクル初期化失敗");
 	}
 
-	if (!m_MeteoEmitter.Init(Renderer::GetDevice()))
+	if (!m_meteoEmitter.Init(Renderer::GetDevice()))
 	{
 		OutputDebugStringA("サンプラーステート作成失敗\n");
 	}
 
-	m_MeteoEmitter.SetMeteorShowerMode(
+	m_meteoEmitter.SetMeteorShowerMode(
 		50.0f,   // プレイヤー周囲の半径
 		60.0f,   // 横方向の開始距離
 		15.0f,   // 高さ
@@ -338,10 +338,29 @@ void CarDriveScene::SetupEnemiesOnRoad()
 	config.totalEnemyCount = 200;  // 合計10体
 
 	std::vector<BaseRoad*> straightRoads = roadManager.GetRoadByType(RoadType::STRAIGHT);
+
+	bool isFirst = true;
 	for (auto& road : straightRoads)
 	{
 		if (!straightRoads.empty())
 		{
+			for (auto& road : straightRoads)
+			{
+				if (road->GetDirection() == Direction::NORTH)
+				{
+					InitWeavingEnemies(
+						this,
+						m_field.get(),
+						MoveDirection::NORTH,
+						1,
+						road->GetPosition(),
+						30.0f,
+						isFirst,  // 最初だけtrueでclear、以降はfalseで追記
+						road
+					);
+					isFirst = false;
+				}
+			}
 			FormationConfig line;
 			line.formation = EnemyFormation::DIAGONAL;
 			line.enemyCount = 5;
@@ -461,7 +480,7 @@ void CarDriveScene::SetupTreeOnRoad()
 		}
 	}
 
-	m_TreeManager.Init(config);
+	m_treeManager.Init(config);
 
 	//スコアをリセット
 	m_gameScore = 0;
@@ -542,7 +561,7 @@ void CarDriveScene::update(float deltatime)//uint64_tとfloatの衝突　圧倒的衝突
 			if (!m_player->GetOnGoal())
 			{
 				m_player->OnGoal();
-				m_gameScore += m_RemainingTime;
+				m_gameScore += m_remainingTime;
 				m_currentCamera = &GoalCamera::Instance();
 
 			}
@@ -641,8 +660,8 @@ void CarDriveScene::update(float deltatime)//uint64_tとfloatの衝突　圧倒的衝突
 	m_Gauge->Update(deltatime);
 
 	//タイム関係
-	m_RemainingTime -= deltatime;
-	m_timeRenderer.SetNumber(static_cast<int>(m_RemainingTime));
+	m_remainingTime -= deltatime;
+	m_timeRenderer.SetNumber(static_cast<int>(m_remainingTime));
 	m_scoreRenderer.SetNumber(static_cast<int>(m_gameScore));
 	m_timeRenderer.Update(deltatime);
 	m_scoreRenderer.Update(deltatime);
@@ -678,6 +697,7 @@ void CarDriveScene::update(float deltatime)//uint64_tとfloatの衝突　圧倒的衝突
 	}
 	//敵の更新
 	UpdateEnemies(deltatime);
+	ActivateWeavingEnemiesNearPlayer(m_player->GetPosition());
 
 	//パーティクルの更新
     DirectX::XMFLOAT3 pos = m_player.get()->GetPosition();
@@ -704,27 +724,47 @@ void CarDriveScene::update(float deltatime)//uint64_tとfloatの衝突　圧倒的衝突
 		Vector3 playerForward = m_player->GetForwardVector();
 
 		// エミッタの位置をプレイヤーに設定
-		m_MeteoEmitter.SetPosition(playerPos);
+		m_meteoEmitter.SetPosition(playerPos);
 
 		// プレイヤーの向きを設定
-		m_MeteoEmitter.SetPlayerForward(
+		m_meteoEmitter.SetPlayerForward(
 			DirectX::XMFLOAT3(playerForward.x, playerForward.y, playerForward.z)
 		);
 
 		// 流星群を生成
-		m_MeteoEmitter.Emit(
+		m_meteoEmitter.Emit(
 			DirectX::XMFLOAT3(playerPos.x, playerPos.y, playerPos.z),
 			DirectX::XMFLOAT3(0, 0, 0),  // dirは使用されない
 			ParticleBehaviorType::MeteorShower
 		);
 
 		// 更新
-		m_MeteoEmitter.Update(deltatime);
+		m_meteoEmitter.Update(deltatime);
 		m_previousRoadType = currentRoadType;
 	}
 
 
 	m_skydome->Update(m_currentCamera->GetPosition());
+}
+
+void CarDriveScene::ActivateWeavingEnemiesNearPlayer(const Vector3& playerPos)
+{
+	for (auto& enemy : GetAllWeavingEnemies())
+	{
+		if (!enemy || !enemy->GetActive())    continue;
+		if (enemy->IsActivated())             continue; // 既に起動済み
+
+		BaseRoad* road = enemy->GetLinkedRoad();
+		if (!road) continue;
+
+		// 道路の当たり判定でプレイヤーが乗っているか確認
+		float height;
+		Vector3 normal;
+		if (road->GetTerrainHeight(playerPos, height, normal))
+		{
+			enemy->ActivateMovement();
+		}
+	}
 }
 
 void CarDriveScene::draw(float deltatime)
@@ -791,12 +831,12 @@ void CarDriveScene::draw(float deltatime)
 	m_item->Draw();
 	DrawEnemies();
 	roadManager.DrawAll();
-	m_TreeManager.Draw();
+	m_treeManager.Draw();
 	m_player->Draw();
 
 	EffectManager::Instance().Draw(context,viewMatrix);
 	m_sparkEmitter.Render(context, worldMatrix);
-	m_MeteoEmitter.Render(context, worldMatrix);
+	m_meteoEmitter.Render(context, worldMatrix);
 
 
 	if (needsPostProcess)//2D描画前にポストプロセス適用し、画像に影響を及ぼさないように変更

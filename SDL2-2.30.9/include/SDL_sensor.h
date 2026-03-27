@@ -111,9 +111,9 @@ typedef enum
  * see positive rotation on that axis when it appeared to be rotating
  * counter-clockwise.
  *
- * values[0]: Angular speed around the x axis (pitch)
- * values[1]: Angular speed around the y axis (yaw)
- * values[2]: Angular speed around the z axis (roll)
+ * values[0]: Angular m_speed around the x axis (pitch)
+ * values[1]: Angular m_speed around the y axis (yaw)
+ * values[2]: Angular m_speed around the z axis (roll)
  *
  * For phones held in portrait mode and game controllers held in front of you,
  * the axes are defined as follows:

@@ -55,9 +55,9 @@ private:
         Vector2 texcoord;
     };
 
-    CMaterial m_Material;
-    bool m_IsInitialized = false;  //初期化済みフラグ
-    bool m_NeedsUpdate = true;     //更新が必要か
+    CMaterial m_material;
+    bool m_isInitialized = false;  //初期化済みフラグ
+    bool m_needsUpdate = true;     //更新が必要か
 
 public:
     Billboard();
@@ -78,7 +78,7 @@ public:
             m_position.z != position.z)
         {
             m_position = position;
-            m_NeedsUpdate = true;  //位置が変わったら更新フラグON
+            m_needsUpdate = true;  //位置が変わったら更新フラグON
         }
     }
 
@@ -88,7 +88,7 @@ public:
         {
             m_width = width;
             m_height = height;
-            m_NeedsUpdate = true;  //サイズが変わったら更新フラグON
+            m_needsUpdate = true;  //サイズが変わったら更新フラグON
         }
     }
 

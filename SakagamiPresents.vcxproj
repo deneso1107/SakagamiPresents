@@ -24,7 +24,6 @@
     <ClInclude Include="BaseRoad.h" />
     <ClInclude Include="BaseStageModel.h" />
     <ClInclude Include="Billboard.h" />
-    <ClInclude Include="BlastEnemy.h" />
     <ClInclude Include="BoostCameraState.h" />
     <ClInclude Include="BoostItem.h" />
     <ClInclude Include="camera.h" />
@@ -129,22 +128,20 @@
     <ClInclude Include="system\SphereDrawer.h" />
     <ClInclude Include="system\stb_image.h" />
     <ClInclude Include="system\transform.h" />
-    <ClInclude Include="TextureCache.h" />
     <ClInclude Include="Title.h" />
     <ClInclude Include="TitleCamera.h" />
     <ClInclude Include="TitleMove.h" />
     <ClInclude Include="Tree.h" />
     <ClInclude Include="TreeManager.h" />
     <ClInclude Include="TurningRoad.h" />
-    <ClInclude Include="VideoBllBoard.h" />
     <ClInclude Include="VideoPlayer.h" />
+    <ClInclude Include="WeavingEnemy.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="BaseRoad.cpp" />
     <ClCompile Include="BaseStageModel.cpp" />
     <ClCompile Include="Billboard.cpp" />
-    <ClCompile Include="BlastEnemy.cpp" />
     <ClCompile Include="BoostItem.cpp" />
     <ClCompile Include="camera.cpp" />
     <ClCompile Include="CameraManager.cpp" />
@@ -232,6 +229,7 @@
     <ClCompile Include="TreeManager.cpp" />
     <ClCompile Include="VideoBllBoard.cpp" />
     <ClCompile Include="VideoPlayer.cpp" />
+    <ClCompile Include="WeavingEnemy.cpp" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="shader\BlackFadePS.hlsl">

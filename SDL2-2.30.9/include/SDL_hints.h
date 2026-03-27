@@ -269,7 +269,7 @@ extern "C" {
 #define SDL_HINT_AUDIO_DEVICE_STREAM_ROLE "SDL_AUDIO_DEVICE_STREAM_ROLE"
 
 /**
- *  \brief  A variable controlling speed/quality tradeoff of audio resampling.
+ *  \brief  A variable controlling m_speed/quality tradeoff of audio resampling.
  *
  *  If available, SDL can use libsamplerate ( http://www.mega-nerd.com/SRC/ )
  *  to handle audio resampling. There are different resampling modes available
@@ -1354,7 +1354,7 @@ extern "C" {
 #define SDL_HINT_MOUSE_FOCUS_CLICKTHROUGH "SDL_MOUSE_FOCUS_CLICKTHROUGH"
 
 /**
- *  \brief  A variable setting the speed scale for mouse motion, in floating point, when the mouse is not in relative mode
+ *  \brief  A variable setting the m_speed scale for mouse motion, in floating point, when the mouse is not in relative mode
  */
 #define SDL_HINT_MOUSE_NORMAL_SPEED_SCALE    "SDL_MOUSE_NORMAL_SPEED_SCALE"
 
@@ -1408,7 +1408,7 @@ extern "C" {
  *    "0"       - Relative mouse motion will be unscaled (the default)
  *    "1"       - Relative mouse motion will be scaled using the system mouse acceleration curve.
  *
- *    If SDL_HINT_MOUSE_RELATIVE_SPEED_SCALE is set, that will override the system speed scale.
+ *    If SDL_HINT_MOUSE_RELATIVE_SPEED_SCALE is set, that will override the system m_speed scale.
  */
 #define SDL_HINT_MOUSE_RELATIVE_SYSTEM_SCALE    "SDL_MOUSE_RELATIVE_SYSTEM_SCALE"
 
@@ -1742,7 +1742,7 @@ extern "C" {
  *
  *  This variable can be set to the following values:
  *    "0"       - It will be using VSYNC as defined in the main flag. Default
- *    "1"       - If VSYNC was previously enabled, then it will disable VSYNC if doesn't reach enough speed
+ *    "1"       - If VSYNC was previously enabled, then it will disable VSYNC if doesn't reach enough m_speed
  *
  *  By default SDL does not enable the automatic VSYNC
  */

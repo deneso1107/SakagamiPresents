@@ -35,10 +35,10 @@ void Field::Init()
 	indices[3] = 3;
 
 	// インデックスバッファ生成
-	m_IndexBuffer.Create(indices);
+	m_indexBuffer.Create(indices);
 
 	// シェーダオブジェクト生成
-	m_Shader.Create("shader/unlitTextureVS.hlsl","shader/unlitTexturePS.hlsl");
+	m_shader.Create("shader/unlitTextureVS.hlsl","shader/unlitTexturePS.hlsl");
 
 	// マテリアル生成
 	MATERIAL	mtrl;
@@ -49,13 +49,13 @@ void Field::Init()
 	mtrl.Shiness = 0;
 	mtrl.TextureEnable = TRUE;
 
-	m_Material.Create(mtrl);
+	m_material.Create(mtrl);
 
-	m_FieldSquare.min = Vector3(-500, -0.1f, -500);  // 各軸の最小値
-	m_FieldSquare.max = Vector3(500, 0.1f, 500);  // 各軸の最大値
+	m_fieldSquare.min = Vector3(-500, -0.1f, -500);  // 各軸の最小値
+	m_fieldSquare.max = Vector3(500, 0.1f, 500);  // 各軸の最大値
 	
 	// テクスチャロード
-	bool sts = m_Texture.Load("assets\\texture\\field000.jpg");
+	bool sts = m_texture.Load("assets\\texture\\field000.jpg");
 	assert(sts == true);
 }
 
@@ -79,11 +79,11 @@ void Field::Draw()
 	devicecontext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
 	// シェーダー・バッファ・マテリアル・テクスチャの設定
-	m_Shader.SetGPU();
+	m_shader.SetGPU();
 	m_VertexBuffer.SetGPU();
-	m_IndexBuffer.SetGPU();
-	m_Material.SetGPU();
-	m_Texture.SetGPU();
+	m_indexBuffer.SetGPU();
+	m_material.SetGPU();
+	m_texture.SetGPU();
 
 	// 描画実行
 	devicecontext->DrawIndexed(

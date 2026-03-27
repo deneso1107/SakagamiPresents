@@ -67,14 +67,14 @@ void Player::StartRaceSequence(const Vector3& startPosition)
 
 	// プレイヤーを開始位置に配置
 	m_Position = m_spiralStartPos;
-	m_Velocity = Vector3::Zero; // ゼロベクトル定数使用
+	m_velocity = Vector3::Zero; // ゼロベクトル定数使用
 	m_Rotation.x = 0.0f;
 	m_Rotation.z = 0.0f;
 
 	// ブースト関連もリセット
-	m_IsBoosting = false;
-	m_IsDrifting = false;
-	m_BoostGauge = 0.0f;
+	m_isBoosting = false;
+	m_isDrifting = false;
+	m_boostGauge = 0.0f;
 }
 
 
@@ -275,7 +275,7 @@ void Player::UpdateStartSequence(float deltatime)//最初の降下演出
 		}
 
 		// カウントダウン中は静止
-		m_Velocity = Vector3(0.0f, 0.0f, 0.0f);
+		m_velocity = Vector3(0.0f, 0.0f, 0.0f);
 		m_Rotation.x = 0.0f; // 水平に戻す
 	}
 
@@ -290,7 +290,7 @@ void Player::UpdateStartSequence(float deltatime)//最初の降下演出
 
 void Player::OnGoal()//Goal時の演出をあいまいにするため、GoalSequence状態に遷移させるだけにして、実際の演出はUpdateGoalSequenceで行う
 {
-	m_PostProcessSetter(false, 0.0f);
+	m_postProcessSetter(false, 0.0f);
 	m_hasGoaled = true;
 	m_goalEffectStarted = false;
 
@@ -364,8 +364,8 @@ void Player::UpdateGoalSequence(float deltatime)
 
 			// 速度も遅め
 			float speed = (m_goalJumpDistance / m_goalJumpDuration) * 0.5f;
-			m_Velocity = m_goalDirection * speed;
-			m_Velocity.y = speed * 0.3f;
+			m_velocity = m_goalDirection * speed;
+			m_velocity.y = speed * 0.3f;
 
 		}
 		else {
@@ -404,8 +404,8 @@ void Player::UpdateGoalSequence(float deltatime)
 			// 速度も急加速（最大4倍）
 			float speedMult = 1.0f + t2 * 3.0f;
 			float speed = (m_goalJumpDistance / m_goalJumpDuration) * speedMult;
-			m_Velocity = m_goalDirection * speed;
-			m_Velocity.y = speed * 1.5f * speedMult;  // 上昇速度も加速
+			m_velocity = m_goalDirection * speed;
+			m_velocity.y = speed * 1.5f * speedMult;  // 上昇速度も加速
 		}
 	}
 	else
@@ -437,8 +437,8 @@ void Player::UpdateGoalSequence(float deltatime)
 		m_Rotation.z = sinf(spiralAngle) * 0.2f;
 
 		// 速度も最大
-		m_Velocity = m_goalDirection * (m_goalJumpDistance / m_goalJumpDuration) * 5.0f;
-		m_Velocity.y = m_goalJumpHeight * 3.0f;
+		m_velocity = m_goalDirection * (m_goalJumpDistance / m_goalJumpDuration) * 5.0f;
+		m_velocity.y = m_goalJumpHeight * 3.0f;
 	}
 
 	// UI演出が完全に終了したらリザルトへ
@@ -586,7 +586,7 @@ void Player::Update(float deltatime)
 		}
 
 		// ドリフト状態を更新
-		if (m_IsDrifting)
+		if (m_isDrifting)
 		{
 			if (!m_stateManager.IsDrifting())
 			{
@@ -599,7 +599,7 @@ void Player::Update(float deltatime)
 		}
 
 		// 走行状態を更新（一定速度以上で走行中とみなす）
-		float currentSpeed = sqrt(m_Velocity.x * m_Velocity.x + m_Velocity.z * m_Velocity.z);
+		float currentSpeed = sqrt(m_velocity.x * m_velocity.x + m_velocity.z * m_velocity.z);
 		if (currentSpeed > 0.5f)
 		{
 			if (!m_stateManager.IsRunning())
@@ -613,11 +613,11 @@ void Player::Update(float deltatime)
 		}
 	}
 
-	if (m_HitStopTimer > 0.0f)//ヒットストップがなんかしっくりこない
+	if (m_hitStopTimer > 0.0f)//ヒットストップがなんかしっくりこない
 	{
-		m_HitStopTimer -= deltatime;
+		m_hitStopTimer -= deltatime;
 
-		if (m_HitStopTimer <= 0.0f)
+		if (m_hitStopTimer <= 0.0f)
 		{
 			// 段階的に速度を戻す（スムーズ）
 			float currentScale = GameManager::Instance().GetTimeScale();
@@ -632,7 +632,7 @@ void Player::Update(float deltatime)
 			}
 
 
-			m_HitStopTimer = 0.0f;
+			m_hitStopTimer = 0.0f;
 		}
 	}
 
@@ -695,16 +695,16 @@ void Player::Update(float deltatime)
 
 	// ドリフト入力チェック
 	bool driftInput = false;
-	m_DriftDirection = 0.0f;
+	m_driftDirection = 0.0f;
 
 	// キーボードのドリフト
 	if (CDirectInput::GetInstance().CheckKeyBuffer(DIK_Q)) {
 		driftInput = true;
-		m_DriftDirection = -1.0f;
+		m_driftDirection = -1.0f;
 	}
 	else if (CDirectInput::GetInstance().CheckKeyBuffer(DIK_E)) {
 		driftInput = true;
-		m_DriftDirection = 1.0f;
+		m_driftDirection = 1.0f;
 	}
 
 	// コントローラーの処理
@@ -725,10 +725,10 @@ void Player::Update(float deltatime)
 				driftInput = true;
 
 				// アナログ値でドリフト方向（推奨）
-				m_DriftDirection = leftX;
+				m_driftDirection = leftX;
 
 				// またはキーボードと同じく-1.0/1.0にする場合
-				// m_DriftDirection = (leftX < 0.0f) ? -1.0f : 1.0f;
+				// m_driftDirection = (leftX < 0.0f) ? -1.0f : 1.0f;
 			}
 			else
 			{
@@ -747,15 +747,15 @@ void Player::Update(float deltatime)
 	Vector3 forwardDir = Vector3(sinf(m_Rotation.y), 0.0f, cosf(m_Rotation.y));
 	Vector3 rightDir = Vector3(cosf(m_Rotation.y), 0.0f, -sinf(m_Rotation.y));
 
-	float currentSpeed = sqrt(m_Velocity.x * m_Velocity.x + m_Velocity.z * m_Velocity.z);
-	float speedFactor = std::min(currentSpeed / m_MaxSpeed, 1.0f);
+	float currentSpeed = sqrt(m_velocity.x * m_velocity.x + m_velocity.z * m_velocity.z);
+	float speedFactor = std::min(currentSpeed / m_maxSpeed, 1.0f);
 
 	// ドリフト状態の管理
 	if (driftInput && currentSpeed > 0.5f) {
-		m_IsDrifting = true;
+		m_isDrifting = true;
 	}
 	else if (!driftInput || currentSpeed < 0.2f) {
-		m_IsDrifting = false;
+		m_isDrifting = false;
 	}
 
 	// 前フレームの位置を保存
@@ -765,7 +765,7 @@ void Player::Update(float deltatime)
 	ApplyGravity(deltatime );
 
 	// ドリフト時とノーマル時で異なる処理
-	if (m_IsDrifting)
+	if (m_isDrifting)
 	{
 		// ドリフト中の処理
 		UpdateDriftMovement(throttle, steering, forwardDir, rightDir, speedFactor);
@@ -792,7 +792,7 @@ void Player::Update(float deltatime)
 			m_Position.y + (bottomOffsetY * m_Scale.y) + (m_BoundingSphere.radius * 0.5f),
 			m_Position.z
 		),
-		m_CollisionRadius,
+		m_collisionRadius,
 	};
 
 	// 滑らかな地形追従処理
@@ -801,27 +801,13 @@ void Player::Update(float deltatime)
 	// 落下状態チェック
 	CheckFallState(deltatime);
 
-	// リセット
-	if (CDirectInput::GetInstance().CheckKeyBuffer(DIK_RETURN)) {
-		m_Position = Vector3(0.0f, 0.0f, 0.0f);
-		m_Rotation = Vector3(0.0f, 0.0f, 0.0f);
-		m_Velocity = Vector3(0.0f, 0.0f, 0.0f);
-		m_IsDrifting = false;
-		m_IsBoosting = false; // ブースト状態もリセット
-
-		// ハイブリッド速度システムもリセット
-		m_PermanentSpeedBonus = 1.0f;
-		m_TemporarySpeedBonus = 1.0f;
-		m_SpeedBoostTimer = 0.0f;
-		m_ConsecutiveHits = 0;
-	}
 
 	// 敵との当たり判定
 	for (auto& enemy : GetAllEnemys()) 
 	{
 		if (CollisionSphere(m_BoundingSphere, enemy->GetEnemyBoundingSphere())) 
 		{
-			if (!enemy->m_IsKnockedBack) {
+			if (!enemy->m_isKnockedBack) {
 
 				OnCollisionWithEnemy(*enemy);
 				AddBoostGauge(5.0f);//敵を吹っ飛ばした際に加速ゲージを取得　加速の最大値も少し上昇
@@ -832,7 +818,7 @@ void Player::Update(float deltatime)
 	m_sparkEmitter.Update(scaledDeltaTime);
 
 	// 最高速度の時だけアフターイメージ
-	if (m_IsMaxSpeed)
+	if (m_isMaxSpeed)
 	{
 		UpdateAfterImage(deltatime); // deltaTimeは既存のものを使用
 
@@ -889,23 +875,23 @@ void Player::UpdateAfterImage(float deltaTime)
 // ブーストシステムの更新処理
 void Player::UpdateBoostSystem(bool boostInput, float deltaSeconds)
 {
-	if (boostInput && m_BoostGauge > 0.0f)
+	if (boostInput && m_boostGauge > 0.0f)
 	{
 		// ブースト使用中
-		m_IsBoosting = true;
-		m_BoostGauge -= m_BoostConsumption * deltaSeconds;
+		m_isBoosting = true;
+		m_boostGauge -= m_boostConsumption * deltaSeconds;
 		// ゲージが0以下になったら停止
-		if (m_BoostGauge <= 0.0f) 
+		if (m_boostGauge <= 0.0f) 
 		{
-			m_BoostGauge = 0.0f;
-			m_IsBoosting = false;
+			m_boostGauge = 0.0f;
+			m_isBoosting = false;
 		}
 	}
 	else {
 		// ブースト未使用
-		m_IsBoosting = false;
-		m_PostProcessSetter(false, 0.0f);
-		m_IsMaxSpeed = false;
+		m_isBoosting = false;
+		m_postProcessSetter(false, 0.0f);
+		m_isMaxSpeed = false;
 
 	}
 }
@@ -913,26 +899,26 @@ void Player::UpdateBoostSystem(bool boostInput, float deltaSeconds)
 void Player::UpdateSpeedBonusSystem(float deltatime)
 {
 	// 一時ボーナスのタイマー更新
-	if (m_SpeedBoostTimer > 0.0f)
+	if (m_speedBoostTimer > 0.0f)
 	{
-		m_SpeedBoostTimer -= deltatime;
+		m_speedBoostTimer -= deltatime;
 
-		if (m_SpeedBoostTimer <= 0.0f)
+		if (m_speedBoostTimer <= 0.0f)
 		{
-			m_SpeedBoostTimer = 0.0f;
+			m_speedBoostTimer = 0.0f;
 		}
 	}
 
 	// 一時ボーナスの減衰（タイマーが切れた後）
-	if (m_SpeedBoostTimer <= 0.0f && m_TemporarySpeedBonus > 1.0f)
+	if (m_speedBoostTimer <= 0.0f && m_temporarySpeedBonus > 1.0f)
 	{
 		// 緩やかに1.0に戻す
-		m_TemporarySpeedBonus = Lerp(m_TemporarySpeedBonus, 1.0f, m_TemporaryBonusDecaySpeed);
+		m_temporarySpeedBonus = Lerp(m_temporarySpeedBonus, 1.0f, m_temporaryBonusDecaySpeed);
 
 		// 1.0に十分近づいたら完全に1.0にする
-		if (abs(m_TemporarySpeedBonus - 1.0f) < 0.01f)
+		if (abs(m_temporarySpeedBonus - 1.0f) < 0.01f)
 		{
-			m_TemporarySpeedBonus = 1.0f;
+			m_temporarySpeedBonus = 1.0f;
 		}
 	}
 
@@ -942,16 +928,16 @@ void Player::UpdateSpeedBonusSystem(float deltatime)
 	{
 		// 速度倍率が1.5倍以上の時はモーションブラーを強化
 		float blurIntensity = std::min((currentMultiplier - 1.0f) * 0.02f, 0.05f);
-		m_PostProcessSetter(true, blurIntensity);
-		m_IsMaxSpeed = true;
+		m_postProcessSetter(true, blurIntensity);
+		m_isMaxSpeed = true;
 
 		//SpringCamera::Instance().PlusCurrentFOV();
 	}
-	else if (!m_IsBoosting)
+	else if (!m_isBoosting)
 	{
 		// ブーストもしていない、速度倍率も低い場合は無効化
-		m_PostProcessSetter(false, 0.0f);
-		m_IsMaxSpeed = false;
+		m_postProcessSetter(false, 0.0f);
+		m_isMaxSpeed = false;
 
 		if (m_isBGM)
 		{///元のBGMに戻す
@@ -966,7 +952,7 @@ void Player::UpdateSpeedBonusSystem(float deltatime)
 //現在の速度倍率を取得
 float Player::GetCurrentSpeedMultiplier() const
 {
-	return m_PermanentSpeedBonus * m_TemporarySpeedBonus;
+	return m_permanentSpeedBonus * m_temporarySpeedBonus;
 }
 
 void Player::UpdateSmoothTerrainFollowing(float deltatime)
@@ -984,8 +970,8 @@ void Player::UpdateSmoothTerrainFollowing(float deltatime)
 			float carBottomY = m_Position.y + (bottomOffsetY * m_Scale.y);
 			float heightDifference = carBottomY - terrainHeight;
 
-			float horizontalSpeed = sqrt(m_Velocity.x * m_Velocity.x + m_Velocity.z * m_Velocity.z);
-			bool isHighSpeed = m_IsBoosting && horizontalSpeed > 2.0f;
+			float horizontalSpeed = sqrt(m_velocity.x * m_velocity.x + m_velocity.z * m_velocity.z);
+			bool isHighSpeed = m_isBoosting && horizontalSpeed > 2.0f;
 
 			float contactThreshold = isHighSpeed ? 1.5f : 2.0f;
 
@@ -998,7 +984,7 @@ void Player::UpdateSmoothTerrainFollowing(float deltatime)
 				float currentHeight = m_Position.y;
 				float heightDiff = abs(m_targetHeight - currentHeight);// 高さの差分
 
-				Vector3 horizontalVelocity = Vector3(m_Velocity.x, 0.0f, m_Velocity.z);
+				Vector3 horizontalVelocity = Vector3(m_velocity.x, 0.0f, m_velocity.z);
 				float horizontalSpeedForLerp = horizontalVelocity.Length();
 				bool isNearlyStationary = horizontalSpeedForLerp < 0.05f;
 
@@ -1099,7 +1085,7 @@ void Player::UpdateSmoothTerrainFollowing(float deltatime)
 					else {
 						// 上り坂抵抗
 						float resistanceFactor = 1.0f;
-						m_Velocity *= resistanceFactor;
+						m_velocity *= resistanceFactor;
 					}
 				}
 			}
@@ -1178,27 +1164,27 @@ void Player::ApplyRoadSurfaceEffect(RoadType surfaceType, float deltatime)//道路
 	switch (surfaceType) {
 	case RoadType::DIRT:
 	{
-		if (!m_IsMaxSpeed)//最高速度時は影響を受けない
+		if (!m_isMaxSpeed)//最高速度時は影響を受けない
 		{
 		// ダートでは摩擦が大きく、速度が低下
 		float dirtFriction = 0.96f;  // 通常より強い減速（0.98fが通常）
-		m_Velocity.x *= pow(dirtFriction, timeScale);
-		m_Velocity.z *= pow(dirtFriction, timeScale);
+		m_velocity.x *= pow(dirtFriction, timeScale);
+		m_velocity.z *= pow(dirtFriction, timeScale);
 
 		// 最大速度も制限
 		float dirtMaxSpeedRatio = 0.75f;  // 通常の75%の速度
-		float dirtMaxSpeed = m_MaxSpeed * dirtMaxSpeedRatio;
+		float dirtMaxSpeed = m_maxSpeed * dirtMaxSpeedRatio;
 
-		if (m_IsBoosting) {
-			dirtMaxSpeed *= m_BoostRatio;  // ブースト時も制限
+		if (m_isBoosting) {
+			dirtMaxSpeed *= m_boostRatio;  // ブースト時も制限
 		}
 
-		float currentSpeed = sqrt(m_Velocity.x * m_Velocity.x +
-			m_Velocity.z * m_Velocity.z);
+		float currentSpeed = sqrt(m_velocity.x * m_velocity.x +
+			m_velocity.z * m_velocity.z);
 		if (currentSpeed > dirtMaxSpeed) {
 			float speedRatio = dirtMaxSpeed / currentSpeed;
-			m_Velocity.x *= speedRatio;
-			m_Velocity.z *= speedRatio;
+			m_velocity.x *= speedRatio;
+			m_velocity.z *= speedRatio;
 		}
 
 		}
@@ -1223,41 +1209,41 @@ void Player::UpdateNormalMovement(float throttle, float steering, Vector3 forwar
 {
 	float timeScale = GameManager::Instance().GetTimeScale();
 
-	m_Rotation.y += steering * m_TurnSpeed * speedFactor * timeScale;
+	m_Rotation.y += steering * m_turnSpeed * speedFactor * timeScale;
 
 	if (m_Rotation.y > PI) m_Rotation.y -= 2.0f * PI;
 	if (m_Rotation.y < -PI) m_Rotation.y += 2.0f * PI;
 
-	float accelerationMultiplier = m_IsBoosting ? m_BoostPower : 1.0f;
-	Vector3 forceDir = forwardDir * throttle * m_Acceleration * accelerationMultiplier * timeScale;
-	m_Velocity += forceDir;
+	float accelerationMultiplier = m_isBoosting ? m_boostPower : 1.0f;
+	Vector3 forceDir = forwardDir * throttle * m_acceleration * accelerationMultiplier * timeScale;
+	m_velocity += forceDir;
 
-	speed = sqrt(m_Velocity.x * m_Velocity.x + m_Velocity.z * m_Velocity.z);
+	m_speed = sqrt(m_velocity.x * m_velocity.x + m_velocity.z * m_velocity.z);
 	Vector3 velocityDir = Vector3(0.0f, 0.0f, 0.0f);
-	if (speed > 0.01f) {
-		velocityDir = m_Velocity * (1.0f / speed);
+	if (m_speed > 0.01f) {
+		velocityDir = m_velocity * (1.0f / m_speed);
 	}
 	float alignment = forwardDir.x * velocityDir.x + forwardDir.z * velocityDir.z;
-	Vector3 targetVelocity = forwardDir * speed * alignment;
+	Vector3 targetVelocity = forwardDir * m_speed * alignment;
 
-	float adjustedGrip = 1.0f - pow(1.0f - m_GripFactor, timeScale);
-	m_Velocity = m_Velocity * (1.0f - adjustedGrip) + targetVelocity * adjustedGrip;
+	float adjustedGrip = 1.0f - pow(1.0f - m_gripFactor, timeScale);
+	m_velocity = m_velocity * (1.0f - adjustedGrip) + targetVelocity * adjustedGrip;
 
-	float decelerationMultiplier = m_IsBoosting ? 0.998f : m_Deceleration;
-	m_Velocity *= pow(decelerationMultiplier, timeScale);
+	float decelerationMultiplier = m_isBoosting ? 0.998f : m_deceleration;
+	m_velocity *= pow(decelerationMultiplier, timeScale);
 
 	//  速度制限にハイブリッド速度倍率を適用
 	float speedMultiplier = GetCurrentSpeedMultiplier();
-	float maxSpeed = m_MaxSpeed * speedMultiplier;
+	float maxSpeed = m_maxSpeed * speedMultiplier;
 
-	if (m_IsBoosting)
+	if (m_isBoosting)
 	{
-		maxSpeed *= m_BoostRatio;
+		maxSpeed *= m_boostRatio;
 	}
 
-	speed = sqrt(m_Velocity.x * m_Velocity.x + m_Velocity.z * m_Velocity.z);
-	if (speed > maxSpeed) {
-		m_Velocity = m_Velocity * (maxSpeed / speed);
+	m_speed = sqrt(m_velocity.x * m_velocity.x + m_velocity.z * m_velocity.z);
+	if (m_speed > maxSpeed) {
+		m_velocity = m_velocity * (maxSpeed / m_speed);
 	}
 
 	Vector3 backmovement = Vector3(-velocityDir.x, 0.0f, velocityDir.z);
@@ -1273,49 +1259,49 @@ void Player::UpdateDriftMovement(float throttle, float steering, Vector3 forward
 {
 	float timeScaleDrift = GameManager::Instance().GetTimeScale();
 
-	float driftRotation = m_DriftDirection * m_DriftTurnSpeed * speedFactor;
+	float driftRotation = m_driftDirection * m_driftTurnSpeed * speedFactor;
 	m_Rotation.y += driftRotation;
 
-	m_Rotation.y += steering * m_TurnSpeed * speedFactor * 0.5f * timeScaleDrift;
+	m_Rotation.y += steering * m_turnSpeed * speedFactor * 0.5f * timeScaleDrift;
 
 	if (m_Rotation.y > PI) m_Rotation.y -= 2.0f * PI;
 	if (m_Rotation.y < -PI) m_Rotation.y += 2.0f * PI;
 
-	float accelerationMultiplier = m_IsBoosting ? m_BoostPower : 1.0f;
+	float accelerationMultiplier = m_isBoosting ? m_boostPower : 1.0f;
 
-	Vector3 forceDir = forwardDir * throttle * m_Acceleration * 0.8f * accelerationMultiplier * timeScaleDrift;
-	m_Velocity += forceDir;
+	Vector3 forceDir = forwardDir * throttle * m_acceleration * 0.8f * accelerationMultiplier * timeScaleDrift;
+	m_velocity += forceDir;
 
-	Vector3 lateralForce = rightDir * m_DriftDirection * 0.02f * speedFactor;
-	m_Velocity += lateralForce;
+	Vector3 lateralForce = rightDir * m_driftDirection * 0.02f * speedFactor;
+	m_velocity += lateralForce;
 
 	//速度制限にハイブリッド速度倍率を適用
 	float speedMultiplier = GetCurrentSpeedMultiplier();
-	float maxSpeed = m_MaxSpeed * speedMultiplier;
+	float maxSpeed = m_maxSpeed * speedMultiplier;
 
-	if (m_IsBoosting)
+	if (m_isBoosting)
 	{
 		maxSpeed *= 1.2f;  // ドリフト中のブースト時はさらに1.2倍
 	}
 
-	speed = sqrt(m_Velocity.x * m_Velocity.x + m_Velocity.z * m_Velocity.z);
-	if (speed > maxSpeed) {
-		m_Velocity = m_Velocity * (maxSpeed / speed);
+	m_speed = sqrt(m_velocity.x * m_velocity.x + m_velocity.z * m_velocity.z);
+	if (m_speed > maxSpeed) {
+		m_velocity = m_velocity * (maxSpeed / m_speed);
 	}
 
 	Vector3 velocityDir = Vector3(0.0f, 0.0f, 0.0f);
-	if (speed > 0.01f) {
-		velocityDir = m_Velocity * (1.0f / speed);
+	if (m_speed > 0.01f) {
+		velocityDir = m_velocity * (1.0f / m_speed);
 	}
 
 	float alignment = forwardDir.x * velocityDir.x + forwardDir.z * velocityDir.z;
-	Vector3 targetVelocity = forwardDir * speed * alignment;
+	Vector3 targetVelocity = forwardDir * m_speed * alignment;
 
-	float adjustedGrip = 1.0f - pow(1.0f - m_GripFactor, timeScaleDrift);
-	m_Velocity = m_Velocity * (1.0f - adjustedGrip) + targetVelocity * adjustedGrip;
+	float adjustedGrip = 1.0f - pow(1.0f - m_gripFactor, timeScaleDrift);
+	m_velocity = m_velocity * (1.0f - adjustedGrip) + targetVelocity * adjustedGrip;
 
-	float decelerationMultiplier = m_IsBoosting ? 0.985f : (m_Deceleration * 0.98f);
-	m_Velocity *= pow(decelerationMultiplier, timeScaleDrift);
+	float decelerationMultiplier = m_isBoosting ? 0.985f : (m_deceleration * 0.98f);
+	m_velocity *= pow(decelerationMultiplier, timeScaleDrift);
 }
 
 
@@ -1398,7 +1384,7 @@ void Player::Draw()
 	}
 
 	// 通常描画モードのみアフターイメージを描画
-	if (mode != Renderer::RenderMode::SHADOW_MAP &&m_IsMaxSpeed)
+	if (mode != Renderer::RenderMode::SHADOW_MAP &&m_isMaxSpeed)
 	{
 		DrawAfterImage();
 	}
@@ -1496,7 +1482,7 @@ void Player::OnCollisionWithEnemy(Enemy& enemy)
 
 
 	// ノックバック力を適用
-	float  knockbackForce = speed*50.0f; // 力を強くして確実に飛ぶようにする
+	float  knockbackForce = m_speed*50.0f; // 力を強くして確実に飛ぶようにする
 	m_gameScore += knockbackForce/50;
 
 	if (timeScale != 1.0f)
@@ -1505,18 +1491,18 @@ void Player::OnCollisionWithEnemy(Enemy& enemy)
 	}
 
 	//ハイブリッド速度システムの適用
-	m_ConsecutiveHits++;
+	m_consecutiveHits++;
 
 	// 【永続ボーナス】マイルストーン達成チェック
-	if (m_ConsecutiveHits % m_HitsPerMilestone == 0 &&
-		m_PermanentSpeedBonus < m_MaxPermanentBonus)
+	if (m_consecutiveHits % m_hitsPerMilestone == 0 &&
+		m_permanentSpeedBonus < m_maxPermanentBonus)
 	{
-		m_PermanentSpeedBonus += m_PermanentBonusPerMilestone;
+		m_permanentSpeedBonus += m_permanentBonusPerMilestone;
 
 		// 最大値を超えないように制限
-		if (m_PermanentSpeedBonus > m_MaxPermanentBonus)
+		if (m_permanentSpeedBonus > m_maxPermanentBonus)
 		{
-			m_PermanentSpeedBonus = m_MaxPermanentBonus;
+			m_permanentSpeedBonus = m_maxPermanentBonus;
 		}
 
 		// マイルストーン達成時の特別な演出
@@ -1527,17 +1513,17 @@ void Player::OnCollisionWithEnemy(Enemy& enemy)
 	}
 
 	// 【一時ボーナス】敵を倒すたびに加算
-	m_TemporarySpeedBonus += m_TemporaryBonusPerHit;
-	if (m_TemporarySpeedBonus > m_MaxTemporaryBonus)
+	m_temporarySpeedBonus += m_temporaryBonusPerHit;
+	if (m_temporarySpeedBonus > m_maxTemporaryBonus)
 	{
-		m_TemporarySpeedBonus = m_MaxTemporaryBonus;
+		m_temporarySpeedBonus = m_maxTemporaryBonus;
 	}
 
 	// 一時ボーナスのタイマーをリセット
-	m_SpeedBoostTimer = m_TemporaryBoostDuration;
+	m_speedBoostTimer = m_temporaryBoostDuration;
 
 	// 現在の速度に応じてヒットストップと演出を調整
-	float speedRatio = speed / m_MaxSpeed;
+	float speedRatio = m_speed / m_maxSpeed;
 	if (speedRatio > 1.5f)
 	{
 		// 高速時はより派手な演出
@@ -1561,7 +1547,7 @@ void Player::OnCollisionWithEnemy(Enemy& enemy)
 
 void Player::ApplyHitStop(float duration, float timeScale /*= 0.0f*/)//	スローどうしよ　ピンとこんなー
 {
-	m_HitStopTimer = duration;
+	m_hitStopTimer = duration;
 	m_PreviousTimeScale = GameManager::Instance().GetTimeScale();//連続で吹っ飛ばすとバグるので廃止
 	//GameManager::Instance().SetTimeScale(timeScale);
 }
@@ -1570,18 +1556,18 @@ void Player::ApplyHitStop(float duration, float timeScale /*= 0.0f*/)//	スローど
 
 void Player::AddBoostGauge(float amount)
 {
-	m_BoostGauge += amount;
-	if (m_BoostGauge > m_MaxBoostGauge)
+	m_boostGauge += amount;
+	if (m_boostGauge > m_maxBoostGauge)
 	{
-		m_BoostGauge = m_MaxBoostGauge;
+		m_boostGauge = m_maxBoostGauge;
 	}
 }
 void Player::UpdatePositionWithCollisionCheck(float timeScale)
 {
 	// 現在の速度を取得
-	float horizontalSpeed = sqrt(m_Velocity.x * m_Velocity.x + m_Velocity.z * m_Velocity.z);
+	float horizontalSpeed = sqrt(m_velocity.x * m_velocity.x + m_velocity.z * m_velocity.z);
 	// 高速移動判定（ブースト使用時かつ一定速度以上の場合のみ）
-	bool isHighSpeed = m_IsBoosting && horizontalSpeed > 2.0f;
+	bool isHighSpeed = m_isBoosting && horizontalSpeed > 2.0f;
 
 	// 変更: m_road から m_roadManager に変更
 	if (isHighSpeed && m_roadManager)
@@ -1589,7 +1575,7 @@ void Player::UpdatePositionWithCollisionCheck(float timeScale)
 		// 高速移動時は段階的に位置を更新（ただし高さ調整は最小限に）
 		int steps = std::max(3, (int)(horizontalSpeed / 1.0f)); // 速度に応じてステップ数を動的調整
 		steps = std::min(steps, 6); // 最大6ステップに制限（処理負荷考慮）
-		Vector3 stepVelocity = m_Velocity * (timeScale / steps);
+		Vector3 stepVelocity = m_velocity * (timeScale / steps);
 
 		for (int i = 0; i < steps; i++) {
 			Vector3 nextPosition = m_Position;
@@ -1629,8 +1615,8 @@ void Player::UpdatePositionWithCollisionCheck(float timeScale)
 	}
 	else {
 		// 通常速度時は従来通り
-		m_Position.x += m_Velocity.x*timeScale;
-		m_Position.z += m_Velocity.z*timeScale;
+		m_Position.x += m_velocity.x*timeScale;
+		m_Position.z += m_velocity.z*timeScale;
 
 		// 垂直方向の位置更新（重力のみ、地形追従は後で処理）
 		if (!m_isGrounded) {
@@ -1681,7 +1667,7 @@ void Player::UpdateCarRotationFromTerrain(const Vector3& terrainNormal)
 	roll = std::max(-MAX_TILT, std::min(MAX_TILT, roll));
 
 	// 補間速度の調整
-	Vector3 horizontalVelocity = Vector3(m_Velocity.x, 0.0f, m_Velocity.z);
+	Vector3 horizontalVelocity = Vector3(m_velocity.x, 0.0f, m_velocity.z);
 	float horizontalSpeed = horizontalVelocity.Length();
 	bool isNearlyStationary = horizontalSpeed < 0.05f;
 
@@ -1855,17 +1841,17 @@ void Player::RespawnToLastRoad()
 		m_Rotation.z = 0.0f;           // ロールはリセット
 
 		// 速度とステータスをリセット
-		m_Velocity *= 0.15f;
+		m_velocity *= 0.15f;
 		m_verticalVelocity = 0.0f;
-		m_IsDrifting = false;
-		m_IsBoosting = false;
+		m_isDrifting = false;
+		m_isBoosting = false;
 
 		// ペナルティの適用
-		m_BoostGauge *= 0.6f;
+		m_boostGauge *= 0.6f;
 
-		if (m_TemporarySpeedBonus > 1.0f) {
-			m_TemporarySpeedBonus = 1.0f;
-			m_SpeedBoostTimer = 0.0f;
+		if (m_temporarySpeedBonus > 1.0f) {
+			m_temporarySpeedBonus = 1.0f;
+			m_speedBoostTimer = 0.0f;
 		}
 
 		SpringCamera::Instance().Shake(2.0f, 0.25f);

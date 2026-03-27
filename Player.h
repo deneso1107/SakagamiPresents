@@ -37,7 +37,7 @@ private:
 
 	CarPhysics m_physics;
 
-	float speed;
+	float m_speed;
 
 	// スパイラル降下用の変数
 	float m_spiralTime = 0.0f;          // 螺旋アニメーションの経過時間
@@ -90,23 +90,23 @@ private:
 	float m_groundCheckDistance = 2.0f; // 地面チェックの距離
 
 	// 車の物理パラメータ
-	float m_Acceleration = 0.1f;      // 加速度
-	float m_MaxSpeed = 2.0f;          // 最高速度(ブースト時は2.6)
-	float m_BoostRatio = 1.3f;          // ブースト時の最高速度倍率
-	float m_Deceleration = 0.95f;     // 減速率
-	float m_TurnSpeed = 0.02f;        // 旋回速度
-	float m_GripFactor = 0.9f;        // グリップ力（1.0で完全グリップ、0.0で完全ドリフト）
-	float m_DriftGripFactor = 0.3f;   // ドリフト時のグリップ力
-	float m_DriftTurnSpeed = 0.05f;   // ドリフト時の旋回速度
+	float m_acceleration = 0.1f;      // 加速度
+	float m_maxSpeed = 2.0f;          // 最高速度(ブースト時は2.6)
+	float m_boostRatio = 1.3f;          // ブースト時の最高速度倍率
+	float m_deceleration = 0.95f;     // 減速率
+	float m_turnSpeed = 0.02f;        // 旋回速度
+	float m_gripFactor = 0.9f;        // グリップ力（1.0で完全グリップ、0.0で完全ドリフト）
+	float m_driftGripFactor = 0.3f;   // ドリフト時のグリップ力
+	float m_driftTurnSpeed = 0.05f;   // ドリフト時の旋回速度
 
 	// 加速ゲージ関連
-	float m_BoostGauge = 0.0f;           // 加速ゲージ（0-100）
-	bool m_IsBoosting = false;           // ブースト中かどうか
-	float m_BoostConsumption = 15.0f;    // ブーストの消費量（per second）
-	float m_BoostPower = 1.5f;           // ブーストの力
-	float m_MaxBoostGauge = 100.0f;      // ゲージの最大値
+	float m_boostGauge = 0.0f;           // 加速ゲージ（0-100）
+	bool m_isBoosting = false;           // ブースト中かどうか
+	float m_boostConsumption = 15.0f;    // ブーストの消費量（per second）
+	float m_boostPower = 1.5f;           // ブーストの力
+	float m_maxBoostGauge = 100.0f;      // ゲージの最大値
 
-	bool m_IsMaxSpeed=false;
+	bool m_isMaxSpeed=false;
 
 
 	// 滑らかな地形追従用の変数
@@ -116,19 +116,19 @@ private:
 	float m_slopeThreshold = 0.995f;      // 急な坂の判定閾値
 
 	// 速度システム
-	float m_PermanentSpeedBonus = 1.0f;     // 永続的な速度ボーナス（初期値1.0 = 100%）
-	float m_TemporarySpeedBonus = 1.0f;     // 一時的な速度ボーナス（初期値1.0 = 100%）
-	float m_SpeedBoostTimer = 0.0f;         // 一時ブーストの残り時間
-	int m_ConsecutiveHits = 0;              // 連続ヒット数（敵を倒した総数）
+	float m_permanentSpeedBonus = 1.0f;     // 永続的な速度ボーナス（初期値1.0 = 100%）
+	float m_temporarySpeedBonus = 1.0f;     // 一時的な速度ボーナス（初期値1.0 = 100%）
+	float m_speedBoostTimer = 0.0f;         // 一時ブーストの残り時間
+	int m_consecutiveHits = 0;              // 連続ヒット数（敵を倒した総数）
 
 	// 調整用パラメータ
-	const float m_PermanentBonusPerMilestone = 0.05f;  // マイルストーン達成ごとに5%アップ
-	const int m_HitsPerMilestone = 10;                 // 10体ごとにマイルストーン
-	const float m_TemporaryBonusPerHit = 0.15f;        // 1体倒すごとに15%アップ（一時）
-	const float m_MaxTemporaryBonus = 2.0f;            // 一時ボーナスの最大値（2.0 = 200%）
-	const float m_TemporaryBoostDuration = 5.0f;       // 一時ブーストの持続時間（秒）
-	const float m_TemporaryBonusDecaySpeed = 0.05f;    // 一時ボーナスの減衰速度
-	const float m_MaxPermanentBonus = 2.0f;            // 永続ボーナスの最大値（2.0 = 200%）
+	const float m_permanentBonusPerMilestone = 0.05f;  // マイルストーン達成ごとに5%アップ
+	const int m_hitsPerMilestone = 10;                 // 10体ごとにマイルストーン
+	const float m_temporaryBonusPerHit = 0.15f;        // 1体倒すごとに15%アップ（一時）
+	const float m_maxTemporaryBonus = 2.0f;            // 一時ボーナスの最大値（2.0 = 200%）
+	const float m_temporaryBoostDuration = 5.0f;       // 一時ブーストの持続時間（秒）
+	const float m_temporaryBonusDecaySpeed = 0.05f;    // 一時ボーナスの減衰速度
+	const float m_maxPermanentBonus = 2.0f;            // 永続ボーナスの最大値（2.0 = 200%）
 
 	// 前フレームの情報
 	Vector3 m_previousPosition;
@@ -136,16 +136,16 @@ private:
 	float m_PreviousTimeScale = 1.0f;
 
 	//ヒットストップ
-	float m_HitStopTimer = 0.0f;
+	float m_hitStopTimer = 0.0f;
 
 	// 速度ベクトル（前回の移動方向を保持）
-	Vector3 m_Velocity = Vector3(0.0f, 0.0f, 0.0f);
+	Vector3 m_velocity = Vector3(0.0f, 0.0f, 0.0f);
 
 	// ドリフト状態
-	bool m_IsDrifting = false;
-	float m_DriftDirection = 0.0f;    // ドリフト方向（-1: 左、1: 右）
+	bool m_isDrifting = false;
+	float m_driftDirection = 0.0f;    // ドリフト方向（-1: 左、1: 右）
 
-	bool m_OnTheGround = false;
+	bool m_onTheGround = false;
 
 	void UpdateDriftMovement(float throttle, float steering, Vector3 forwardDir, Vector3 rightDir, float speedFactor/*,float deltatime*/);
 	void UpdateNormalMovement(float throttle, float steering, Vector3 forwardDir, Vector3 rightDir, float speedFactor/*,float deltatime*/);
@@ -181,16 +181,17 @@ private:
 	float m_downhillVelocityDamping = 0.7f; // 下り坂での垂直速度減衰係数
 	float m_groundStickForce = 2.0f;        // 地面への吸着力
 
-	std::function<void(bool, float)>m_PostProcessSetter;
-	bool m_PlusFov = false;
+	std::function<void(bool, float)>m_postProcessSetter;
+	bool m_plusFov = false;
 
 	//当たり判定の半径
-	float m_CollisionRadius = 0.5f;
+	float m_collisionRadius = 0.5f;
 
 	bool m_isResultMode = false;
 
 	//残像処理用
-	struct GhostData {
+	struct GhostData 
+	{
 		Matrix4x4 worldMatrix;
 		float alpha;
 		float lifetime;
@@ -237,7 +238,7 @@ public:
 		m_physics.Update(deltatime);
 		m_Position = m_physics.GetPosition();
 		m_Rotation = m_physics.GetRotation();
-		m_Velocity = m_physics.GetVelocity();
+		m_velocity = m_physics.GetVelocity();
 	}
 
 	//最初の演出
@@ -283,17 +284,17 @@ public:
     float GetSpiralDuration() const { return m_spiralDuration; }
 
 	// ブーストゲージ関連のゲッター
-	float GetBoostGauge() const { return m_BoostGauge; }
+	float GetBoostGauge() const { return m_boostGauge; }
 	void SetBoostGauge(float value)
 	{
-		m_BoostGauge += value;
-		if (m_BoostGauge > m_MaxBoostGauge) {
-			m_BoostGauge = m_MaxBoostGauge;
+		m_boostGauge += value;
+		if (m_boostGauge > m_maxBoostGauge) {
+			m_boostGauge = m_maxBoostGauge;
 		}
 	}
-	bool IsBoosting() const { return m_IsBoosting; }
-	Vector3 GetVelocity() const { return m_Velocity; }
-	void SetVelocity(Vector3 num) { m_Velocity = num; }
+	bool IsBoosting() const { return m_isBoosting; }
+	Vector3 GetVelocity() const { return m_velocity; }
+	void SetVelocity(Vector3 num) { m_velocity = num; }
 	void ApplyHitStop(float,float);
 
 	//ゴール関連のメソッドを追加
@@ -323,11 +324,11 @@ public:
            return t < 0.5f ? 4.0f * t * t * t : 1.0f - pow(-2.0f * t + 2.0f, 3.0f) / 2.0f;
 	};
 
-	float GetSpeed() { return speed; }
-	float GetMaxSpeed() { return m_MaxSpeed * m_BoostRatio; }
-	float GetNormalSpeed() { return m_MaxSpeed; }
+	float GetSpeed() { return m_speed; }
+	float GetMaxSpeed() { return m_maxSpeed * m_boostRatio; }
+	float GetNormalSpeed() { return m_maxSpeed; }
 
-	bool GetIsMaxSpeed() { return m_IsMaxSpeed; }
+	bool GetIsMaxSpeed() { return m_isMaxSpeed; }
 
 	const PlayerStateManager& GetStateManager() const { return m_stateManager; }
 
@@ -337,7 +338,7 @@ public:
 	
 	void SetPostProcessSetter(std::function<void(bool, float)> setter) 
 	{
-		m_PostProcessSetter = setter;
+		m_postProcessSetter = setter;
 	}
 
 	bool GetOnGoal() { return m_hasGoaled; }

@@ -501,7 +501,7 @@ enum aiComponent
     "PP_TUV_EVALUATE"
 
 // ---------------------------------------------------------------------------
-/** @brief A hint to assimp to favour speed against import quality.
+/** @brief A hint to assimp to favour m_speed against import quality.
  *
  * Enabling this option may result in faster loading, but it needn't.
  * It represents just a hint to loaders and post-processing steps to use

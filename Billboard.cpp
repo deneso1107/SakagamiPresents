@@ -43,7 +43,7 @@ Billboard::Billboard()
     : m_position(0.0f, 0.0f, 0.0f)
     , m_width(1.0f)
     , m_height(1.0f)
-    ,m_IsInitialized(false)
+    ,m_isInitialized(false)
 {
 }
 
@@ -52,7 +52,7 @@ Billboard::~Billboard() {
 }
 void Billboard::Init(const Vector3& position, float width, float height, const wchar_t* texturePath) 
 {
-    if (m_IsInitialized)
+    if (m_isInitialized)
     {
         Dispose();  // 既に初期化されていたら一度クリア
     }
@@ -75,7 +75,7 @@ void Billboard::Init(const Vector3& position, float width, float height, const w
         "shader/unlitTexturePS.hlsl");
 
     // マテリアルを初期化
-  // m_Material.Init();
+  // m_material.Init();
 
     // マテリアル設定
     MATERIAL materialData = {};
@@ -86,7 +86,7 @@ void Billboard::Init(const Vector3& position, float width, float height, const w
     materialData.Shiness = 0.0f;
     materialData.TextureEnable = 1.0f;  // テクスチャ有効
 
-    if (!m_Material.Create(materialData))  // ここで初期化
+    if (!m_material.Create(materialData))  // ここで初期化
     {
         OutputDebugStringA("マテリアル初期化失敗\n");
     }
@@ -94,8 +94,8 @@ void Billboard::Init(const Vector3& position, float width, float height, const w
     CreateBuffers();
     printf("Billboard initialized at position (%.2f, %.2f, %.2f) with size (%.2f, %.2f)\n",
 		position.x, position.y, position.z, width, height);
-    m_IsInitialized = true;
-    m_NeedsUpdate = true;
+    m_isInitialized = true;
+    m_needsUpdate = true;
 }
 void Billboard::CreateDefaultTexture() {
     // 2x2の白いテクスチャを作成
@@ -332,7 +332,7 @@ void Billboard::Draw()
     g_Shader.SetGPU();
 
     // マテリアルを設定（重要！）
-    m_Material.SetGPU();  // 他のクラスと同じ方法
+    m_material.SetGPU();  // 他のクラスと同じ方法
 
     // テクスチャを設定これ変更したらでた
     if (m_texture)

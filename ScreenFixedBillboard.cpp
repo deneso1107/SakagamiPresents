@@ -304,7 +304,7 @@ void ScreenFixedBillboard::Draw()
 //    // シェーダーとマテリアル設定
 //// 注意：位置変換なしのシンプルなシェーダーが必要
 //    g_Shader.SetGPU();
-//    m_Material.SetGPU();
+//    m_material.SetGPU();
 //
 //    // 正射影行列を設定（パースペクティブ無効化）
 //    Matrix4x4 orthoMatrix = DirectX::XMMatrixOrthographicLH(2.0f, 2.0f, 0.0f, 1.0f);
@@ -408,7 +408,7 @@ void ScreenFixedBillboard::Dispose()
         m_indexBuffer->Release();
         m_indexBuffer = nullptr;
     }
-    //m_Material.Dispose();
+    //m_material.Dispose();
     if (m_isOwningVideoPlayer && m_videoPlayer) {
         delete m_videoPlayer;
         m_videoPlayer = nullptr;

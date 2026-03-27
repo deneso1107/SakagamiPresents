@@ -25,7 +25,7 @@ public:
 	//}
 private:
 	ScreenFixedBillboard* m_screenBillboard;//ゲッターあるよ
-	ScreenFixedBillboard* m_TitleBillboard;//ゲッターあるよ
+	ScreenFixedBillboard* m_titleBillboard;//ゲッターあるよ
 	VideoPlayer m_videoPlayer;
 	ScreenFixedBillboard* m_VideoBB;
 

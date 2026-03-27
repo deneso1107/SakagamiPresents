@@ -375,7 +375,7 @@ void SparkEmitter::Render(ID3D11DeviceContext* context, const DirectX::XMMATRIX&
     // --- 5. インスタンスデータ作成 ---
     std::vector<InstanceData> instances;
    //emitterのワールド行列（位置）を加味する
-        //DirectX::XMMATRIX emitterWorld = DirectX::XMMatrixTranslation(m_Position.x, m_Position.y, m_Position.z);
+        //DirectX::XMMATRIX emitterWorld = DirectX::XMMatrixTranslation(m_position.x, m_position.y, m_position.z);
 
     for (const auto& p : m_particles)
     {

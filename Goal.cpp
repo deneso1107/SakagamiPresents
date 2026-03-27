@@ -22,10 +22,10 @@
 //        {
 //            DebugSpatialGrid();
 //        });*/
-//    m_Position = Vector3{ 350.0f,0.0f,1.0f };
+//    m_position = Vector3{ 350.0f,0.0f,1.0f };
 //    m_Rotation = Vector3{ 1.7f,2.5f,1.0f };
-//    m_BoundingSphere.center = m_Position; // 当たり判定の中心を設定
-//	m_BoundingSphere.radius = 1.0f * m_Scale.x; // 半径はスケールに応じて調整
+//    m_BoundingSphere.center = m_position; // 当たり判定の中心を設定
+//	m_BoundingSphere.radius = 1.0f * m_scale.x; // 半径はスケールに応じて調整
 //}
 //
 //void Goal::Update(float deltaTime)
@@ -33,8 +33,8 @@
 //    // // デバッグ用のSRT情報表示
 //    // DebugObjectSRT();
 //    // // 当たり判定の更新
-//    // m_BoundingSphere.center = m_Position;
-//    // m_BoundingSphere.radius = 1.0f * m_Scale.x; // 半径はスケールに応じて調整
+//    // m_BoundingSphere.center = m_position;
+//    // m_BoundingSphere.radius = 1.0f * m_scale.x; // 半径はスケールに応じて調整
 //}
 //void Goal::Dispose()
 //{
@@ -49,9 +49,9 @@
 //{
 //    // SRT情報作成
 //    SRT srt;
-//    srt.pos = m_Position;			// 位置
+//    srt.pos = m_position;			// 位置
 //    srt.rot = m_Rotation;			// 姿勢
-//    srt.scale = m_Scale;			// 拡縮
+//    srt.scale = m_scale;			// 拡縮
 //    Matrix4x4 worldmtx;
 //    worldmtx = srt.GetMatrix();
 //    Matrix4x4 viewmtx;

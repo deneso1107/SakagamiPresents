@@ -41,21 +41,6 @@ private:
             }
             return;
         }
-
-        //// 加速状態の判定
-        //if (speed > m_targetPlayer->GetNormalSpeed() * 1.2f) {
-        //    if (m_currentStateType != CameraStateType::Boost) {
-        //        ChangeState(CameraStateType::Boost);
-        //    }
-        //}
-        // カーブ状態の判定(ハンドル入力が大きい時)
-        // 注意: GetSteerInput()の実装が必要
-        // else if (fabsf(m_targetPlayer->GetSteerInput()) > 0.5f) {
-        //     if (m_currentStateType != CameraStateType::Curve) {
-        //         ChangeState(CameraStateType::Curve);
-        //     }
-        // }
-        // 通常状態
         else {
             if (m_currentStateType != CameraStateType::Normal) {
                 ChangeState(CameraStateType::Normal);

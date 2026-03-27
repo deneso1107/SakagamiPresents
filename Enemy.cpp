@@ -17,14 +17,14 @@ void Enemy::Init()
 		m_Position,
 		5.0f,//カスコード
 	};
-	m_IsKnockedBack = false;	// ノックバック状態を初期化
+	m_isKnockedBack = false;	// ノックバック状態を初期化
 }
 
 void Enemy::Update(float deltaTime)
 {
     //m_BoundingSphere =
     //{
-    //    m_Position,
+    //    m_position,
     //    5.0f,//カスコード
     //};
     // フィールドとの衝突判定
@@ -40,18 +40,18 @@ void Enemy::Update(float deltaTime)
             // フィールドの上に配置
             enemyPos.y = fieldTop + GetCollision().radius;
             SetPosition(enemyPos);
-            onField = true;
+            m_onField = true;
             // 地面に着地したら垂直速度をリセット（下向きの速度のみ）
-            if (!m_IsKnockedBack && m_verticalVelocity < 0.0f) {
+            if (!m_isKnockedBack && m_verticalVelocity < 0.0f) {
                 m_verticalVelocity = 0.0f;
             }
         }
         else {
             // フィールドの範囲内だが、地面から離れている（空中にいる）
-            onField = false;
+            m_onField = false;
         }
 
-        if (m_IsKnockedBack)
+        if (m_isKnockedBack)
         {
             KnockBack(deltaTime);    // ノックバック中の処理
         }
@@ -91,27 +91,27 @@ void Enemy::Draw()
 
     Renderer::SetWorldMatrix(&worldmtx);        // GPUにセット
 
-    m_StaticMeshRenderer->Draw();
+    m_staticMeshRenderer->Draw();
 }
 
 void Enemy::Dispose()
 {
-    m_DisappearEffectSpawned = false;
+    m_disappearEffectSpawned = false;
 }
 
 void Enemy::ApplyKnockback(Vector3 direction, float force, float timeScale)
 {
     // ノックバックの適用
-    m_Move += direction * force;
+    m_move += direction * force;
 
     // 上向きの力も追加（車が浮く効果）
     m_verticalVelocity = 5.0f; // 上向きの初期速度を与える
 
     // 初期位置は変更しない（KnockBack関数で更新される）
 
-    m_IsKnockedBack = true;
-    m_KnockbackTimer = 0.5f;  // 0.5秒間飛行
-    onField = false; // ノックバックで地面から離れる
+    m_isKnockedBack = true;
+    m_knockbackTimer = 0.5f;  // 0.5秒間飛行
+    m_onField = false; // ノックバックで地面から離れる
 }
 
 void Enemy::KnockBack(float deltaTime)
@@ -122,43 +122,43 @@ void Enemy::KnockBack(float deltaTime)
     // 元のコードに戻す
 
     // 摩擦で減速（徐々に遅くなる）
-    m_Move *= 0.95f;
+    m_move *= 0.95f;
 
     // タイマー更新
-    m_KnockbackTimer -= deltaTime* timeScale;
-    m_Rotation.x += m_RotateSpeed * deltaTime * timeScale; // 回転速度は調整可能
+    m_knockbackTimer -= deltaTime* timeScale;
+    m_Rotation.x += m_rotateSpeed * deltaTime * timeScale; // 回転速度は調整可能
 	Vector3 cameraPos = SpringCamera::Instance().GetPosition();
     float distance = (m_Position - cameraPos).Length();
 
 
     // 一定距離以上、または時間経過でエフェクト発生
-    if ((/*distance > 80.0f ||*/ m_KnockbackTimer <= 0.2f) && !m_EffectSpawned)//ここから 
+    if ((/*distance > 80.0f ||*/ m_knockbackTimer <= 0.2f) && !m_effectSpawned)//ここから 
     {
-        m_EffectSpawned = true;
+        m_effectSpawned = true;
         GameManager::Instance().SetTimeScale(1.0f);//スローモーションの調整
     }
 
     // 完全に消す
-    if (m_KnockbackTimer <= 0.0f|| distance > 600.0f)
+    if (m_knockbackTimer <= 0.0f|| distance > 600.0f)
     {
         SetActive(false);
         // まだエフェクトを出していなければ出す
-        if (!m_DisappearEffectSpawned)
+        if (!m_disappearEffectSpawned)
         {
             SpawnDisappearEffect();
-            m_DisappearEffectSpawned = true;
+            m_disappearEffectSpawned = true;
         }
         return;;
     }
 
-    if (m_KnockbackTimer <= 0.0f)
+    if (m_knockbackTimer <= 0.0f)
     {
-        m_IsKnockedBack = false;
-        m_Move = Vector3(0, 0, 0);
+        m_isKnockedBack = false;
+        m_move = Vector3(0, 0, 0);
     }
 
     
-    m_Position += m_Move* timeScale;//ここなぜかスローにならない
+    m_Position += m_move* timeScale;//ここなぜかスローにならない
 }
 
 void Enemy::SpawnDisappearEffect()
@@ -175,6 +175,6 @@ GM31::GE::Collision::BoundingSphere Enemy::GetEnemyBoundingSphere()//Enemyの当た
 {
     GM31::GE::Collision::BoundingSphere sphere;
     sphere.center = m_Position;//敵のデフォルトのBoundingSquareとは別のやつを使っているのでどっちも変更する必要あり
-	sphere.radius = m_BoundingSphereRadius; // X座標を半径として使用→ここの当たり判定だけ大きくする
+	sphere.radius = m_boundingSphereRadius; // X座標を半径として使用→ここの当たり判定だけ大きくする
     return sphere;
 }

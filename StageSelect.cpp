@@ -1,16 +1,16 @@
 #include "StageSelect.h"
 void StageSelect::init()
 {
-    m_SelectIconBillBoard = std::make_unique<ScreenFixedBillboard>(Vector2(0.15f, 0.15f), 0.3f, 0.3f, L"assets/texture/SelectIcon.png");
+    m_selectIconBillBoard = std::make_unique<ScreenFixedBillboard>(Vector2(0.15f, 0.15f), 0.3f, 0.3f, L"assets/texture/SelectIcon.png");
 
-	m_Stage1BillBoard = std::make_unique<ScreenFixedBillboard>(Vector2(0.5f, 0.80f), 0.4f, 0.4f, L"assets/texture/stage1.png");
-	m_Stage2BillBoard = std::make_unique<ScreenFixedBillboard>(Vector2(0.5f, 0.80f), 0.4f, 0.4f, L"assets/texture/stage2.png");
-	m_Stage3BillBoard = std::make_unique<ScreenFixedBillboard>(Vector2(0.5f, 0.80f), 0.4f, 0.4f, L"assets/texture/stage3.png");
+	m_stage1BillBoard = std::make_unique<ScreenFixedBillboard>(Vector2(0.5f, 0.80f), 0.4f, 0.4f, L"assets/texture/stage1.png");
+	m_stage2BillBoard = std::make_unique<ScreenFixedBillboard>(Vector2(0.5f, 0.80f), 0.4f, 0.4f, L"assets/texture/stage2.png");
+	m_stage3BillBoard = std::make_unique<ScreenFixedBillboard>(Vector2(0.5f, 0.80f), 0.4f, 0.4f, L"assets/texture/stage3.png");
 
     // 矢印ビルボード初期化
-    m_LeftArrowBillBoard = std::make_unique<ScreenFixedBillboard>(
+    m_leftArrowBillBoard = std::make_unique<ScreenFixedBillboard>(
         Vector2(0.1f, 0.5f), 0.2f, 0.4f, L"assets/texture/leftArrow.png");
-    m_RightArrowBillBoard = std::make_unique<ScreenFixedBillboard>(
+    m_rightArrowBillBoard = std::make_unique<ScreenFixedBillboard>(
         Vector2(0.9f, 0.5f), 0.2f, 0.4f, L"assets/texture/rightArrow.png");
 
     // 位相をずらしてバラバラに動かす
@@ -107,16 +107,16 @@ void StageSelect::update(float deltatime)
     m_uiAnimator.Update(deltatime);
     m_leftArrow.Update(deltatime);
     m_rightArrow.Update(deltatime);
-    m_leftArrow.Apply(m_LeftArrowBillBoard.get(), 0.1f);
-    m_rightArrow.Apply(m_RightArrowBillBoard.get(), 0.9f);
+    m_leftArrow.Apply(m_leftArrowBillBoard.get(), 0.1f);
+    m_rightArrow.Apply(m_rightArrowBillBoard.get(), 0.9f);
 
     // 現在のビルボードに適用
     ScreenFixedBillboard* currentBillboard = nullptr;
     switch (m_currentBillboardIndex)
     {
-    case 0: currentBillboard = m_Stage1BillBoard.get(); break;
-    case 1: currentBillboard = m_Stage2BillBoard.get(); break;
-    case 2: currentBillboard = m_Stage3BillBoard.get(); break;
+    case 0: currentBillboard = m_stage1BillBoard.get(); break;
+    case 1: currentBillboard = m_stage2BillBoard.get(); break;
+    case 2: currentBillboard = m_stage3BillBoard.get(); break;
     }
     m_uiAnimator.Apply(currentBillboard);
 
@@ -139,17 +139,17 @@ void StageSelect::draw(float deltatime)
 	m_camera.Draw();
     m_stageManager.DrawAll();
     m_skydome->Draw(false);
-	m_SelectIconBillBoard->Draw();
+	m_selectIconBillBoard->Draw();
 
     // 現在のインデックスのビルボードだけ描画
     switch (m_currentBillboardIndex) {
-    case 0: m_Stage1BillBoard->Draw(); break;
-    case 1: m_Stage2BillBoard->Draw(); break;
-    case 2: m_Stage3BillBoard->Draw(); break;
+    case 0: m_stage1BillBoard->Draw(); break;
+    case 1: m_stage2BillBoard->Draw(); break;
+    case 2: m_stage3BillBoard->Draw(); break;
     }
 
-    m_LeftArrowBillBoard->Draw();
-    m_RightArrowBillBoard->Draw();
+    m_leftArrowBillBoard->Draw();
+    m_rightArrowBillBoard->Draw();
 	//決定した時だけプレイヤーと火花を描画
     if (m_isDeciding)
     {

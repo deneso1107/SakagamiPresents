@@ -107,8 +107,6 @@ public:
     }
     Vector3 GetPosition() const { return m_Position; }
 
-    void SetRadialWindMode(int rayCount, float speed, const DirectX::XMFLOAT3& color);
-
     void UpdateMeteorShower(Particle& p, float deltaTime);
     void EmitMeteorShower(const DirectX::XMFLOAT3& centerPos, const DirectX::XMFLOAT3& dir);
 

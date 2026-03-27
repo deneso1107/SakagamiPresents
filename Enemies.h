@@ -3,6 +3,7 @@
 #include "system/IScene.h"
 #include "Enemy.h"
 #include"Field.h"
+#include "WeavingEnemy.h"
 constexpr int ENEMYMAX = 100;
 
 enum class EnemyFormation
@@ -67,10 +68,21 @@ void InitEnemiesWithMultiFormation(IScene*, Field*, const MultiFormationConfig& 
 void UpdateEnemies(float);
 void DrawEnemies();
 void DisposeEnemies();
+void InitWeavingEnemies(
+    IScene* currentscene,
+    Field* field,
+    MoveDirection direction,
+    int           count,
+    Vector3       startPos,
+    float         spacing = 30.0f,
+    bool clearFirst = false,
+    BaseRoad * linkedRoad = nullptr);
 
 // ƒƒbƒVƒ…æ“¾
 CStaticMesh* GetEnemyMesh();
 // ‘SRTSî•ñæ“¾
 std::vector<std::unique_ptr<Enemy>>& GetAllEnemys();
+std::vector<std::unique_ptr<WeavingEnemy>>& GetAllWeavingEnemies();
 std::vector<SRT> GetAllRTS();
 GM31::GE::Collision::BoundingSphere GetEnemyBoundingSphere(const Enemy& enemy);
+

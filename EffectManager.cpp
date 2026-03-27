@@ -6,79 +6,79 @@
 // ========================================
 BillboardEffect::BillboardEffect(const Vector3& position, float width, float height,
     const wchar_t* texturePath, float duration)
-    : m_FadeOut(true), m_Scale(1.0f), m_InitialWidth(width), m_InitialHeight(height)
+    : m_fadeOut(true), m_scale(1.0f), m_initialWidth(width), m_initialHeight(height)
 {
-    m_MaxLifeTime = duration;
-    m_LifeTime = 0.0f;
-    m_Billboard.Init(position, width, height, texturePath);
-    m_OriginalColor = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+    m_maxLifeTime = duration;
+    m_lifeTime = 0.0f;
+    m_billboard.Init(position, width, height, texturePath);
+    m_originalColor = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
 }
 BillboardEffect::~BillboardEffect()   // デストラクタを追加
 {
-    m_Billboard.Dispose();
+    m_billboard.Dispose();
     OutputDebugStringA("BillboardEffect デストラクタ呼ばれた\n");
 }
 
 void BillboardEffect::Update(float deltaTime)
 {
-    m_LifeTime += deltaTime;
+    m_lifeTime += deltaTime;
 
-    if (m_LifeTime >= m_MaxLifeTime)
+    if (m_lifeTime >= m_maxLifeTime)
     {
-        m_IsActive = false;
+        m_isActive = false;
         return;
     }
 
-    if (m_FadeOut)
+    if (m_fadeOut)
     {
-        float lifeRatio = m_LifeTime / m_MaxLifeTime;
+        float lifeRatio = m_lifeTime / m_maxLifeTime;
         float alpha = 1.0f - lifeRatio;
-        // m_Billboard.SetColor(Vector4(1, 1, 1, alpha)); // 実装があれば
+        // m_billboard.SetColor(Vector4(1, 1, 1, alpha)); // 実装があれば
     }
 
-    if (m_Scale != 1.0f)
+    if (m_scale != 1.0f)
     {
-        float newWidth = m_InitialWidth * m_Scale;
-        float newHeight = m_InitialHeight * m_Scale;
-        // m_Billboard.SetSize(newWidth, newHeight); // 実装があれば
+        float newWidth = m_initialWidth * m_scale;
+        float newHeight = m_initialHeight * m_scale;
+        // m_billboard.SetSize(newWidth, newHeight); // 実装があれば
     }
 }
 
 void BillboardEffect::Draw(const Matrix4x4& viewMatrix)
 {
-    if (!m_IsActive) return;
-    m_Billboard.Update(viewMatrix);
-    m_Billboard.Draw();
+    if (!m_isActive) return;
+    m_billboard.Update(viewMatrix);
+    m_billboard.Draw();
 }
 
 
 void ParticleEffect::Update(float deltaTime)
 {
-    m_LifeTime += deltaTime;
+    m_lifeTime += deltaTime;
 
-    if (!m_HasSetup && m_Emitter)
+    if (!m_hasSetup && m_emitter)
     {
-        m_Emitter->SetColorRange(m_Config.startColor, m_Config.endColor);
-        m_Emitter->SetSpeedRange(m_Config.minSpeed, m_Config.maxSpeed);
-        m_Emitter->SetSpreadAngle(m_Config.spreadAngle);
-        m_Emitter->SetGravity(m_Config.gravity);
-        m_Emitter->SetParticleSize(m_Config.particleSize);
-        m_Emitter->SetBehaviorType(m_Config.behaviorType);  // 設定
-        m_HasSetup = true;
+        m_emitter->SetColorRange(m_config.startColor, m_config.endColor);
+        m_emitter->SetSpeedRange(m_config.minSpeed, m_config.maxSpeed);
+        m_emitter->SetSpreadAngle(m_config.spreadAngle);
+        m_emitter->SetGravity(m_config.gravity);
+        m_emitter->SetParticleSize(m_config.particleSize);
+        m_emitter->SetBehaviorType(m_config.behaviorType);  // 設定
+        m_hasSetup = true;
     }
 
-    if (m_HasSetup && m_Emitter && m_LifeTime < m_EmitDuration)
+    if (m_hasSetup && m_emitter && m_lifeTime < m_emitDuration)
     {
-        DirectX::XMFLOAT3 pos = { m_Position.x, m_Position.y, m_Position.z };
-        DirectX::XMFLOAT3 dir = { m_Direction.x, m_Direction.y, m_Direction.z };
+        DirectX::XMFLOAT3 pos = { m_position.x, m_position.y, m_position.z };
+        DirectX::XMFLOAT3 dir = { m_direction.x, m_direction.y, m_direction.z };
 
         //behaviorTypeを渡して放出
-        m_Emitter->Emit(pos, dir, m_Config.behaviorType);
+        m_emitter->Emit(pos, dir, m_config.behaviorType);
     }
 
-    if (m_LifeTime >= m_MaxLifeTime)
+    if (m_lifeTime >= m_maxLifeTime)
     {
-        m_IsActive = false;
+        m_isActive = false;
     }
 }
 
@@ -87,10 +87,10 @@ void ParticleEffect::Update(float deltaTime)
 // ========================================
 void EffectManager::Initialize()
 {
-    m_Effects.clear();
-    m_Presets.clear();
-    m_Emitters.clear();
-    m_CurrentEmitterIndex = 0;
+    m_effects.clear();
+    m_presets.clear();
+    m_emitters.clear();
+    m_currentEmitterIndex = 0;
 
     //エミッタ数を確認
     for (int i = 0; i < 5; ++i)
@@ -98,7 +98,7 @@ void EffectManager::Initialize()
         auto emitter = std::make_unique<SparkEmitter>();
         if (emitter->Init(Renderer::GetDevice()))
         {
-            m_Emitters.push_back(std::move(emitter));
+            m_emitters.push_back(std::move(emitter));
 
             char buffer[128];
             sprintf_s(buffer, "エミッタ %d 初期化成功\n", i);
@@ -113,7 +113,7 @@ void EffectManager::Initialize()
     }
 
     char buffer[128];
-    printf( "合計 %zu 個のエミッタが作成されました\n", m_Emitters.size());
+    printf( "合計 %zu 個のエミッタが作成されました\n", m_emitters.size());
 
     EffectPresets::RegisterDefaultPresets();
 }
@@ -123,7 +123,7 @@ void EffectManager::Finalize()
     ClearAllEffects();
 
     //すべてのエミッタを解放
-    for (auto& emitter : m_Emitters)
+    for (auto& emitter : m_emitters)
     {
         if (emitter)
         {
@@ -131,15 +131,15 @@ void EffectManager::Finalize()
             emitter.reset();
         }
     }
-    m_Emitters.clear();
-    m_Presets.clear();
+    m_emitters.clear();
+    m_presets.clear();
 
 }
 
 void EffectManager::Update(float deltaTime)
 {
     // すべてのエフェクトを更新
-    for (auto& effect : m_Effects)
+    for (auto& effect : m_effects)
     {
         if (effect && effect->IsActive())
         {
@@ -151,7 +151,7 @@ void EffectManager::Update(float deltaTime)
     RemoveInactiveEffects();
 
     //すべてのエミッタを更新
-    for (auto& emitter : m_Emitters)
+    for (auto& emitter : m_emitters)
     {
         if (emitter)
         {
@@ -163,7 +163,7 @@ void EffectManager::Update(float deltaTime)
 void EffectManager::Draw(ID3D11DeviceContext* context,const Matrix4x4& viewMatrix)
 {
     // BillboardEffect を描画
-    for (auto& effect : m_Effects)
+    for (auto& effect : m_effects)
     {
         if (effect && effect->IsActive())
         {
@@ -171,7 +171,7 @@ void EffectManager::Draw(ID3D11DeviceContext* context,const Matrix4x4& viewMatri
         }
     }
 
-    for (auto& emitter : m_Emitters)
+    for (auto& emitter : m_emitters)
     {
         if(emitter)
         {
@@ -187,14 +187,14 @@ void EffectManager::Draw(ID3D11DeviceContext* context,const Matrix4x4& viewMatri
 
 void EffectManager::RegisterPreset(const std::string& name, const EffectPreset& preset)
 {
-    m_Presets[name] = preset;
+    m_presets[name] = preset;
 }
 
 void EffectManager::SpawnEffect(const std::string& presetName, const Vector3& position,
     const Vector3& direction)
 {
-    auto it = m_Presets.find(presetName);
-    if (it == m_Presets.end())
+    auto it = m_presets.find(presetName);
+    if (it == m_presets.end())
         return;
 
     const EffectPreset& preset = it->second;
@@ -205,7 +205,7 @@ void EffectManager::SpawnEffect(const std::string& presetName, const Vector3& po
             position, preset.width, preset.height,
             preset.texturePath.c_str(), preset.duration);
         effect->SetFadeOut(preset.fadeOut);
-        m_Effects.push_back(std::move(effect));
+        m_effects.push_back(std::move(effect));
     }
     else if (preset.type == EffectPreset::Type::Particle)
     {
@@ -219,7 +219,7 @@ void EffectManager::SpawnEffect(const std::string& presetName, const Vector3& po
         auto effect = std::make_unique<ParticleEffect>(
             availableEmitter, position, direction, preset.particleConfig);
         
-        m_Effects.push_back(std::move(effect));
+        m_effects.push_back(std::move(effect));
     }
 }
 
@@ -229,7 +229,7 @@ void EffectManager::SpawnBillboardEffect(const Vector3& position, float width, f
     auto effect = std::make_unique<BillboardEffect>(
         position, width, height, texturePath, duration);
     effect->SetFadeOut(fadeOut);
-    m_Effects.push_back(std::move(effect));
+    m_effects.push_back(std::move(effect));
 }
 
 void EffectManager::SpawnParticleEffect(const Vector3& position, const Vector3& direction,
@@ -244,18 +244,18 @@ void EffectManager::SpawnParticleEffect(const Vector3& position, const Vector3& 
 
     auto effect = std::make_unique<ParticleEffect>(
         availableEmitter, position, direction, config);
-    m_Effects.push_back(std::move(effect));
+    m_effects.push_back(std::move(effect));
 }
 
 void EffectManager::ClearAllEffects()
 {
-    m_Effects.clear();
+    m_effects.clear();
 }
 
 int EffectManager::GetActiveEffectCount() const
 {
     int count = 0;
-    for (const auto& effect : m_Effects)
+    for (const auto& effect : m_effects)
     {
         if (effect && effect->IsActive())
             ++count;
@@ -265,26 +265,26 @@ int EffectManager::GetActiveEffectCount() const
 
 void EffectManager::RemoveInactiveEffects()
 {
-    m_Effects.erase(
-        std::remove_if(m_Effects.begin(), m_Effects.end(),
+    m_effects.erase(
+        std::remove_if(m_effects.begin(), m_effects.end(),
             [](const std::unique_ptr<Effect>& effect) {
                 return !effect || !effect->IsActive();
             }),
-        m_Effects.end()
+        m_effects.end()
     );
 }
 
 //利用可能なエミッタを返す
 SparkEmitter* EffectManager::GetAvailableEmitter()
 {
-    if (m_Emitters.empty())
+    if (m_emitters.empty())
     {
         OutputDebugStringA("エラー: エミッタリストが空です\n");
         return nullptr;
     }
 
-    SparkEmitter* emitter = m_Emitters[m_CurrentEmitterIndex].get();
-    m_CurrentEmitterIndex = (m_CurrentEmitterIndex + 1) % m_Emitters.size();
+    SparkEmitter* emitter = m_emitters[m_currentEmitterIndex].get();
+    m_currentEmitterIndex = (m_currentEmitterIndex + 1) % m_emitters.size();
 
     return emitter;
 }

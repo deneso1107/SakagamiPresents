@@ -10,6 +10,8 @@
 
 // 敵多数
 std::vector<std::unique_ptr<Enemy>> g_Enemies;
+
+std::vector<std::unique_ptr<WeavingEnemy>> g_WeavingEnemies;
 // 敵のメッシュデータ
 static CStaticMesh g_EnemyMesh{};
 static CStaticMeshRenderer g_EnemyMeshRenderer{};
@@ -251,6 +253,63 @@ void InitEnemiesWithMultiFormation(IScene* currentscene, Field* field, const Mul
     printf("Initialized %d enemies (requested: %d)\n", (int)g_Enemies.size(), config.totalEnemyCount);
 }
 
+void InitWeavingEnemies(
+    IScene* currentscene,
+    Field* field,
+    MoveDirection direction,
+    int           count,
+    Vector3       startPos,
+    float         spacing,
+    bool clearFirst,
+    BaseRoad* linkedRoad)
+{
+    if (clearFirst)  // ← 最初の1回だけclear
+        g_WeavingEnemies.clear();
+
+    // メッシュは既存の g_EnemyMesh / g_EnemyMeshRenderer を共用
+    // （InitEnemies 系をあらかじめ呼んでおくこと）
+
+    // 前進方向ベクトルを取得して縦列に並べる
+    Vector3 forwardDir = { 0,0,0 };
+    switch (direction)
+    {
+    case MoveDirection::NORTH: forwardDir = { 0.0f, 0.0f,  1.0f }; break;
+    case MoveDirection::SOUTH: forwardDir = { 0.0f, 0.0f, -1.0f }; break;
+    case MoveDirection::EAST:  forwardDir = { 1.0f, 0.0f,  0.0f }; break;
+    case MoveDirection::WEST:  forwardDir = { -1.0f, 0.0f,  0.0f }; break;
+    }
+
+    for (int i = 0; i < count; ++i)
+    {
+        auto enemy = std::make_unique<WeavingEnemy>(currentscene);
+
+        // 縦列に spacing ずつ後ろにオフセット
+        Vector3 pos = startPos + forwardDir * (-spacing * i);
+        enemy->SetPosition(pos);
+
+        // Init はSetPosition後に呼ぶ（startPosition記録のため）
+        enemy->Init();
+
+        enemy->SetMoveDirection(direction);
+        enemy->SetMeshRenderer(GetEnemyMesh() ? &g_EnemyMeshRenderer : nullptr);
+
+        // ↓ パラメータは必要に応じて調整
+         //enemy->SetMoveSpeed(5.0f);
+         //enemy->SetWeaveAmplitude(10.0f);
+         //enemy->SetWeaveFrequency(1.5f);
+         //enemy->SetTravelLimit(200.0f);
+         //enemy->SetTimeLimit(5.0f);
+
+        if (field) enemy->SetField(field);
+
+        enemy->SetLinkedRoad(linkedRoad);  // ← 紐づけ追加
+
+        g_WeavingEnemies.emplace_back(std::move(enemy));
+    }
+
+    printf("Initialized %d WeavingEnemies\n", (int)g_WeavingEnemies.size());
+}
+
 void UpdateEnemies(float deltaTime)
 {
     // 空チェック
@@ -262,6 +321,14 @@ void UpdateEnemies(float deltaTime)
     for (auto& e : g_Enemies)
     {
         // nullptrチェック
+        if (e)
+        {
+            e->Update(deltaTime);
+        }
+    }
+
+    for (auto& e : g_WeavingEnemies)
+    {
         if (e)
         {
             e->Update(deltaTime);
@@ -286,11 +353,20 @@ void DrawEnemies()
             e->Draw();
         }
     }
+    // --- WeavingEnemy ---
+    for (auto& e : g_WeavingEnemies)
+    {
+         if (e && e->GetActive())
+         {
+             e->Draw();
+		 }
+    }
 }
 
 void DisposeEnemies()
 {
     g_Enemies.clear();
+    g_WeavingEnemies.clear();
 }
 
 std::vector<SRT> GetAllRTS()
@@ -323,6 +399,11 @@ std::vector<SRT> GetAllRTS()
 std::vector<std::unique_ptr<Enemy>>& GetAllEnemys()
 {
     return g_Enemies;
+}
+
+std::vector<std::unique_ptr<WeavingEnemy>>& GetAllWeavingEnemies()
+{
+    return g_WeavingEnemies;
 }
 
 GM31::GE::Collision::BoundingSphere GetEnemyBoundingSphere(const Enemy& enemy)

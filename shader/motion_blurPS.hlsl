@@ -1,3 +1,4 @@
+// モーションブラーと放射状のスピードライン、ショックウェーブを組み合わせたゲーム内演出で使用しているシェーダー
 Texture2D sceneTexture : register(t0);
 SamplerState samplerState : register(s0);
 
@@ -90,7 +91,7 @@ float4 main(PS_INPUT input) : SV_TARGET
         shockwave = edge * shockwaveIntensity * (1.0 - distance);
     }
 
-    // === (4) ホワイトアウト（中心の発光） ===
+    // === (4) ホワイトアウト（中心の発光）　元々実装していたが、視認性を考慮し、コメントアウト ===
     //float whiteCore = pow(saturate(1.0 - distance * 8.0), 5.0) * (blurStrength + shockwaveIntensity * 2.0); //ここを変更すると強さが変わる
 
     // === 合成 ===

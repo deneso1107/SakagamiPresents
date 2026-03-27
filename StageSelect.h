@@ -27,13 +27,13 @@ private:
 	ArrowButtonAnimator m_rightArrow;
 
 	// 矢印ビルボード
-	std::unique_ptr<ScreenFixedBillboard> m_LeftArrowBillBoard;
-	std::unique_ptr<ScreenFixedBillboard> m_RightArrowBillBoard;
+	std::unique_ptr<ScreenFixedBillboard> m_leftArrowBillBoard;
+	std::unique_ptr<ScreenFixedBillboard> m_rightArrowBillBoard;
 
-	std::unique_ptr<ScreenFixedBillboard> m_Stage1BillBoard; // ステージ説明
-	std::unique_ptr<ScreenFixedBillboard> m_Stage2BillBoard; // ステージ説明
-	std::unique_ptr<ScreenFixedBillboard> m_Stage3BillBoard; // ステージ説明
-	std::unique_ptr<ScreenFixedBillboard> m_SelectIconBillBoard; // セレクトアイコン
+	std::unique_ptr<ScreenFixedBillboard> m_stage1BillBoard; // ステージ説明
+	std::unique_ptr<ScreenFixedBillboard> m_stage2BillBoard; // ステージ説明
+	std::unique_ptr<ScreenFixedBillboard> m_stage3BillBoard; // ステージ説明
+	std::unique_ptr<ScreenFixedBillboard> m_selectIconBillBoard; // セレクトアイコン
 	std::unique_ptr<SparkEmitter> m_sparkEmitter;//火花エミッタ
 	std::unique_ptr<Skydome> m_skydome;//スカイドーム
 

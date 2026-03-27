@@ -240,9 +240,6 @@
     <ClInclude Include="SparkEmitter.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="BlastEnemy.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="ObjectBase.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
@@ -291,9 +288,6 @@
     <ClInclude Include="Ending.h">
       <Filter>ヘッダー ファイル\Scene</Filter>
     </ClInclude>
-    <ClInclude Include="TextureCache.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="PostProcessManager.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
@@ -307,9 +301,6 @@
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="VideoPlayer.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="VideoBllBoard.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="Start.h">
@@ -359,9 +350,6 @@
     </ClInclude>
     <ClInclude Include="SimpleCamera.h">
       <Filter>ヘッダー ファイル\Camera</Filter>
-    </ClInclude>
-    <ClInclude Include="ChaseCamera.h">
-      <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="CTerrainMesh.h">
       <Filter>ヘッダー ファイル\Object\Road</Filter>
@@ -437,6 +425,12 @@
     </ClInclude>
     <ClInclude Include="StageDecideEffect.h">
       <Filter>ヘッダー ファイル\Effect</Filter>
+    </ClInclude>
+    <ClInclude Include="WeavingEnemy.h">
+      <Filter>ヘッダー ファイル\Object\Enemy</Filter>
+    </ClInclude>
+    <ClInclude Include="ChaseCamera.h">
+      <Filter>ヘッダー ファイル\Camera</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -549,9 +543,6 @@
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="SparkEmitter.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="BlastEnemy.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="Player.cpp">
@@ -715,6 +706,9 @@
     </ClCompile>
     <ClCompile Include="StageDecideEffect.cpp">
       <Filter>ソース ファイル\Efffect]</Filter>
+    </ClCompile>
+    <ClCompile Include="WeavingEnemy.cpp">
+      <Filter>ソース ファイル\Object\Enemy</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
