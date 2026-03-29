@@ -165,14 +165,14 @@ void InitEnemiesWithMultiFormation(IScene* currentscene, Field* field, const Mul
 
     // モデルの初期化
     g_EnemyMesh.Load(
-        "assets/model/car001.x",
+        "assets/model/kakasi/Untitled.fbx",
         "assets/model/");
     // レンダラ初期化
     g_EnemyMeshRenderer.Init(g_EnemyMesh);
     // シェーダーの初期化
     g_Shader.Create(
-        "shader/vertexLightingVS.hlsl",
-        "shader/vertexLightingPS.hlsl");
+        "shader/unlitTextureVS.hlsl",
+        "shader/unlitTexturePS.hlsl");
 
     // 各配置パターンで指定された数の合計を計算
     int specifiedTotal = 0;

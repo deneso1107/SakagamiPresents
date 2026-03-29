@@ -27,6 +27,9 @@ namespace PlayerConstants {
 static Vector3 g_rotation = Vector3(0.0f, 0.0f, 0.0f);
 static Vector3 g_position = Vector3(0.0f, 0.0f, 0.0f);
 static Vector3 g_scale = Vector3(1.0f, 1.0f, 1.0f);
+
+
+
 //最初の演出
 void Player::StartRaceSequence(const Vector3& startPosition)
 {
@@ -723,8 +726,6 @@ void Player::Update(float deltatime)
 			{
 				// Rボタン押下中 + スティック左右 = ドリフト
 				driftInput = true;
-
-				// アナログ値でドリフト方向（推奨）
 				m_driftDirection = leftX;
 
 				// またはキーボードと同じく-1.0/1.0にする場合
@@ -733,8 +734,6 @@ void Player::Update(float deltatime)
 			else
 			{
 				// Rボタンなし + スティック左右 = 通常ハンドル操作
-
-				// アナログ値でステアリング（推奨）
 				steering = leftX;
 
 				// またはキーボードと同じく-1.0/1.0にする場合
@@ -811,6 +810,18 @@ void Player::Update(float deltatime)
 
 				OnCollisionWithEnemy(*enemy);
 				AddBoostGauge(5.0f);//敵を吹っ飛ばした際に加速ゲージを取得　加速の最大値も少し上昇
+			}
+		}
+	}
+
+	for (auto& enemy : GetAllWeavingEnemies())
+	{
+		if (!enemy || !enemy->GetActive()) continue;
+		if (CollisionSphere(m_BoundingSphere, enemy->GetEnemyBoundingSphere()))
+		{
+			if (!enemy->GetIsKnockedBack()) {
+				OnCollisionWithEnemy(*enemy); // WeavingEnemy版が呼ばれる
+				AddBoostGauge(5.0f);
 			}
 		}
 	}
@@ -1482,8 +1493,8 @@ void Player::OnCollisionWithEnemy(Enemy& enemy)
 
 
 	// ノックバック力を適用
-	float  knockbackForce = m_speed*50.0f; // 力を強くして確実に飛ぶようにする
-	m_gameScore += knockbackForce/50;
+	float knockbackForce = m_speed * KNOCKBACK_FORCE_MULTIPLIER;
+	m_gameScore += knockbackForce / SCORE_DIVISOR;
 
 	if (timeScale != 1.0f)
 	{
@@ -1544,6 +1555,66 @@ void Player::OnCollisionWithEnemy(Enemy& enemy)
 
 	enemy.ApplyKnockback(knockbackDirection, knockbackForce,timeScale);
 }
+
+void Player::OnCollisionWithEnemy(WeavingEnemy& enemy)
+{
+	using namespace DirectX::SimpleMath;
+	// knockbackDirectionの計算は既存と全く同じ
+	float timeScale = GameManager::Instance().GetTimeScale();
+	Vector3 knockbackDirection = enemy.GetPosition() - this->GetPosition();
+	knockbackDirection.y = 0.0f;
+	if (knockbackDirection.Length() > 0.001f) 
+	{
+		knockbackDirection.Normalize();
+	}
+	else 
+	{
+		knockbackDirection = Vector3(sinf(this->GetRotation().y), 0.0f, cosf(this->GetRotation().y));
+	}
+	Vector3 cameraForward = SpringCamera::Instance().GetForward();
+	cameraForward.y = 0.0f;
+	cameraForward.Normalize();
+	float cameraInfluence = 0.5f;
+	knockbackDirection = knockbackDirection * (1.0f - cameraInfluence) +
+		cameraForward * cameraInfluence;
+	knockbackDirection.y = 0.1f;
+	knockbackDirection.Normalize();
+	float knockbackForce = m_speed * KNOCKBACK_FORCE_MULTIPLIER;
+	// WeavingEnemyはスコアボーナスが高いので、加算量を増やす
+	m_gameScore += (knockbackForce / SCORE_DIVISOR) * WEAVING_ENEMY_SCORE_BONUS;
+	if (timeScale != 1.0f) knockbackForce *= (1 / timeScale);
+
+	// スコア・演出系は既存と同じ
+	m_consecutiveHits++;
+	if (m_consecutiveHits % m_hitsPerMilestone == 0 &&
+		m_permanentSpeedBonus < m_maxPermanentBonus)
+	{
+		m_permanentSpeedBonus += m_permanentBonusPerMilestone;
+		if (m_permanentSpeedBonus > m_maxPermanentBonus)
+			m_permanentSpeedBonus = m_maxPermanentBonus;
+		ApplyHitStop(0.025f, 0.005f);
+		SpringCamera::Instance().Shake(3.0f, 0.2f);
+	}
+	m_temporarySpeedBonus += m_temporaryBonusPerHit;
+	if (m_temporarySpeedBonus > m_maxTemporaryBonus)
+		m_temporarySpeedBonus = m_maxTemporaryBonus;
+	m_speedBoostTimer = m_temporaryBoostDuration;
+
+	float speedRatio = m_speed / m_maxSpeed;
+	if (speedRatio > 1.5f) {
+		ApplyHitStop(0.1f, 0.5f);
+		SpringCamera::Instance().Shake(2.0f, 0.15f);
+	}
+	else {
+		ApplyHitStop(0.01f, 0.0001f);
+		SpringCamera::Instance().Shake(1.0f, 0.1f);
+	}
+	SpringCamera::Instance().Shake(1.0f, 0.1f);
+	SoundManager::GetInstance().PlaySE("fly_away");
+
+	enemy.ApplyKnockback(knockbackDirection, knockbackForce, timeScale); // ← WeavingEnemyのApplyKnockback
+}
+
 
 void Player::ApplyHitStop(float duration, float timeScale /*= 0.0f*/)//	スローどうしよ　ピンとこんなー
 {

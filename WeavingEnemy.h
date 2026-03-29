@@ -18,13 +18,13 @@ class WeavingEnemy : public ObjectBase
 {
 public:
     // ────────────── 調整パラメータ ──────────────
-    static constexpr float DEFAULT_MOVE_SPEED = 500.0f;   // 前進速度
+    static constexpr float DEFAULT_MOVE_SPEED = 200.0f;   // 前進速度
     static constexpr float DEFAULT_WEAVE_AMPLITUDE = 100.0f;  // 左右の振れ幅
     static constexpr float DEFAULT_WEAVE_FREQUENCY = 1.5f;   // 左右の周波数（Hz）
     static constexpr float DEFAULT_RISE_SPEED = 200.0f;  // 上昇速度
     static constexpr float DEFAULT_TRAVEL_LIMIT = 2000.0f; // 上昇トリガーとなる移動距離
-    static constexpr float DEFAULT_TIME_LIMIT = 10.0f;   // 上昇トリガーとなる時間（秒）
-    static constexpr float DEFAULT_BOUNDING_RADIUS = 5.0f;  // 当たり判定半径
+    static constexpr float DEFAULT_TIME_LIMIT = 1.5f;   // 上昇トリガーとなる時間（秒）
+    static constexpr float DEFAULT_BOUNDING_RADIUS = 10.0f;  // 当たり判定半径
 
 private:
     // ────────────── 内部状態 ──────────────
@@ -88,6 +88,9 @@ private:
     void SpawnDisappearEffect();
     void KnockBack(float deltaTime);
 
+	static constexpr float COLLISION_SIZE = 20.0f; // 当たり判定のサイズ（半径）
+	static constexpr float MODEL_SIZE = 15.0f; // 当たり判定のサイズ（半径）
+
 public:
     WeavingEnemy(IScene* currentscene)
         : m_ownerscene(currentscene)
@@ -122,6 +125,7 @@ public:
     void SetLinkedRoad(BaseRoad* road) { m_linkedRoad = road; }
     void ActivateMovement() { m_isActivated = true; }
     bool IsActivated() const { return m_isActivated; }
+    bool GetIsKnockedBack() const { return m_isKnockedBack; }
 
 
     GM31::GE::Collision::BoundingSphere GetEnemyBoundingSphere();

@@ -10,7 +10,7 @@ void Enemy::Init()
 {
 	m_Position = Vector3(0.0f, 0.0f, 0.0f);
 	m_Rotation = Vector3(0.0f, 0.0f, 0.0f);
-	m_Scale = Vector3(1.0f, 1.0f, 1.0f);
+	m_Scale = Vector3(7.0f, 7.0f,7.0f);
 
 	m_BoundingSphere=
 	{
@@ -165,10 +165,7 @@ void Enemy::SpawnDisappearEffect()
 {
     // テスト1: 同じ位置で両方生成
     EffectManager::Instance().SpawnEffect("Star", m_Position, Vector3(450.0f, 450.0f, 0));
-    printf("Star生成完了\n");
 
-    EffectManager::Instance().SpawnEffect("SparkleParticle", m_Position, Vector3(0, 1, 0));
-    //printf("SparkleParticle生成完了\n");
 }
 
 GM31::GE::Collision::BoundingSphere Enemy::GetEnemyBoundingSphere()//Enemyの当たり判定を取得する関数
