@@ -165,6 +165,12 @@ private:
     //複数のエミッタを保持
     std::vector<std::unique_ptr<SparkEmitter>> m_emitters;
 
+    // テクスチャキャッシュ（パス → テクスチャリソース）
+    std::unordered_map<std::wstring, ID3D11ShaderResourceView*> m_textureCache;
+    // キャッシュ経由でテクスチャを取得
+    ID3D11ShaderResourceView* GetOrLoadTexture(const std::wstring& path);
+
+
     void RemoveInactiveEffects();
     SparkEmitter* GetAvailableEmitter();
 };

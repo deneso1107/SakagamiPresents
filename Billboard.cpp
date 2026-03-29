@@ -62,21 +62,14 @@ void Billboard::Init(const Vector3& position, float width, float height, const w
 
     m_texture = TextureCache::Instance().GetTexture(Renderer::GetDevice(), texturePath);
 
-
-    //if (FAILED(hr)) {
-    //    wprintf(L"Failed to load texture: %s (HRESULT: 0x%x)\n", texturePath, hr);
-    //    CreateDefaultTexture();
-    //}
-
-
-    // シェーダーの初期化
-    g_Shader.Create(
-        "shader/unlitTextureVS.hlsl",
-        "shader/unlitTexturePS.hlsl");
-
-    // マテリアルを初期化
-  // m_material.Init();
-
+    static bool s_shaderInitialized = false;
+    if (!s_shaderInitialized)
+    {
+        g_Shader.Create(
+            "shader/unlitTextureVS.hlsl",
+            "shader/unlitTexturePS.hlsl");
+        s_shaderInitialized = true;
+    }
     // マテリアル設定
     MATERIAL materialData = {};
     materialData.Diffuse = Vector4(1.0f, 1.0f, 1.0f, 1.0f);      // 白色

@@ -40,7 +40,7 @@ Vector3 WeavingEnemy::GetSideVector() const
 void WeavingEnemy::Init()
 {
     m_Rotation = Vector3(0.0f, 0.0f, 0.0f);
-    m_Scale = Vector3(1.0f, 1.0f, 1.0f);
+    m_Scale = Vector3(MODEL_SIZE, MODEL_SIZE, MODEL_SIZE);
 
     m_startPosition = m_Position;  // SetPosition後にInitを呼ぶこと
     m_phase = Phase::WEAVING;
@@ -55,7 +55,7 @@ void WeavingEnemy::Init()
     m_BoundingSphere =
     {
         m_Position,
-        5.0f,
+       COLLISION_SIZE ,
     };
 }
 
@@ -106,26 +106,30 @@ void WeavingEnemy::Update(float deltaTime)
         m_elapsedTime += deltaTime;
         m_waveTimer += deltaTime;
 
-        // 前進ベクトル
         Vector3 forward = GetForwardVector();
         Vector3 side = GetSideVector();
 
-        // サイン波による横オフセット（速度として加える）
-        //   sin を微分した cos を速度として使うことで
-        //   位置を直接操作せず自然に揺れる
-        float sideVelocity = m_weaveAmplitude * m_weaveFrequency
-            * cosf(m_waveTimer * m_weaveFrequency * 2.0f * 3.14159265f);
+        // 前進
+        m_Position += forward * m_moveSpeed * deltaTime;
 
-        // 移動量を合成
-        Vector3 move = forward * m_moveSpeed + side * sideVelocity;
-        move *= deltaTime;
+        // 左右の揺れ（控えめな振れ幅）
+        float swaySpeed = 5.0f;  // 横揺れの速さ
+        float swayAmplitude = 15.0f;  // 横揺れの幅
+        float swayVelocity = swayAmplitude * swaySpeed
+            * cosf(m_waveTimer * swaySpeed);
+        m_Position += side * swayVelocity * deltaTime;
 
-        m_Position += move;
+        // 上下ピストン（既存のまま）
+        float bounceSpeed = 50.0f;
+        float bounceHeight = 5.0f;
+        float baseY = m_startPosition.y;
+        m_Position.y = baseY + std::max(0.0f,
+            sinf(m_waveTimer * bounceSpeed) * bounceHeight);
 
-        // 移動距離の累積（XZ平面のみ）
-        m_traveledDistance += Vector3(move.x, 0.0f, move.z).Length();
+        // 移動距離の累積
+        m_traveledDistance += (forward * m_moveSpeed * deltaTime).Length();
 
-        // モデルを進行方向に向ける（Y軸回転）
+        // 進行方向に向ける
         float targetYaw = 0.0f;
         switch (m_direction)
         {
@@ -136,14 +140,13 @@ void WeavingEnemy::Update(float deltaTime)
         }
         m_Rotation.y = targetYaw;
 
-        // ── 上昇トリガー判定（時間 or 距離、どちらか早い方） ──
+        // 上昇トリガー判定
         bool timeTrigger = (m_elapsedTime >= m_timeLimit);
         bool distanceTrigger = (m_traveledDistance >= m_travelLimit);
-
         if (timeTrigger || distanceTrigger)
         {
             m_phase = Phase::RISING;
-            m_verticalVelocity = m_riseSpeed; // 上向きの初速
+            m_verticalVelocity = m_riseSpeed;
         }
         break;
     }
@@ -151,14 +154,12 @@ void WeavingEnemy::Update(float deltaTime)
     // ────────────── RISING フェーズ ──────────────
     case Phase::RISING:
     {
-        // 重力を加えながらも初速で上昇（放物線）
         m_verticalVelocity += m_gravity * deltaTime;
         m_Position.y += m_verticalVelocity * deltaTime;
 
-        // 回転させながら飛んでいく演出
-        m_Rotation.x += m_rotateSpeed * deltaTime;
+        // X軸→Y軸に変更
+        m_Rotation.y += m_rotateSpeed * deltaTime;
 
-        // カメラから一定距離で消去（既存Enemyと同仕様）
         Vector3 cameraPos = SpringCamera::Instance().GetPosition();
         float distance = (m_Position - cameraPos).Length();
 

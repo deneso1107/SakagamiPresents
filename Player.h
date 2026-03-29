@@ -15,6 +15,7 @@
 #include <deque>
 #include"SoundManager.h"
 #include"InputManager.h"
+#include "WeavingEnemy.h"
 class Player:public ObjectBase 
 {
 private:
@@ -227,6 +228,11 @@ private:
 	bool m_isBGM = false;
 
 
+	static constexpr float KNOCKBACK_FORCE_MULTIPLIER = 50.0f;  // ノックバック力の倍率
+	static constexpr float SCORE_DIVISOR = 50.0f;  // スコア計算の除数
+	static constexpr float WEAVING_ENEMY_SCORE_BONUS = 2.0f;  // WeavingEnemy撃破時のスコア倍率
+
+
 public:
 	void Init() override;
 	void Update(float) override;
@@ -260,6 +266,7 @@ public:
 	RoadManager* GetRoadManager() const { return m_roadManager; };
 	//追加
 	void OnCollisionWithEnemy(Enemy&);//敵を取得してベクトルを計算する
+	void OnCollisionWithEnemy(WeavingEnemy& enemy); //WeavingEnemy用の関数
 
 
 	// 地形の法線から車の回転を計算するメソッドを追加
