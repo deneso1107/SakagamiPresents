@@ -229,8 +229,8 @@ private:
 
 
 	static constexpr float KNOCKBACK_FORCE_MULTIPLIER = 50.0f;  // ノックバック力の倍率
-	static constexpr float SCORE_DIVISOR = 50.0f;  // スコア計算の除数
-	static constexpr float WEAVING_ENEMY_SCORE_BONUS = 2.0f;  // WeavingEnemy撃破時のスコア倍率
+	static constexpr float SCORE_DIVISOR = 75.0f;  // スコア計算の除数
+	static constexpr float WEAVING_ENEMY_SCORE_BONUS = 1.2f;  // WeavingEnemy撃破時のスコア倍率
 
 
 public:

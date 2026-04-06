@@ -45,12 +45,30 @@ void NumberRenderer::Init(const Vector2& basePos, float digitWidth, float digitH
 
     LoadDigitTexture();
     s_isInitialized = true;
+
+    // 背景の位置とサイズを調整
     Vector2 backpos = basePos;
     backpos.y -= 0.05f;
     backpos.x -= 0.05f;
-    m_backGroundScoreBillBoard= std::make_unique<ScreenFixedBillboard>(backpos, digitWidth*4, digitHeight*3, L"assets/texture/text/Score.png");
-    m_backGroundTimeBillBoard= std::make_unique<ScreenFixedBillboard>(backpos, digitWidth*4, digitHeight*3, L"assets/texture/text/Time.png");
-    m_backGroundTimeBillBoard= std::make_unique<ScreenFixedBillboard>(backpos, digitWidth*4, digitHeight*3, L"assets/texture/text/Time.png");
+
+    // === 背景サイズの調整パラメータ ===
+    float backgroundWidthMultiplier = 5.5f;   // 元は4.0f → 大きくする
+    float backgroundHeightMultiplier = 3.0f;
+
+    // 背景ビルボードを作成（サイズを大きく）
+    m_backGroundScoreBillBoard = std::make_unique<ScreenFixedBillboard>(
+        backpos,
+        digitWidth * backgroundWidthMultiplier,   // 幅を調整
+        digitHeight * backgroundHeightMultiplier,  // 高さを調整
+        L"assets/texture/text/Score.png"
+    );
+
+    m_backGroundTimeBillBoard = std::make_unique<ScreenFixedBillboard>(
+        backpos,
+        digitWidth * backgroundWidthMultiplier,   // 幅を調整
+        digitHeight * backgroundHeightMultiplier,  // 高さを調整
+        L"assets/texture/text/Time.png"
+    );
 }
 
 void NumberRenderer::Dispose()

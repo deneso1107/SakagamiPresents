@@ -1581,7 +1581,7 @@ void Player::OnCollisionWithEnemy(WeavingEnemy& enemy)
 	knockbackDirection.Normalize();
 	float knockbackForce = m_speed * KNOCKBACK_FORCE_MULTIPLIER;
 	// WeavingEnemyはスコアボーナスが高いので、加算量を増やす
-	m_gameScore += (knockbackForce / SCORE_DIVISOR) * WEAVING_ENEMY_SCORE_BONUS;
+	m_gameScore += (knockbackForce / SCORE_DIVISOR) ;
 	if (timeScale != 1.0f) knockbackForce *= (1 / timeScale);
 
 	// スコア・演出系は既存と同じ
