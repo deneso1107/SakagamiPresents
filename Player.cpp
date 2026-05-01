@@ -1405,28 +1405,41 @@ void Player::DrawAfterImage()
 {
 	// ブレンドステートを半透明に設定
 	Renderer::SetBlendState(EBlendState::BS_ADDITIVE);
-
 	// デプステストは有効、デプス書き込みは無効
 	Renderer::SetDepthEnable(true);   // 深度テストON
-
 	// シェーダー設定
 	m_shader.SetGPU();
+
 	const float AFTER_IMAGE_OPACITY = 0.8f; // ここで透明度を調整
 	const float GRADATION = 0.6f; // ここでグラデーションを調整
+
+	// 速度ベースの透明度調整パラメータ
+	const float MIN_SPEED_THRESHOLD = 0.1f;  // この速度以下で残像を完全に消す
+	const float MAX_SPEED_THRESHOLD = 5.0f;  // この速度以上で最大透明度
+	float currentSpeed = m_velocity.Length(); // プレイヤーの現在速度を取得
+	// 速度に応じた透明度係数を計算 (0.0 ~ 1.0)
+	float speedAlphaFactor = std::clamp(
+		(currentSpeed - MIN_SPEED_THRESHOLD) / (MAX_SPEED_THRESHOLD - MIN_SPEED_THRESHOLD),
+		0.0f,
+		1.0f
+	);
+
 	int index = 0;
 	int totalGhosts = m_ghostTrail.size();
+
 	// 残像を古い順に描画
 	for (const auto& ghost : m_ghostTrail) {
 		// ワールド行列設定
 		Renderer::SetWorldMatrix(const_cast<Matrix4x4*>(&ghost.worldMatrix));
 
 		// マテリアルのアルファを変更
-		std::vector<MATERIAL>material = m_mesh.GetMaterials(); 
-		for(auto& mat : material)
+		std::vector<MATERIAL> material = m_mesh.GetMaterials();
+		for (auto& mat : material)
+
 		{
 			// グラデーション
 			float fadeRatio = (float)index / (float)totalGhosts;
-			float displayAlpha = ghost.alpha * AFTER_IMAGE_OPACITY * (1.0f - fadeRatio * GRADATION);
+			float displayAlpha = ghost.alpha * AFTER_IMAGE_OPACITY * (1.0f - fadeRatio * GRADATION) * speedAlphaFactor; // 速度係数を乗算
 			float intensity = displayAlpha * 2.0f;
 
 			//ショックウェーブに寄せた水色に
@@ -1434,20 +1447,17 @@ void Player::DrawAfterImage()
 			mat.Diffuse.y = 0.8f * displayAlpha;
 			mat.Diffuse.z = 1.0f * displayAlpha;
 			mat.Diffuse.w = displayAlpha;
-
 			mat.Emission.x = 0.3f * intensity;
 			mat.Emission.y = 1.0f * intensity;
 			mat.Emission.z = 1.5f * intensity;
 			mat.TextureEnable = FALSE; //テクスチャを無効化
 			m_meshrenderer.DrawWithCustomMaterial(mat);
-
 			index++;
-
 		}
 	}
+
 	// ブレンドステートを元に戻す
 	Renderer::SetBlendState(EBlendState::BS_ALPHABLEND);
-
 }
 
 void Player::Dispose()
