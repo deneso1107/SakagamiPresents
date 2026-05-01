@@ -10,6 +10,7 @@
 #include "EffeectManager.h"
 #include "SpringCamera.h"
 #include"GoalCamera.h"
+#include "TreeManager.h"
 
 // 定数定義を関数外に移動（再計算を防ぐ）
 namespace PlayerConstants {
@@ -525,6 +526,7 @@ void Player::Init()
 	m_goalRotationSpeed = 720.0f;     // 1回転
 	m_goalAcceleration = 5.0f;        // 加速倍率
 
+
 }
 //まだちょいがたつく
 void Player::Update(float deltatime)
@@ -827,6 +829,8 @@ void Player::Update(float deltatime)
 	}
 
 	m_sparkEmitter.Update(scaledDeltaTime);
+
+
 
 	// 最高速度の時だけアフターイメージ
 	if (m_isMaxSpeed)
@@ -1402,22 +1406,20 @@ void Player::Draw()
 }
 
 void Player::DrawAfterImage()
-{
-	// ブレンドステートを半透明に設定
+{// ブレンドステートを半透明に設定
 	Renderer::SetBlendState(EBlendState::BS_ADDITIVE);
 	// デプステストは有効、デプス書き込みは無効
 	Renderer::SetDepthEnable(true);   // 深度テストON
 	// シェーダー設定
 	m_shader.SetGPU();
 
-	const float AFTER_IMAGE_OPACITY = 0.8f; // ここで透明度を調整
-	const float GRADATION = 0.6f; // ここでグラデーションを調整
+	const float AFTER_IMAGE_OPACITY = 0.8f;
+	const float GRADATION = 0.6f;
 
 	// 速度ベースの透明度調整パラメータ
-	const float MIN_SPEED_THRESHOLD = 0.1f;  // この速度以下で残像を完全に消す
-	const float MAX_SPEED_THRESHOLD = 5.0f;  // この速度以上で最大透明度
-	float currentSpeed = m_velocity.Length(); // プレイヤーの現在速度を取得
-	// 速度に応じた透明度係数を計算 (0.0 ~ 1.0)
+	const float MIN_SPEED_THRESHOLD = 0.1f;
+	const float MAX_SPEED_THRESHOLD = 5.0f;
+	float currentSpeed = m_velocity.Length();
 	float speedAlphaFactor = std::clamp(
 		(currentSpeed - MIN_SPEED_THRESHOLD) / (MAX_SPEED_THRESHOLD - MIN_SPEED_THRESHOLD),
 		0.0f,
@@ -1427,19 +1429,23 @@ void Player::DrawAfterImage()
 	int index = 0;
 	int totalGhosts = m_ghostTrail.size();
 
+	// マテリアルテンプレートを事前取得(参照で)
+	const std::vector<MATERIAL>& materialTemplates = m_mesh.GetMaterials();
+
 	// 残像を古い順に描画
 	for (const auto& ghost : m_ghostTrail) {
 		// ワールド行列設定
 		Renderer::SetWorldMatrix(const_cast<Matrix4x4*>(&ghost.worldMatrix));
 
-		// マテリアルのアルファを変更
-		std::vector<MATERIAL> material = m_mesh.GetMaterials();
-		for (auto& mat : material)
+		// グラデーション係数を計算(ゴーストごとに1回)
+		float fadeRatio = (float)index / (float)totalGhosts;
 
+		// マテリアルごとに描画
+		for (const auto& matTemplate : materialTemplates)
 		{
-			// グラデーション
-			float fadeRatio = (float)index / (float)totalGhosts;
-			float displayAlpha = ghost.alpha * AFTER_IMAGE_OPACITY * (1.0f - fadeRatio * GRADATION) * speedAlphaFactor; // 速度係数を乗算
+			MATERIAL mat = matTemplate;  // コピーして編集
+
+			float displayAlpha = ghost.alpha * AFTER_IMAGE_OPACITY * (1.0f - fadeRatio * GRADATION) * speedAlphaFactor;
 			float intensity = displayAlpha * 2.0f;
 
 			//ショックウェーブに寄せた水色に
@@ -1450,10 +1456,12 @@ void Player::DrawAfterImage()
 			mat.Emission.x = 0.3f * intensity;
 			mat.Emission.y = 1.0f * intensity;
 			mat.Emission.z = 1.5f * intensity;
-			mat.TextureEnable = FALSE; //テクスチャを無効化
+			mat.TextureEnable = FALSE;
+
 			m_meshrenderer.DrawWithCustomMaterial(mat);
-			index++;
 		}
+
+		index++;  // ゴーストごとにインクリメント
 	}
 
 	// ブレンドステートを元に戻す
@@ -1702,6 +1710,24 @@ void Player::UpdatePositionWithCollisionCheck(float timeScale)
 		// 垂直方向の位置更新（重力のみ、地形追従は後で処理）
 		if (!m_isGrounded) {
 			m_Position.y += m_verticalVelocity;
+		}
+	}
+
+	if (m_treeManager)
+	{
+		auto result = m_treeManager->CheckCollision(m_Position, m_collisionRadius);
+		if (result.hit)
+		{
+			// めり込み解消
+			m_Position.x += result.normal.x * result.penetration;
+			m_Position.z += result.normal.z * result.penetration;
+
+			// 速度を反射・減衰
+			m_velocity = TreeManager::ResolveCollision(result, m_velocity, 0.4f, 0.3f);
+
+			// カメラシェイク（速度に応じて）
+			float speed = sqrt(m_velocity.x * m_velocity.x + m_velocity.z * m_velocity.z);
+			SpringCamera::Instance().Shake(speed * 0.3f, 0.1f);
 		}
 	}
 }

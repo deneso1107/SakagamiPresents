@@ -54,21 +54,21 @@ void StageSelect::update(float deltatime)
     if (CDirectInput::GetInstance().CheckKeyBufferTrigger(DIK_D) ||
         InputManager::GetInstance()->GetButtonTrigger(SDL_CONTROLLER_BUTTON_RIGHTSHOULDER)) 
     {
-        m_leftArrow.OnPress();
-        m_stageManager.Next();
-        m_currentBillboardIndex = m_stageManager.GetCurrentIndex();
-        m_uiAnimator.Play(1.0f);  // ‰E“ü—Í
-        spinDir = 1.0f;
-        SoundManager::GetInstance().PlaySE("Click",0.25f);
-    }
-    if (CDirectInput::GetInstance().CheckKeyBufferTrigger(DIK_A) ||
-        InputManager::GetInstance()->GetButtonTrigger(SDL_CONTROLLER_BUTTON_LEFTSHOULDER))
-    {
         m_rightArrow.OnPress();
         m_stageManager.Prev();
         m_currentBillboardIndex = m_stageManager.GetCurrentIndex();
         m_uiAnimator.Play(-1.0f); // ¶“ü—Í
         spinDir = -1.0f;
+        SoundManager::GetInstance().PlaySE("Click", 0.25f);
+    }
+    if (CDirectInput::GetInstance().CheckKeyBufferTrigger(DIK_A) ||
+        InputManager::GetInstance()->GetButtonTrigger(SDL_CONTROLLER_BUTTON_LEFTSHOULDER))
+    {
+        m_leftArrow.OnPress();
+        m_stageManager.Next();
+        m_currentBillboardIndex = m_stageManager.GetCurrentIndex();
+        m_uiAnimator.Play(1.0f);  // ‰E“ü—Í
+        spinDir = 1.0f;
         SoundManager::GetInstance().PlaySE("Click", 0.25f);
     }
 
