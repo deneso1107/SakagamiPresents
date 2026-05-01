@@ -267,7 +267,7 @@ void CarDriveScene::loadAsync()
 		roadManager.SetRoad(3, 2, RoadType::STRAIGHT, Direction::SOUTH);//北↑
 		roadManager.SetRoad(3, 1, RoadType::STRAIGHT, Direction::SOUTH);//北↑
 		roadManager.SetRoad(3, 0, RoadType::TURN_LEFT, Direction::SOUTH);
-		roadManager.SetRoad(2, 0, RoadType::GOAL_LINE, Direction::WEST);
+		roadManager.SetRoad(2, 0, RoadType::GOAL_LINE, Direction::EAST);
 		break;
 	case 2:
 		// ロードが必要なリソースがあればここで非同期に読み込む
@@ -481,6 +481,8 @@ void CarDriveScene::SetupTreeOnRoad()
 	}
 
 	m_treeManager.Init(config);
+
+	m_player->SetTreeManager(&m_treeManager);
 
 	//スコアをリセット
 	m_gameScore = 0;

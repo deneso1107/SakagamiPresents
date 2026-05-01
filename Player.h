@@ -16,6 +16,8 @@
 #include"SoundManager.h"
 #include"InputManager.h"
 #include "WeavingEnemy.h"
+class TreeManager;
+
 class Player:public ObjectBase 
 {
 private:
@@ -186,7 +188,7 @@ private:
 	bool m_plusFov = false;
 
 	//当たり判定の半径
-	float m_collisionRadius = 0.5f;
+	float m_collisionRadius = 4.5f;
 
 	bool m_isResultMode = false;
 
@@ -231,6 +233,8 @@ private:
 	static constexpr float KNOCKBACK_FORCE_MULTIPLIER = 50.0f;  // ノックバック力の倍率
 	static constexpr float SCORE_DIVISOR = 75.0f;  // スコア計算の除数
 	static constexpr float WEAVING_ENEMY_SCORE_BONUS = 1.2f;  // WeavingEnemy撃破時のスコア倍率
+
+	TreeManager* m_treeManager = nullptr; // 所有しない（observing pointer）
 
 
 public:
@@ -351,4 +355,6 @@ public:
 	bool GetOnGoal() { return m_hasGoaled; }
 
 	void EnableAfterImage(bool enable) { m_afterImageEnabled = enable; }
+
+	void SetTreeManager(TreeManager* treeManager) { m_treeManager = treeManager; }
 };	

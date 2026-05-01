@@ -306,6 +306,85 @@ void TreeManager::Init(const MultiTreeFormationConfig& config)
     printf("Initialized %d trees (requested: %d)\n", (int)m_trees.size(), config.totalTreeCount);
 }
 
+TreeCollisionResult TreeManager::CheckCollision(const Vector3& playerPos, float playerRadius) const
+{
+    TreeCollisionResult result{};
+    result.hit = false;
+
+    float combinedRadius = playerRadius + TREE_COLLISION_RADIUS;
+
+    for (const auto& tree : m_trees)
+    {
+        if (!tree) continue;
+
+        Vector3 treePos = tree->GetPosition();
+
+        // Y軸は無視してXZ平面で距離判定
+        float dx = playerPos.x - treePos.x;
+        float dz = playerPos.z - treePos.z;
+        float distSq = dx * dx + dz * dz;
+
+        if (distSq < combinedRadius * combinedRadius)
+        {
+            float dist = sqrtf(distSq);
+
+            // 衝突法線（木→プレイヤー）
+            if (dist > 0.0001f)
+            {
+                result.normal = Vector3(dx / dist, 0.0f, dz / dist);
+            }
+            else
+            {
+                result.normal = Vector3(1.0f, 0.0f, 0.0f); // 完全重なり対策
+            }
+
+            result.penetration = combinedRadius - dist;
+            result.hit = true;
+            break; // 最初にヒットした木で判定（複数対応は後述）
+        }
+    }
+
+    return result;
+}
+
+Vector3 TreeManager::ResolveCollision(
+    const TreeCollisionResult& result,
+    const Vector3& velocity,
+    float restitution,
+    float friction)
+{
+    if (!result.hit) return velocity;
+
+    // 速度の法線成分（木に向かう方向）
+    float vDotN = velocity.x * result.normal.x
+        + velocity.y * result.normal.y
+        + velocity.z * result.normal.z;
+
+    // 既に離れていく方向なら何もしない
+    if (vDotN > 0.0f) return velocity;
+
+    // 法線方向の速度成分を反転・減衰
+    Vector3 vNormal = Vector3(
+        result.normal.x * vDotN,
+        result.normal.y * vDotN,
+        result.normal.z * vDotN
+    );
+
+    // 接線方向の速度成分（木に沿う方向）
+    Vector3 vTangent = Vector3(
+        velocity.x - vNormal.x,
+        velocity.y - vNormal.y,
+        velocity.z - vNormal.z
+    );
+
+    // 新しい速度 = 反転した法線成分 * 反発係数 + 接線成分 * 摩擦減衰
+    return Vector3(
+        -vNormal.x * restitution + vTangent.x * (1.0f - friction),
+        -vNormal.y * restitution + vTangent.y * (1.0f - friction),
+        -vNormal.z * restitution + vTangent.z * (1.0f - friction)
+    );
+}
+
 void TreeManager::Update(float deltaTime)
 {
     // 空チェック
