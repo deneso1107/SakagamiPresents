@@ -655,14 +655,6 @@ void Player::Update(float deltatime)
 	//速度システムの更新
 	UpdateSpeedBonusSystem(deltatime);
 
-	//if (CDirectInput::GetInstance().CheckKeyBuffer(DIK_O))
-	//{
-	//	AddBoostGauge(5.0f);
-	//}
-
-
-
-
 	// 前進・後退の入力
 	throttle = 0.0f;
 
