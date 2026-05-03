@@ -222,6 +222,54 @@ void CarDriveScene::init()
 	DebugUI::RedistDebugFunction([this]() {
 		debugControllEffect();
 		});
+	m_goalArch.Init();
+	BaseRoad* goalRoad = roadManager.GetGoalRoad();
+	if (goalRoad)
+	{
+		Vector3 goalPos = goalRoad->GetPosition();
+		float halfRoad = 140.0f;
+
+		// DirectionをroadLayoutから取得
+		Direction goalDirection = Direction::NORTH; // デフォルト
+		// roadManagerにGetGoalDirection()がなければ、GetGoalRoad()のRotationから判断
+		// ここではroadManagerのlayoutを直接参照する方法を使う
+		Vector3 roadRotation = goalRoad->GetRotation();
+
+		Vector3 archRot;
+		float offsetX = 0.0f;
+		float offsetZ = 0.0f;
+
+		// goalRoad->GetRotation().y のラジアン値でDirection判定
+		// Direction::NORTH=0, EAST=90度, SOUTH=180度, WEST=270度 (ラジアン換算)
+		float rotY = roadRotation.y; // ラジアン
+
+		if (abs(rotY) < 0.1f) // NORTH (0度)
+		{
+			offsetZ = -halfRoad;
+			archRot = Vector3(PI / 2, 0.0f, 0.0f);
+		}
+		else if (abs(rotY - PI / 2) < 0.1f) // EAST (90度)
+		{
+			offsetX = halfRoad;
+			archRot = Vector3(PI / 2, PI / 2, 0.0f);
+		}
+		else if (abs(rotY - PI) < 0.1f || abs(rotY + PI) < 0.1f) // SOUTH (180度)
+		{
+			offsetZ = halfRoad;
+			archRot = Vector3(PI / 2, PI, 0.0f);
+		}
+		else if (abs(rotY - 3 * PI / 2) < 0.1f || abs(rotY + PI / 2) < 0.1f) // WEST (270度)
+		{
+			offsetX = -halfRoad;
+			archRot = Vector3(PI / 2, -PI / 2, 0.0f);
+		}
+		goalPos.x += offsetX;
+		goalPos.z -= offsetZ;
+		goalPos.y += 20.0f;
+
+		m_goalArch.SetPosition(goalPos);
+		m_goalArch.SetRotation(archRot);
+	}
 }
 
 void CarDriveScene::loadAsync()
@@ -508,26 +556,33 @@ void CarDriveScene::update(float deltatime)//uint64_tとfloatの衝突　圧倒的衝突
 #endif
 
 
+	// GameScene の切り替え処理を修正
+
 	if (m_introCamera->IsIntroFinished()) {
-		// SpringCameraのスプリングをIntroCameraの最終状態で初期化
 		SpringCamera& springCam = SpringCamera::Instance();
 
-		// 位置スプリングを現在の状態に設定
+		Vector3 introPos = m_introCamera->GetPosition();
+		Vector3 introLookat = m_introCamera->GetLookat();
+
+		// ---- position spring ----
 		Spring posSpring = springCam.GetPositionSpring();
-		posSpring.position = m_introCamera->GetPosition();
-		posSpring.velocity = Vector3(0, 0, 0);  // 速度はリセット
+		posSpring.position = introPos;
+		posSpring.target = introPos;   // ← target も合わせる（これが最重要）
+		posSpring.velocity = Vector3(0, 0, 0);
 		springCam.SetPositionSpring(posSpring);
 
-		// LookAtスプリングも同様
+		// ---- lookAt spring ----
 		Spring lookSpring = springCam.GetLookAtSpring();
-		lookSpring.position = m_introCamera->GetLookat();
+		lookSpring.position = introLookat;
+		lookSpring.target = introLookat; // ← target も合わせる
 		lookSpring.velocity = Vector3(0, 0, 0);
 		springCam.SetLookAtSpring(lookSpring);
 
-		// カメラ切り替え
+		// ---- FOV も合わせる ----
+		//springCam.SetCurrentFOV(m_introCamera->GetFOV());
+
 		m_currentCamera = &springCam;
 		m_introCamera->ResetIntro();
-		
 	}
 
 	//次は加速しましょう
@@ -834,6 +889,7 @@ void CarDriveScene::draw(float deltatime)
 	DrawEnemies();
 	roadManager.DrawAll();
 	m_treeManager.Draw();
+	m_goalArch.Draw();
 	m_player->Draw();
 
 	EffectManager::Instance().Draw(context,viewMatrix);

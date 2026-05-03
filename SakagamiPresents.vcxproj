@@ -32,6 +32,7 @@
     <ClInclude Include="CarPhysics.h" />
     <ClInclude Include="ChaseCamera.h" />
     <ClInclude Include="CountdownEffect.h" />
+    <ClInclude Include="GoalArch.h" />
     <ClInclude Include="GoalCamera.h" />
     <ClInclude Include="GoalEffect.h" />
     <ClInclude Include="InputManager.h" />
@@ -149,6 +150,7 @@
     <ClCompile Include="CarPhysics.cpp" />
     <ClCompile Include="ChaseCamera.cpp" />
     <ClCompile Include="CountdownEffect.cpp" />
+    <ClCompile Include="GoalArch.cpp" />
     <ClCompile Include="GoalCamera.cpp" />
     <ClCompile Include="GoalEffect.cpp" />
     <ClCompile Include="InputManager.cpp" />

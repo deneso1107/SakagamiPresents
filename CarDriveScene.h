@@ -33,6 +33,7 @@
 #include"IntroCamera.h"
 #include"GoalCamera.h"
 #include"SoundManager.h"
+#include"GoalArch.h"
 class CarDriveScene : public IScene
 {
 public:
@@ -140,6 +141,7 @@ private:
 	RoadManager roadManager; // 道路サイズはコンストラクタで指定
 	TreeManager m_treeManager;
 	CameraManager m_cameraManager;
+	GoalArch m_goalArch;
 
 	Camera* m_currentCamera;
 	IntroCamera* m_introCamera = nullptr;  //IntroCamera専用ポインタ
