@@ -230,7 +230,7 @@ private:
 	bool m_isBGM = false;
 
 
-	static constexpr float KNOCKBACK_FORCE_MULTIPLIER = 50.0f;  // ノックバック力の倍率
+	static constexpr float KNOCKBACK_FORCE_MULTIPLIER = 10.0f;  // ノックバック力の倍率
 	static constexpr float SCORE_DIVISOR = 75.0f;  // スコア計算の除数
 	static constexpr float WEAVING_ENEMY_SCORE_BONUS = 1.2f;  // WeavingEnemy撃破時のスコア倍率
 
