@@ -10,7 +10,7 @@ void GoalArch::Init()
 		"shader/vertexLightingVS.hlsl",
 		"shader/vertexLightingPS.hlsl");
 
-	m_Scale = Vector3(75.0f, 75.0f, 75.0f);
+	m_Scale = Vector3(75.0f, 1.0f, 75.0f);
 	// 位置・回転はここでは設定しない（外から渡す）
 	m_BoundingSphere.center = m_Position;
 	m_BoundingSphere.radius = 1.0f * m_Scale.x;

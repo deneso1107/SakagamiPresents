@@ -227,7 +227,6 @@ void IntroCamera::UpdateTransitionCamera(float deltaTime)
         !m_isIntroFinished)
     {
         m_isIntroFinished = true;
-        printf("=== IntroCamera: Transition Complete! ===\n");
     }
 }
 

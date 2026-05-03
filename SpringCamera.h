@@ -141,6 +141,7 @@ public:
     void SetPositionSpring(const Spring& spring) { m_positionSpring = spring; }
     void SetLookAtSpring(const Spring& spring) { m_lookAtSpring = spring; }
 	void SetCurrentFOV(float fov) { m_currentFOV = fov; }
+    float GetNormalFOV()   const { return m_normalParams.fov; }
 	void PlusCurrentFOV() { m_boostParams.fov = m_MaxBoostingFOV; }
 
     void SetCameraMode(CameraMode mode);

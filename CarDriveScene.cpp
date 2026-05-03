@@ -263,9 +263,8 @@ void CarDriveScene::init()
 			offsetX = -halfRoad;
 			archRot = Vector3(PI / 2, -PI / 2, 0.0f);
 		}
-
 		goalPos.x += offsetX;
-		goalPos.z += offsetZ;
+		goalPos.z -= offsetZ;
 		goalPos.y += 20.0f;
 
 		m_goalArch.SetPosition(goalPos);
@@ -557,26 +556,33 @@ void CarDriveScene::update(float deltatime)//uint64_tとfloatの衝突　圧倒的衝突
 #endif
 
 
+	// GameScene の切り替え処理を修正
+
 	if (m_introCamera->IsIntroFinished()) {
-		// SpringCameraのスプリングをIntroCameraの最終状態で初期化
 		SpringCamera& springCam = SpringCamera::Instance();
 
-		// 位置スプリングを現在の状態に設定
+		Vector3 introPos = m_introCamera->GetPosition();
+		Vector3 introLookat = m_introCamera->GetLookat();
+
+		// ---- position spring ----
 		Spring posSpring = springCam.GetPositionSpring();
-		posSpring.position = m_introCamera->GetPosition();
-		posSpring.velocity = Vector3(0, 0, 0);  // 速度はリセット
+		posSpring.position = introPos;
+		posSpring.target = introPos;   // ← target も合わせる（これが最重要）
+		posSpring.velocity = Vector3(0, 0, 0);
 		springCam.SetPositionSpring(posSpring);
 
-		// LookAtスプリングも同様
+		// ---- lookAt spring ----
 		Spring lookSpring = springCam.GetLookAtSpring();
-		lookSpring.position = m_introCamera->GetLookat();
+		lookSpring.position = introLookat;
+		lookSpring.target = introLookat; // ← target も合わせる
 		lookSpring.velocity = Vector3(0, 0, 0);
 		springCam.SetLookAtSpring(lookSpring);
 
-		// カメラ切り替え
+		// ---- FOV も合わせる ----
+		//springCam.SetCurrentFOV(m_introCamera->GetFOV());
+
 		m_currentCamera = &springCam;
 		m_introCamera->ResetIntro();
-		
 	}
 
 	//次は加速しましょう
