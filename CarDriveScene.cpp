@@ -768,36 +768,41 @@ void CarDriveScene::update(float deltatime)//uint64_tとfloatの衝突　圧倒的衝突
 	bool onRoad = roadManager.GetRoadSurfaceType(m_player->GetPosition(), currentRoadType);
 	// 道路の端にいるかチェック（1.5f = 端から1.5単位以内）
 	
-      if(onRoad && currentRoadType == RoadType::FINALSLOPE_UP)
-	  {
+	if (onRoad && currentRoadType == RoadType::FINALSLOPE_UP)
+	{
+		// 入った瞬間のSE
+		if (m_previousRoadType != RoadType::FINALSLOPE_UP)
+		{
+			SoundManager::GetInstance().PlaySE("GameSceneFinal", 0.75f);
+		}
 
-		  // 前フレームがFINALSLOPE_UPでない = 今入った瞬間
-		  if (m_previousRoadType != RoadType::FINALSLOPE_UP)
-		  {
-			  SoundManager::GetInstance().PlaySE("GameSceneFinal", 0.75f);
-		  }
-		// プレイヤーの位置と向きを取得
 		Vector3 playerPos = m_player->GetPosition();
 		Vector3 playerForward = m_player->GetForwardVector();
 
-		// エミッタの位置をプレイヤーに設定
 		m_meteoEmitter.SetPosition(playerPos);
-
-		// プレイヤーの向きを設定
 		m_meteoEmitter.SetPlayerForward(
 			DirectX::XMFLOAT3(playerForward.x, playerForward.y, playerForward.z)
 		);
 
-		// 流星群を生成
+		// 流星群を生成（Emitだけここで行う）
 		m_meteoEmitter.Emit(
 			DirectX::XMFLOAT3(playerPos.x, playerPos.y, playerPos.z),
-			DirectX::XMFLOAT3(0, 0, 0),  // dirは使用されない
+			DirectX::XMFLOAT3(0, 0, 0),
 			ParticleBehaviorType::MeteorShower
 		);
+	}
 
-		// 更新
-		m_meteoEmitter.Update(deltatime);
+	// Update は常に呼ぶ（道を出た後もパーティクルを自然消滅させる）
+	m_meteoEmitter.Update(deltatime);
+
+	// previousRoadType の更新も常に行う
+	if (onRoad)
+	{
 		m_previousRoadType = currentRoadType;
+	}
+	else
+	{
+		m_previousRoadType = RoadType::NONE; // 道外に出たらリセット
 	}
 
 
